@@ -13,6 +13,7 @@ import hudson.slaves.NodeProvisioner;
 import jenkins.model.Jenkins;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -29,6 +30,10 @@ public class ProvisionQueueListener extends QueueListener {
     public void onEnterBuildable(final Queue.BuildableItem bi) {
         if (bi.task instanceof AbstractProject) {
             AbstractProject job = (AbstractProject) bi.task;
+            if(!job.getAssignedLabel().getName().matches(DockerSlaveConfiguration.get().getLabel())){
+                return;
+            }
+
 
             try {
                 LOGGER.info("Creating a Container slave to host " + job.toString() + "#" + job.getNextBuildNumber());
@@ -65,7 +70,7 @@ public class ProvisionQueueListener extends QueueListener {
         }
 
         final String id = Long.toHexString(System.nanoTime());
-        final Label label = Label.get("docker_" + id);
+        final Label label = new DockerMachineLabel(id);
         return new DockerLabelAssignmentAction(label);
     }
 

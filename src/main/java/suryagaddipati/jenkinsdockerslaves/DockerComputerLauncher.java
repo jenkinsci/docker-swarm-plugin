@@ -71,50 +71,39 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
         try {
 
-            DockerClient docker = buildDockerClient("https://192.168.99.100:2376", true, "/Users/sgaddipati/.docker/machine/machines/docker");
-//            DockerClient docker = buildDockerClient("http://10.20.90.34:9000", false, "/Users/sgaddipati/.docker/machine/machines/docker");
+            DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
+            DockerClient docker = configuration.newDockerClient();
 
             final String additionalSlaveOptions = "-noReconnect";
-            final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
-            final String[] command = new String[] {"sh", "-c", "curl -o slave.jar " + getSlaveJarUrl() + " && java -jar slave.jar " + slaveOptions};
-            final ContainerConfig.Builder containerConfigBuilder = ContainerConfig.builder().image("docker.groupondev.com/docker/jenkins_slave").cmd(command);
+            final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer,configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
+            final String[] command = new String[] {"sh", "-c", "curl -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
+            final ContainerConfig.Builder containerConfigBuilder = ContainerConfig.builder().image(configuration.getImage()).cmd(command);
             final HostConfig.Builder hostConfigBuilder = HostConfig.builder();
-            hostConfigBuilder.privileged(true);
-            hostConfigBuilder.binds("/usr/local/bin/docker:/usr/local/bin/docker", "/var/run/docker.sock:/var/run/docker.sock");
+            hostConfigBuilder.privileged(configuration.isPrivileged());
+            hostConfigBuilder.binds(configuration.getHostBindsConfig());
 
             ContainerCreation creation = docker.createContainer(containerConfigBuilder.build());
             docker.startContainer(creation.id(), hostConfigBuilder.build());
-//            computer.getSlave().set
             computer.connect(false).get();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    private String getJenkinsBaseUrl() {
-        return "http://192.168.99.1:8080/jenkins/";
-//            return "http://buildmaster2.snc1:8080/";
-//        String url = JenkinsLocationConfiguration.get().getUrl();
-//        if(url == null)
-//        if (url.endsWith("/")) {
-//            return url;
-//        } else {
-//            return url + '/';
-//        }
+    private String getJenkinsUrl(DockerSlaveConfiguration configuration) {
+        String url = configuration.getJenkinsUrl();
+        if (url.endsWith("/")) {
+            return url;
+        } else {
+            return url + '/';
+        }
+    }
+    private String getSlaveJarUrl(DockerSlaveConfiguration configuration) {
+        return getJenkinsUrl(configuration) + "jnlpJars/slave.jar";
     }
 
-    /*
-     * Get the slave jar URL.
-     */
-    private String getSlaveJarUrl() {
-        return getJenkinsBaseUrl() + "jnlpJars/slave.jar";
-    }
-
-    /*
-     * Get the JNLP URL for the slave.
-     */
-    private String getSlaveJnlpUrl(Computer computer) {
-        return getJenkinsBaseUrl() + computer.getUrl() + "slave-agent.jnlp";
+    private String getSlaveJnlpUrl(Computer computer, DockerSlaveConfiguration configuration) {
+        return getJenkinsUrl(configuration) + computer.getUrl() + "slave-agent.jnlp";
 
     }
 
@@ -187,22 +176,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
             IOUtils.closeQuietly(fos);
         }
     }
-    private DockerClient buildDockerClient(String uri, Boolean useTLS, String certificatesPath) throws Exception {
 
-        final URI dockerUri = URI.create(uri);
-
-        DockerClient dockerClient;
-
-        if (Boolean.TRUE.equals(useTLS)) {
-            final Path certsPath = Paths.get(certificatesPath);
-            final DockerCertificates dockerCerts = new DockerCertificates(certsPath);
-            dockerClient = new DefaultDockerClient(dockerUri, dockerCerts);
-        } else {
-            dockerClient = new DefaultDockerClient(dockerUri);
-        }
-
-        return dockerClient;
-
-    }
 
 }

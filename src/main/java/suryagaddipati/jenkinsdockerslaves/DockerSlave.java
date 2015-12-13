@@ -27,8 +27,11 @@ package suryagaddipati.jenkinsdockerslaves;
 
 import hudson.model.Descriptor;
 import hudson.model.Job;
+import hudson.model.Label;
 import hudson.model.Node;
+import hudson.model.Queue;
 import hudson.model.TaskListener;
+import hudson.model.queue.CauseOfBlockage;
 import hudson.slaves.AbstractCloudSlave;
 import hudson.slaves.EphemeralNode;
 import hudson.slaves.NodeProperty;
@@ -36,6 +39,7 @@ import hudson.slaves.RetentionStrategy;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.logging.Logger;
 
 /**
  * An ${@link EphemeralNode} using docker containers to host the build processes.
@@ -78,6 +82,13 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
         return (DockerComputer) super.getComputer();
     }
 
-
-
+    @Override
+    public CauseOfBlockage canTake(Queue.BuildableItem item) {
+        Label l = item.getAssignedLabel();
+        if(l != null && this.name.equals(l.getName())){
+            return null;
+        }
+        return super.canTake(item);
+    }
+    private static final Logger LOGGER = Logger.getLogger(DockerSlave.class.getName());
 }

@@ -71,9 +71,11 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         LOGGER.info("Stopping Docker Slave after build completion");
         setAcceptingTasks(false);
         try {
-                getNode().terminate();
+            getNode().terminate();
         } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -95,6 +97,6 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     private static final Logger LOGGER = Logger.getLogger(DockerComputer.class.getName());
 
     public DockerSlave getSlave() {
-       return this.getNode();
+        return this.getNode();
     }
 }
