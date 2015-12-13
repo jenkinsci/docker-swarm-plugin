@@ -53,7 +53,6 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
     private final Job job;
 
     public DockerSlave(Job job, String labelString) throws Descriptor.FormException, IOException {
-        // TODO would be better to get notified when the build start, and get the actual build ID. But can't find the API for that
         super(labelString, "Container slave for building " + job.getFullName()+job.getNextBuildNumber(),
                 "/home/jenkins", 1, Mode.EXCLUSIVE, labelString,
                 new DockerComputerLauncher(),

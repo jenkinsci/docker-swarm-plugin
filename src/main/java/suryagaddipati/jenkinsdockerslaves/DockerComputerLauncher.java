@@ -25,33 +25,22 @@
 
 package suryagaddipati.jenkinsdockerslaves;
 
-import com.spotify.docker.client.DefaultDockerClient;
-import com.spotify.docker.client.DockerCertificates;
 import com.spotify.docker.client.DockerClient;
+import com.spotify.docker.client.DockerException;
+import com.spotify.docker.client.ImageNotFoundException;
+import com.spotify.docker.client.ProgressHandler;
 import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import com.spotify.docker.client.messages.HostConfig;
-import hudson.model.AbstractProject;
+import com.spotify.docker.client.messages.ProgressMessage;
 import hudson.model.Computer;
-import hudson.model.FreeStyleBuild;
-import hudson.model.Job;
-import hudson.model.Queue;
-import hudson.model.Result;
-import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
-import jenkins.model.Jenkins;
-import org.apache.commons.io.Charsets;
-import org.apache.commons.io.IOUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.PrintStream;
+import java.util.logging.Logger;
 
 public class DockerComputerLauncher extends ComputerLauncher {
 
@@ -66,9 +55,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
     }
 
     private void launch(final DockerComputer computer, TaskListener listener) throws IOException, InterruptedException {
-        // we need to capture taskListener here, as it's a private field of Computer
-        TeeTaskListener teeListener = computer.initTeeListener(listener);
-
         try {
 
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
@@ -81,14 +67,46 @@ public class DockerComputerLauncher extends ComputerLauncher {
             final HostConfig.Builder hostConfigBuilder = HostConfig.builder();
             hostConfigBuilder.privileged(configuration.isPrivileged());
             hostConfigBuilder.binds(configuration.getHostBindsConfig());
-
+            pullImageIfNotFound(docker,configuration.getImage(),listener.getLogger());
             ContainerCreation creation = docker.createContainer(containerConfigBuilder.build());
             docker.startContainer(creation.id(), hostConfigBuilder.build());
+            docker.logs(creation.id(), DockerClient.LogsParameter.FOLLOW).attach(listener.getLogger(),listener.getLogger());
+            listener.getLogger().print("Created container :" + creation.id() );
             computer.connect(false).get();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            e.printStackTrace(listener.getLogger());
         }
+    }
+
+    private void pullImageIfNotFound(DockerClient docker, String dockerImage, final PrintStream logger) throws DockerException, InterruptedException {
+        boolean imageExists;
+        try {
+            logger.println("Checking if image " + dockerImage + " exists.");
+            if (docker.inspectImage(dockerImage) != null) {
+                imageExists = true;
+            } else {
+                // Should be unreachable.
+                imageExists = false;
+            }
+        } catch (ImageNotFoundException e) {
+            imageExists = false;
+        }
+
+        logger.println("Image " + dockerImage + " exists? " + imageExists );
+
+        if (!imageExists ) {
+            logger.println("Pulling image " + dockerImage + ".");
+            docker.pull(dockerImage, new ProgressHandler(){
+                @Override
+                public void progress(ProgressMessage message) throws DockerException {
+                    if(message.progress() != null)
+                    logger.println(message.progress());
+                }
+            });
+            logger.println("Finished pulling image " + dockerImage + ".");
+        }
+
     }
     private String getJenkinsUrl(DockerSlaveConfiguration configuration) {
         String url = configuration.getJenkinsUrl();
@@ -111,71 +129,5 @@ public class DockerComputerLauncher extends ComputerLauncher {
         return ((DockerComputer)computer).getJnlpMac();
 
     }
-
-
-    // -- A terrible hack; but we can't find a better way so far ---
-
-    protected void recordFailureOnBuild(final DockerComputer computer, TeeTaskListener teeListener, IOException e) throws IOException, InterruptedException {
-        final Job job = computer.getJob();
-        Queue.Item queued = job.getQueueItem();
-        Jenkins.getInstance().getQueue().cancel(queued);
-
-        // DockerComputer can only be used with AbstractProject
-        Run run = ((AbstractProject) job).createExecutable();
-        writeFakeBuild(new File(run.getRootDir(),"build.xml"), run);
-        writeLog(new File(run.getRootDir(),"log"), teeListener);
-        run.reload();
-    }
-
-
-    private void writeTagBegin(OutputStream out, String tag) throws IOException {
-        StringBuilder builder = new StringBuilder();
-        builder.append("<").append(tag).append(">");
-        out.write(builder.toString().getBytes(Charsets.UTF_8));
-    }
-
-    private void writeTagEnd(OutputStream out, String tag) throws IOException {
-        StringBuilder builder = new StringBuilder();
-        builder.append("</").append(tag).append(">\n");
-        out.write(builder.toString().getBytes(Charsets.UTF_8));
-    }
-
-    private void writeTag(OutputStream out, String tag, String value) throws IOException {
-        writeTagBegin(out, tag);
-        StringBuilder builder = new StringBuilder();
-        builder.append(value);
-        out.write(builder.toString().getBytes(Charsets.UTF_8));
-        writeTagEnd(out, tag);
-    }
-
-    private static final String XML_HEADER = "<?xml version='1.0' encoding='UTF-8'?>\n";
-
-    private void writeFakeBuild(File file, Run run) throws IOException {
-        String topLevelTag = run instanceof FreeStyleBuild ? "build" : run.getClass().getCanonicalName();
-
-        FileOutputStream fos = new FileOutputStream(file);
-        try {
-            fos.write(XML_HEADER.getBytes(Charsets.UTF_8));
-            writeTagBegin(fos, topLevelTag);
-            writeTag(fos, "timestamp", Long.toString(System.currentTimeMillis()));
-            writeTag(fos, "startTime", Long.toString(System.currentTimeMillis()));
-            writeTag(fos, "result", Result.NOT_BUILT.toString());
-            writeTag(fos, "duration", "0");
-            writeTag(fos, "keepLog", "false");
-            writeTagEnd(fos, topLevelTag);
-        } finally {
-            IOUtils.closeQuietly(fos);
-        }
-    }
-
-    private void writeLog(File file, TeeTaskListener teeListener) throws IOException {
-        FileOutputStream fos = new FileOutputStream(file);
-        try {
-            teeListener.setSideOutputStream(fos);
-        } finally {
-            IOUtils.closeQuietly(fos);
-        }
-    }
-
 
 }

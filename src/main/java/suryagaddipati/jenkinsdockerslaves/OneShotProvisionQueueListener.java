@@ -13,7 +13,6 @@ import hudson.slaves.NodeProvisioner;
 import jenkins.model.Jenkins;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -24,7 +23,7 @@ import java.util.logging.Logger;
  *
  */
 @Extension
-public class ProvisionQueueListener extends QueueListener {
+public class OneShotProvisionQueueListener extends QueueListener {
 
     @Override
     public void onEnterBuildable(final Queue.BuildableItem bi) {
@@ -62,6 +61,28 @@ public class ProvisionQueueListener extends QueueListener {
         }
     }
 
+    @Override
+    public void onLeft(Queue.LeftItem li) {
+        if(li.isCancelled()){
+            DockerLabelAssignmentAction labelAssignmentAction = li.getAction(DockerLabelAssignmentAction.class);
+            if (labelAssignmentAction !=null){
+                String computerName = labelAssignmentAction.getLabel().getName();
+
+                final Node node = Jenkins.getInstance().getNode(computerName);
+                Computer.threadPoolForRemoting.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Jenkins.getInstance().removeNode(node);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
+        }
+    }
+
     private DockerLabelAssignmentAction createLabelAssignmentAction() {
         try {
             Thread.sleep(5,10);
@@ -70,9 +91,9 @@ public class ProvisionQueueListener extends QueueListener {
         }
 
         final String id = Long.toHexString(System.nanoTime());
-        final Label label = new DockerMachineLabel(id);
+        final Label label = new OneShotMachineLabel(id);
         return new DockerLabelAssignmentAction(label);
     }
 
-    private static final Logger LOGGER = Logger.getLogger(ProvisionQueueListener.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(OneShotProvisionQueueListener.class.getName());
 }
