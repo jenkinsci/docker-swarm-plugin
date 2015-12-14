@@ -91,7 +91,7 @@ public class OneShotProvisionQueueListener extends QueueListener {
         }
 
         final String id = Long.toHexString(System.nanoTime());
-        final Label label = new OneShotMachineLabel(id);
+        final Label label = new DockerMachineLabel(id);
         return new DockerLabelAssignmentAction(label);
     }
 
