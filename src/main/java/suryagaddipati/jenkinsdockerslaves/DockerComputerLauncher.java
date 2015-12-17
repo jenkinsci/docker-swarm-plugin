@@ -40,6 +40,7 @@ import hudson.slaves.SlaveComputer;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class DockerComputerLauncher extends ComputerLauncher {
@@ -60,15 +61,25 @@ public class DockerComputerLauncher extends ComputerLauncher {
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
             DockerClient docker = configuration.newDockerClient();
 
+
+            final HostConfig.Builder hostConfigBuilder = HostConfig.builder();
+            hostConfigBuilder.privileged(configuration.isPrivileged());
+            String[] bindOptions = configuration.getHostBindsConfig();
+            String[] hostBinds  = new String[bindOptions.length+1];
+            System.arraycopy(bindOptions,0,hostBinds,0,bindOptions.length);
+            String workSpace = configuration.getBaseWorkspaceLocation()+"/"+computer.getName();
+            hostBinds[bindOptions.length]=workSpace+":"+workSpace;
+            computer.getJob().setCustomWorkspace(workSpace);
+            hostConfigBuilder.binds(hostBinds);
+            pullImageIfNotFound(docker,configuration.getImage(),listener.getLogger());
+
             final String additionalSlaveOptions = "-noReconnect";
             final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer,configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
             final String[] command = new String[] {"sh", "-c", "curl -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
             final ContainerConfig.Builder containerConfigBuilder = ContainerConfig.builder().image(configuration.getImage()).cmd(command);
-            final HostConfig.Builder hostConfigBuilder = HostConfig.builder();
-            hostConfigBuilder.privileged(configuration.isPrivileged());
-            hostConfigBuilder.binds(configuration.getHostBindsConfig());
-            pullImageIfNotFound(docker,configuration.getImage(),listener.getLogger());
             ContainerCreation creation = docker.createContainer(containerConfigBuilder.build());
+
+
             docker.startContainer(creation.id(), hostConfigBuilder.build());
             docker.logs(creation.id(), DockerClient.LogsParameter.FOLLOW).attach(listener.getLogger(),listener.getLogger());
             listener.getLogger().print("Created container :" + creation.id() );
@@ -108,14 +119,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
         }
 
     }
-    private String getJenkinsUrl(DockerSlaveConfiguration configuration) {
-        String url = configuration.getJenkinsUrl();
-        if (url.endsWith("/")) {
-            return url;
-        } else {
-            return url + '/';
-        }
-    }
     private String getSlaveJarUrl(DockerSlaveConfiguration configuration) {
         return getJenkinsUrl(configuration) + "jnlpJars/slave.jar";
     }
@@ -128,6 +131,15 @@ public class DockerComputerLauncher extends ComputerLauncher {
     private String getSlaveSecret(Computer computer) {
         return ((DockerComputer)computer).getJnlpMac();
 
+    }
+
+    private String getJenkinsUrl(DockerSlaveConfiguration configuration) {
+        String url = configuration.getJenkinsUrl();
+        if (url.endsWith("/")) {
+            return url;
+        } else {
+            return url + '/';
+        }
     }
 
 }

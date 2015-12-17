@@ -27,7 +27,10 @@ import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerCertificateException;
 import com.spotify.docker.client.DockerCertificates;
 import com.spotify.docker.client.DockerClient;
+import com.spotify.docker.client.messages.ContainerConfig;
+import com.spotify.docker.client.messages.ContainerCreation;
 import hudson.Extension;
+import hudson.model.Computer;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
@@ -50,6 +53,7 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
     private boolean privileged;
     private String jenkinsUrl;
     private String label;
+    private String baseWorkspaceLocation;
 
 
     public DockerSlaveConfiguration() {
@@ -145,5 +149,13 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
 
     public void setLabel(String label) {
         this.label = label;
+    }
+
+    public String getBaseWorkspaceLocation() {
+        return baseWorkspaceLocation;
+    }
+
+    public void setBaseWorkspaceLocation(String baseWorkspaceLocation) {
+        this.baseWorkspaceLocation = baseWorkspaceLocation;
     }
 }

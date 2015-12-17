@@ -25,6 +25,7 @@
 
 package suryagaddipati.jenkinsdockerslaves;
 
+import hudson.model.AbstractProject;
 import hudson.model.Executor;
 import hudson.model.Job;
 import hudson.model.Queue;
@@ -77,8 +78,8 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
 
 
-    public Job getJob() {
-        return job;
+    public AbstractProject getJob() {
+        return (AbstractProject) job;
     }
 
 

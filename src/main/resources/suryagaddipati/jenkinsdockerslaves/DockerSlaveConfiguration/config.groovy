@@ -6,6 +6,9 @@ f.section(title:_("Docker Slaves Configuration")) {
         f.entry(title:_("Job Label"), field:"label") {
             f.textbox()
         }
+        f.entry(title:_("Base Workspace Location"), field:"baseWorkspaceLocation") {
+            f.textbox()
+        }
 
         f.entry(title:_("Docker http(s) uri"), field:"uri") {
             f.textbox()
@@ -30,8 +33,6 @@ f.section(title:_("Docker Slaves Configuration")) {
         f.entry(field: "privileged") {
             f.checkbox(title: _("privileged"))
         }
-
-
 
     }
 }
