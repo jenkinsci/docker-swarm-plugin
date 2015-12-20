@@ -56,8 +56,8 @@ public class DockerComputerLauncher extends ComputerLauncher {
     }
 
     private void launch(final DockerComputer computer, TaskListener listener) throws IOException, InterruptedException {
+        TeeTaskListener teeListener = computer.initTeeListener(listener);
         try {
-
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
             DockerClient docker = configuration.newDockerClient();
 
@@ -77,7 +77,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
             final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer,configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
             final String[] command = new String[] {"sh", "-c", "curl -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
             final ContainerConfig.Builder containerConfigBuilder = ContainerConfig.builder().image(configuration.getImage()).cmd(command);
-            ContainerCreation creation = docker.createContainer(containerConfigBuilder.build());
+            ContainerCreation creation = docker.createContainer(containerConfigBuilder.build(), computer.getName());
 
 
             docker.startContainer(creation.id(), hostConfigBuilder.build());
@@ -86,7 +86,9 @@ public class DockerComputerLauncher extends ComputerLauncher {
             computer.connect(false).get();
 
         } catch (Exception e) {
-            e.printStackTrace(listener.getLogger());
+            e.printStackTrace(teeListener.getLogger());
+//            computer.terminate();
+            throw new RuntimeException(e);
         }
     }
 
