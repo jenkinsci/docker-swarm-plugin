@@ -13,6 +13,7 @@ import hudson.slaves.NodeProvisioner;
 import jenkins.model.Jenkins;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -29,7 +30,8 @@ public class OneShotProvisionQueueListener extends QueueListener {
     public void onEnterBuildable(final Queue.BuildableItem bi) {
         if (bi.task instanceof AbstractProject) {
             AbstractProject job = (AbstractProject) bi.task;
-            if(!job.getAssignedLabel().getName().matches(DockerSlaveConfiguration.get().getLabel())){
+            List<String> labels = DockerSlaveConfiguration.get().getLabels();
+            if(! labels.contains( job.getAssignedLabel().getName())){
                 return;
             }
 

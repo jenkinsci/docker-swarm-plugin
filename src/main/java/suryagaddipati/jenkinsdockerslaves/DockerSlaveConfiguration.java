@@ -23,6 +23,9 @@ THE SOFTWARE.
  */
 package suryagaddipati.jenkinsdockerslaves;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerCertificateException;
 import com.spotify.docker.client.DockerCertificates;
@@ -35,6 +38,7 @@ import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -155,5 +159,23 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
     }
 
 
+    public List<String> getLabels() {
+        Iterable<String> labels = Iterables.transform(getLabelConfigurations(), new Function<LabelConfiguration, String>() {
+            public String apply(LabelConfiguration labelConfiguration) {
+                return labelConfiguration.getLabel();
+            }
+        });
+        return Lists.newArrayList(labels);
+    }
 
+    public LabelConfiguration getLabelConfiguration(String label) {
+        for(LabelConfiguration labelConfiguration : labelConfigurations){
+            if (label.equals(labelConfiguration.getLabel())){
+                return labelConfiguration;
+            }
+        }
+
+        return null;
+
+    }
 }

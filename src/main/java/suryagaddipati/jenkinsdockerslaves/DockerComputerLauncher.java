@@ -40,11 +40,16 @@ import hudson.slaves.SlaveComputer;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.logging.Logger;
 
 public class DockerComputerLauncher extends ComputerLauncher {
 
+
+    private String label;
+
+    public DockerComputerLauncher(String label) {
+
+        this.label = label;
+    }
 
     @Override
     public void launch(final SlaveComputer computer, TaskListener listener) throws IOException, InterruptedException {
@@ -60,28 +65,29 @@ public class DockerComputerLauncher extends ComputerLauncher {
         try {
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
             DockerClient docker = configuration.newDockerClient();
+            LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
 
 
             final HostConfig.Builder hostConfigBuilder = HostConfig.builder();
             hostConfigBuilder.privileged(configuration.isPrivileged());
-            String[] bindOptions = configuration.getHostBindsConfig();
+            String[] bindOptions = labelConfiguration.getHostBindsConfig();
             String[] hostBinds  = new String[bindOptions.length+1];
             System.arraycopy(bindOptions,0,hostBinds,0,bindOptions.length);
             String workSpace = configuration.getBaseWorkspaceLocation()+"/"+computer.getName();
             hostBinds[bindOptions.length]=workSpace+":"+workSpace;
             computer.getJob().setCustomWorkspace(workSpace);
             hostConfigBuilder.binds(hostBinds);
-            pullImageIfNotFound(docker,configuration.getImage(),listener.getLogger());
+            pullImageIfNotFound(docker,labelConfiguration.getImage(),listener.getLogger());
 
             final String additionalSlaveOptions = "-noReconnect";
             final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer,configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
             final String[] command = new String[] {"sh", "-c", "curl -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
-            final ContainerConfig.Builder containerConfigBuilder = ContainerConfig.builder().image(configuration.getImage()).cmd(command);
+            final ContainerConfig.Builder containerConfigBuilder = ContainerConfig.builder().image(labelConfiguration.getImage()).cmd(command).hostConfig(hostConfigBuilder.build());
             ContainerCreation creation = docker.createContainer(containerConfigBuilder.build(), computer.getName());
 
 
-            docker.startContainer(creation.id(), hostConfigBuilder.build());
-            docker.logs(creation.id(), DockerClient.LogsParameter.FOLLOW).attach(listener.getLogger(),listener.getLogger());
+            docker.startContainer(creation.id());
+            docker.logs(creation.id(), DockerClient.LogsParam.follow()).attach(listener.getLogger(),listener.getLogger());
             listener.getLogger().print("Created container :" + creation.id() );
             computer.connect(false).get();
 
