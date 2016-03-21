@@ -26,6 +26,7 @@
 package suryagaddipati.jenkinsdockerslaves;
 
 import hudson.Launcher;
+import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
 import hudson.model.Job;
 import hudson.model.Label;
@@ -56,7 +57,7 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
     public DockerSlave(Job job, String labelString) throws Descriptor.FormException, IOException {
         super(labelString, "Container slave for building " + job.getFullName()+job.getNextBuildNumber(),
                 "/home/jenkins", 1, Mode.EXCLUSIVE, labelString,
-                new DockerComputerLauncher(labelString),
+                new DockerComputerLauncher(((AbstractProject)job).getAssignedLabelString()),
                 RetentionStrategy.NOOP,
                 Collections.<NodeProperty<?>>emptyList());
         this.job = job;

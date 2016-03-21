@@ -1,5 +1,6 @@
 package suryagaddipati.jenkinsdockerslaves;
 
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public   class LabelConfiguration {
@@ -38,6 +39,6 @@ public   class LabelConfiguration {
             return image;
         }
         public String[] getHostBindsConfig() {
-            return this.hostBinds.split(" ");
+            return StringUtils.isEmpty( this.hostBinds)? new String[]{}: this.hostBinds.split(" ");
         }
     }
