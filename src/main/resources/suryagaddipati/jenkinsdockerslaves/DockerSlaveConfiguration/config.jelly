@@ -1,0 +1,75 @@
+<!--
+The MIT License
+
+Copyright (c) 2004-2009, Sun Microsystems, Inc., Tom Huybrechts
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-->
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+         xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <f:section title="Docker Slaves Configuration">
+        <f:entry title="Base WorkspaceLocation" field="baseWorkspaceLocation">
+            <f:textbox />
+        </f:entry>
+
+        <f:entry title="Docker http(s) uri" field="uri">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="use TLS?" field="useTLS">
+            <f:checkbox />
+        </f:entry>
+        <f:entry title="Certificates Path" field="certificatesPath">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="Jenkins Url " field="jenkinsUrl">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="Privileged" field="privileged">
+            <f:checkbox/>
+        </f:entry>
+
+
+
+        <f:entry title="Image Labels">
+        <f:repeatable var="labelConfiguration" items="${instance.labelConfigurations}" name="labelConfigurations">
+            <table width="100%">
+
+                <f:entry title="Label" field="label">
+                    <f:textbox  value="${labelConfiguration.label}"/>
+                </f:entry>
+
+                <f:entry title="Image" field="image">
+                    <f:textbox  value="${labelConfiguration.image}"/>
+                </f:entry>
+
+                <f:entry title="Host Binds( space seperated)" field="hostBinds">
+                    <f:textbox  value="${labelConfiguration.hostBinds}"/>
+                </f:entry>
+
+                <f:entry title="">
+                    <div align="right">
+                        <f:repeatableDeleteButton />
+                    </div>
+                </f:entry>
+            </table>
+        </f:repeatable>
+    </f:entry>
+   </f:section>
+</j:jelly>

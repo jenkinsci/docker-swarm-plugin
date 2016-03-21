@@ -38,6 +38,8 @@ import org.kohsuke.stapler.StaplerRequest;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 @Extension
 public class DockerSlaveConfiguration extends GlobalConfiguration {
@@ -45,19 +47,29 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
     Boolean useTLS;
     String certificatesPath;
 
-    String image;
-    String hostBinds;
 
 
 
     private boolean privileged;
     private String jenkinsUrl;
-    private String label;
     private String baseWorkspaceLocation;
+
+    public List<LabelConfiguration> getLabelConfigurations() {
+        return labelConfigurations;
+    }
+
+    public void setLabelConfigurations(List<LabelConfiguration> labelConfigurations) {
+        this.labelConfigurations = labelConfigurations;
+    }
+
+    private List<LabelConfiguration> labelConfigurations;
 
 
     public DockerSlaveConfiguration() {
         load();
+        if(labelConfigurations == null){
+            labelConfigurations = new ArrayList<LabelConfiguration>();
+        }
     }
 
     @Override
@@ -82,8 +94,9 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
     }
 
 
-    public String[] getHostBindsConfig() {
-        return this.hostBinds.split(" ");
+    @Override
+    public synchronized void save() {
+        super.save();
     }
 
     public String getUri() {
@@ -94,13 +107,7 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
         return useTLS;
     }
 
-    public String getHostBinds() {
-        return hostBinds;
-    }
 
-    public String getImage() {
-        return image;
-    }
 
     public String getCertificatesPath() {
         return certificatesPath;
@@ -113,13 +120,7 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
         this.useTLS = useTLS;
     }
 
-    public void setHostBinds(String hostBinds) {
-        this.hostBinds = hostBinds;
-    }
 
-    public void setImage(String image) {
-        this.image = image;
-    }
 
     public void setCertificatesPath(String certificatesPath) {
         this.certificatesPath = certificatesPath;
@@ -143,13 +144,7 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
         this.jenkinsUrl = jenkinsUrl;
     }
 
-    public String getLabel() {
-        return label;
-    }
 
-    public void setLabel(String label) {
-        this.label = label;
-    }
 
     public String getBaseWorkspaceLocation() {
         return baseWorkspaceLocation;
@@ -158,4 +153,7 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
     public void setBaseWorkspaceLocation(String baseWorkspaceLocation) {
         this.baseWorkspaceLocation = baseWorkspaceLocation;
     }
+
+
+
 }
