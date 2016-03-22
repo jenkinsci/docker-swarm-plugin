@@ -39,7 +39,6 @@ import java.util.logging.Logger;
 public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
     private final Job job;
-    private TeeTaskListener teeTasklistener;
 
 
     public DockerComputer(DockerSlave dockerSlave, Job job) {
@@ -88,17 +87,4 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
     private static final Logger LOGGER = Logger.getLogger(DockerComputer.class.getName());
 
-    public TeeTaskListener initTeeListener(TaskListener computerListener) throws IOException {
-        teeTasklistener = new TeeTaskListener(computerListener, File.createTempFile(getName(),"log"));
-
-        return teeTasklistener;
-    }
-
-    public void connectJobListener(TaskListener jobListener) throws IOException {
-        teeTasklistener.setSideOutputStream(jobListener.getLogger());
-    }
-
-    public DockerSlave getSlave() {
-        return this.getNode();
-    }
 }

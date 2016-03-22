@@ -61,7 +61,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
     }
 
     private void launch(final DockerComputer computer, TaskListener listener) throws IOException, InterruptedException {
-        TeeTaskListener teeListener = computer.initTeeListener(listener);
         try {
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
             DockerClient docker = configuration.newDockerClient();
@@ -92,7 +91,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
             computer.connect(false).get();
 
         } catch (Exception e) {
-            e.printStackTrace(teeListener.getLogger());
+//            e.printStackTrace(teeListener.getLogger());
 //            computer.terminate();
             throw new RuntimeException(e);
         }
