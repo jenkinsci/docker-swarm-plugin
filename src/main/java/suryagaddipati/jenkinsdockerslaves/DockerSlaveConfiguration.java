@@ -34,6 +34,7 @@ import com.spotify.docker.client.messages.ContainerConfig;
 import com.spotify.docker.client.messages.ContainerCreation;
 import hudson.Extension;
 import hudson.model.Computer;
+import hudson.model.Label;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
@@ -177,5 +178,9 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
 
         return null;
 
+    }
+
+    public boolean canProvision(Label label) {
+        return getLabelConfiguration(label.getName()) != null;
     }
 }
