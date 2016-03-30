@@ -29,26 +29,30 @@ package suryagaddipati.jenkinsdockerslaves;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.command.CreateVolumeResponse;
 import com.github.dockerjava.api.model.Bind;
-import com.github.dockerjava.api.model.ContainerConfig;
-import com.github.dockerjava.api.model.HostConfig;
 import com.github.dockerjava.api.model.Volume;
+import com.google.common.collect.ImmutableMap;
 import hudson.model.Computer;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
 
 import java.io.IOException;
-import java.io.PrintStream;
 
 public class DockerComputerLauncher extends ComputerLauncher {
 
 
     private String label;
+    private String jobName;
+    private int buildNumber;
+    private String lastFinishedBuild;
 
-    public DockerComputerLauncher(String label) {
-
+    public DockerComputerLauncher(String label, String jobName, int buildNumber, String lastFinishedBuild) {
         this.label = label;
+        this.jobName = jobName;
+        this.buildNumber = buildNumber;
+        this.lastFinishedBuild = lastFinishedBuild;
     }
 
     @Override
@@ -71,6 +75,11 @@ public class DockerComputerLauncher extends ComputerLauncher {
             final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer,configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
             final String[] command = new String[] {"sh", "-c", "curl -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
 
+            CreateVolumeResponse createVolumeResponse = dockerClient.createVolumeCmd().withName(jobName+"-"+buildNumber).withDriverOpts(ImmutableMap.of("baseBuild",jobName+"-"+lastFinishedBuild))
+                    .withDriver("cache-driver").exec();
+            listener.getLogger().println("Created Volume " + createVolumeResponse.getName() + " at " + createVolumeResponse.getMountpoint());
+
+
             CreateContainerCmd containerCmd = dockerClient
                     .createContainerCmd(labelConfiguration.getImage())
                     .withCmd(command)
@@ -78,14 +87,19 @@ public class DockerComputerLauncher extends ComputerLauncher {
                     .withName(computer.getName());
 
             String[] bindOptions = labelConfiguration.getHostBindsConfig();
+            Bind[]  binds=null;
             if(bindOptions.length != 0){
-                Bind[]  binds = new Bind[bindOptions.length];
+                binds= new Bind[bindOptions.length+1];
                 for(int i = 0; i < bindOptions.length ; i++){
                     String[] bindConfig = bindOptions[i].split(":");
                    binds[i] = new Bind(bindConfig[0], new Volume(bindConfig[1]));
                 }
-                containerCmd.withBinds(binds);
+            }else{
+
+                binds= new Bind[1];
             }
+            binds[binds.length-1] = new Bind(this.label,new Volume("/cache"));
+            containerCmd.withBinds(binds);
 
 
 
