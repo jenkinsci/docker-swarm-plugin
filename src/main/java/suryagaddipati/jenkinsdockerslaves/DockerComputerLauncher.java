@@ -25,14 +25,14 @@
 
 package suryagaddipati.jenkinsdockerslaves;
 
-import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.DockerException;
-import com.spotify.docker.client.ImageNotFoundException;
-import com.spotify.docker.client.ProgressHandler;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
-import com.spotify.docker.client.messages.HostConfig;
-import com.spotify.docker.client.messages.ProgressMessage;
+
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerCmd;
+import com.github.dockerjava.api.command.CreateContainerResponse;
+import com.github.dockerjava.api.model.Bind;
+import com.github.dockerjava.api.model.ContainerConfig;
+import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.Volume;
 import hudson.model.Computer;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
@@ -63,31 +63,39 @@ public class DockerComputerLauncher extends ComputerLauncher {
     private void launch(final DockerComputer computer, TaskListener listener) throws IOException, InterruptedException {
         try {
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
-            DockerClient docker = configuration.newDockerClient();
+            DockerClient dockerClient = configuration.newDockerClient();
             LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
 
-
-            final HostConfig.Builder hostConfigBuilder = HostConfig.builder();
-            hostConfigBuilder.privileged(configuration.isPrivileged());
-            String[] bindOptions = labelConfiguration.getHostBindsConfig();
-            String[] hostBinds  = new String[bindOptions.length+1];
-            System.arraycopy(bindOptions,0,hostBinds,0,bindOptions.length);
-            String workSpace = configuration.getBaseWorkspaceLocation()+"/"+computer.getName();
-            hostBinds[bindOptions.length]=workSpace+":"+workSpace;
-            computer.getJob().setCustomWorkspace(workSpace);
-            hostConfigBuilder.binds(hostBinds);
-            pullImageIfNotFound(docker,labelConfiguration.getImage(),listener.getLogger());
 
             final String additionalSlaveOptions = "-noReconnect";
             final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer,configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
             final String[] command = new String[] {"sh", "-c", "curl -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
-            final ContainerConfig.Builder containerConfigBuilder = ContainerConfig.builder().image(labelConfiguration.getImage()).cmd(command).hostConfig(hostConfigBuilder.build());
-            ContainerCreation creation = docker.createContainer(containerConfigBuilder.build(), computer.getName());
+
+            CreateContainerCmd containerCmd = dockerClient
+                    .createContainerCmd(labelConfiguration.getImage())
+                    .withCmd(command)
+                    .withPrivileged(configuration.isPrivileged())
+                    .withName(computer.getName());
+
+            String[] bindOptions = labelConfiguration.getHostBindsConfig();
+            if(bindOptions.length != 0){
+                Bind[]  binds = new Bind[bindOptions.length];
+                for(int i = 0; i < bindOptions.length ; i++){
+                    String[] bindConfig = bindOptions[i].split(":");
+                   binds[i] = new Bind(bindConfig[0], new Volume(bindConfig[1]));
+                }
+                containerCmd.withBinds(binds);
+            }
 
 
-            docker.startContainer(creation.id());
-            docker.logs(creation.id(), DockerClient.LogsParam.follow()).attach(listener.getLogger(),listener.getLogger());
-            listener.getLogger().print("Created container :" + creation.id() );
+//            final ContainerConfig.Builder containerConfigBuilder = ContainerConfig.builder().user("").image(labelConfiguration.getImage()).cmd(command).hostConfig(hostConfigBuilder.build());
+//            ContainerCreation creation = docker.createContainer(containerConfigBuilder.build(), computer.getName());
+
+            CreateContainerResponse container = containerCmd.exec();
+//            docker.startContainer(creation.id());
+//            docker.logs(creation.id(), DockerClient.LogsParam.follow()).attach(listener.getLogger(),listener.getLogger());
+            listener.getLogger().print("Created container :" + container.getId() );
+            dockerClient.startContainerCmd(container.getId()) .exec();
             computer.connect(false).get();
 
         } catch (Exception e) {
@@ -97,35 +105,35 @@ public class DockerComputerLauncher extends ComputerLauncher {
         }
     }
 
-    private void pullImageIfNotFound(DockerClient docker, String dockerImage, final PrintStream logger) throws DockerException, InterruptedException {
-        boolean imageExists;
-        try {
-            logger.println("Checking if image " + dockerImage + " exists.");
-            if (docker.inspectImage(dockerImage) != null) {
-                imageExists = true;
-            } else {
-                // Should be unreachable.
-                imageExists = false;
-            }
-        } catch (ImageNotFoundException e) {
-            imageExists = false;
-        }
-
-        logger.println("Image " + dockerImage + " exists? " + imageExists );
-
-        if (!imageExists ) {
-            logger.println("Pulling image " + dockerImage + ".");
-            docker.pull(dockerImage, new ProgressHandler(){
-                @Override
-                public void progress(ProgressMessage message) throws DockerException {
-                    if(message.progress() != null)
-                    logger.println(message.progress());
-                }
-            });
-            logger.println("Finished pulling image " + dockerImage + ".");
-        }
-
-    }
+//    private void pullImageIfNotFound(DockerClient docker, String dockerImage, final PrintStream logger) throws DockerException, InterruptedException {
+//        boolean imageExists;
+//        try {
+//            logger.println("Checking if image " + dockerImage + " exists.");
+//            if (docker.inspectImage(dockerImage) != null) {
+//                imageExists = true;
+//            } else {
+//                // Should be unreachable.
+//                imageExists = false;
+//            }
+//        } catch (ImageNotFoundException e) {
+//            imageExists = false;
+//        }
+//
+//        logger.println("Image " + dockerImage + " exists? " + imageExists );
+//
+//        if (!imageExists ) {
+//            logger.println("Pulling image " + dockerImage + ".");
+//            docker.pull(dockerImage, new ProgressHandler(){
+//                @Override
+//                public void progress(ProgressMessage message) throws DockerException {
+//                    if(message.progress() != null)
+//                    logger.println(message.progress());
+//                }
+//            });
+//            logger.println("Finished pulling image " + dockerImage + ".");
+//        }
+//
+//    }
     private String getSlaveJarUrl(DockerSlaveConfiguration configuration) {
         return getJenkinsUrl(configuration) + "jnlpJars/slave.jar";
     }

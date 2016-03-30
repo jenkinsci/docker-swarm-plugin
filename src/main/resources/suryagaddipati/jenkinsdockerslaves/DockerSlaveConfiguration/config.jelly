@@ -32,6 +32,9 @@ THE SOFTWARE.
         <f:entry title="Docker http(s) uri" field="uri">
             <f:textbox />
         </f:entry>
+        <f:entry title="Api Version" field="apiVersion">
+            <f:textbox />
+        </f:entry>
         <f:entry title="use TLS?" field="useTLS">
             <f:checkbox />
         </f:entry>

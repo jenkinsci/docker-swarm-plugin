@@ -23,26 +23,18 @@ THE SOFTWARE.
  */
 package suryagaddipati.jenkinsdockerslaves;
 
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.core.DockerClientBuilder;
+import com.github.dockerjava.core.DockerClientConfig;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.spotify.docker.client.DefaultDockerClient;
-import com.spotify.docker.client.DockerCertificateException;
-import com.spotify.docker.client.DockerCertificates;
-import com.spotify.docker.client.DockerClient;
-import com.spotify.docker.client.messages.ContainerConfig;
-import com.spotify.docker.client.messages.ContainerCreation;
 import hudson.Extension;
-import hudson.model.Computer;
 import hudson.model.Label;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
 
-import javax.annotation.Nullable;
-import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +46,7 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
 
 
 
-
+    String apiVersion;
     private boolean privileged;
     private String jenkinsUrl;
     private String baseWorkspaceLocation;
@@ -84,18 +76,20 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
         return true;
     }
 
-    public DockerClient newDockerClient() throws DockerCertificateException {
-        final URI dockerUri = URI.create(uri);
-
-        DockerClient dockerClient;
+    public DockerClient newDockerClient(){
         if (Boolean.TRUE.equals(useTLS)) {
-            final Path certsPath = Paths.get(certificatesPath);
-            final DockerCertificates dockerCerts = new DockerCertificates(certsPath);
-            dockerClient = new DefaultDockerClient(dockerUri, dockerCerts);
+            DockerClientConfig config = DockerClientConfig.createDefaultConfigBuilder()
+                    .withDockerHost(uri)
+                    .withDockerTlsVerify(true)
+                    .withDockerCertPath(certificatesPath)
+                    .withApiVersion(apiVersion)
+                    .build();
+            return  DockerClientBuilder.getInstance(config).build();
         } else {
-            dockerClient = new DefaultDockerClient(dockerUri);
+            DockerClientConfig config = DockerClientConfig.createDefaultConfigBuilder()
+                    .withDockerHost(uri).build();
+            return  DockerClientBuilder.getInstance(config).build();
         }
-        return dockerClient;
     }
 
 
@@ -159,6 +153,13 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
         this.baseWorkspaceLocation = baseWorkspaceLocation;
     }
 
+    public String getApiVersion() {
+        return apiVersion;
+    }
+
+    public void setApiVersion(String apiVersion) {
+        this.apiVersion = apiVersion;
+    }
 
     public List<String> getLabels() {
         Iterable<String> labels = Iterables.transform(getLabelConfigurations(), new Function<LabelConfiguration, String>() {

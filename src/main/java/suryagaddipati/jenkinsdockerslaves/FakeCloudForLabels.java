@@ -7,7 +7,6 @@ import hudson.slaves.Cloud;
 import hudson.slaves.NodeProvisioner;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.ws.rs.Encoded;
 import java.util.ArrayList;
 import java.util.Collection;
 
