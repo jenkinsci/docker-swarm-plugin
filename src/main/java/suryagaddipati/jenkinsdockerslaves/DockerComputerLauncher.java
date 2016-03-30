@@ -88,52 +88,17 @@ public class DockerComputerLauncher extends ComputerLauncher {
             }
 
 
-//            final ContainerConfig.Builder containerConfigBuilder = ContainerConfig.builder().user("").image(labelConfiguration.getImage()).cmd(command).hostConfig(hostConfigBuilder.build());
-//            ContainerCreation creation = docker.createContainer(containerConfigBuilder.build(), computer.getName());
 
             CreateContainerResponse container = containerCmd.exec();
-//            docker.startContainer(creation.id());
-//            docker.logs(creation.id(), DockerClient.LogsParam.follow()).attach(listener.getLogger(),listener.getLogger());
             listener.getLogger().print("Created container :" + container.getId() );
             dockerClient.startContainerCmd(container.getId()) .exec();
             computer.connect(false).get();
 
         } catch (Exception e) {
-//            e.printStackTrace(teeListener.getLogger());
-//            computer.terminate();
             throw new RuntimeException(e);
         }
     }
 
-//    private void pullImageIfNotFound(DockerClient docker, String dockerImage, final PrintStream logger) throws DockerException, InterruptedException {
-//        boolean imageExists;
-//        try {
-//            logger.println("Checking if image " + dockerImage + " exists.");
-//            if (docker.inspectImage(dockerImage) != null) {
-//                imageExists = true;
-//            } else {
-//                // Should be unreachable.
-//                imageExists = false;
-//            }
-//        } catch (ImageNotFoundException e) {
-//            imageExists = false;
-//        }
-//
-//        logger.println("Image " + dockerImage + " exists? " + imageExists );
-//
-//        if (!imageExists ) {
-//            logger.println("Pulling image " + dockerImage + ".");
-//            docker.pull(dockerImage, new ProgressHandler(){
-//                @Override
-//                public void progress(ProgressMessage message) throws DockerException {
-//                    if(message.progress() != null)
-//                    logger.println(message.progress());
-//                }
-//            });
-//            logger.println("Finished pulling image " + dockerImage + ".");
-//        }
-//
-//    }
     private String getSlaveJarUrl(DockerSlaveConfiguration configuration) {
         return getJenkinsUrl(configuration) + "jnlpJars/slave.jar";
     }
