@@ -93,11 +93,6 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
     }
 
 
-    @Override
-    public synchronized void save() {
-        super.save();
-    }
-
     public String getUri() {
         return uri;
     }
