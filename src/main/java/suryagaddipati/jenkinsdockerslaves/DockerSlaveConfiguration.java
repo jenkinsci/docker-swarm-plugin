@@ -86,8 +86,7 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
                     .build();
             return  DockerClientBuilder.getInstance(config).build();
         } else {
-            DockerClientConfig config = DockerClientConfig.createDefaultConfigBuilder()
-                    .withDockerHost(uri).build();
+            DockerClientConfig config = DockerClientConfig.createDefaultConfigBuilder().withDockerTlsVerify(false).withApiVersion(apiVersion).withDockerHost(uri).build();
             return  DockerClientBuilder.getInstance(config).build();
         }
     }

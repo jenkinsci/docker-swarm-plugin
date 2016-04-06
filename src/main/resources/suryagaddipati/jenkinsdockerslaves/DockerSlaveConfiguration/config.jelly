@@ -65,6 +65,9 @@ THE SOFTWARE.
                 <f:entry title="Host Binds( space seperated)" field="hostBinds">
                     <f:textbox  value="${labelConfiguration.hostBinds}"/>
                 </f:entry>
+                <f:entry title="Cache Dir" field="cacheDir">
+                    <f:textbox  value="${labelConfiguration.cacheDir}"/>
+                </f:entry>
 
                 <f:entry title="">
                     <div align="right">

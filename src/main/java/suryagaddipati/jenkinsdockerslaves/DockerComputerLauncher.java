@@ -33,26 +33,36 @@ import com.github.dockerjava.api.command.CreateVolumeResponse;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Volume;
 import com.google.common.collect.ImmutableMap;
+import hudson.model.AbstractProject;
 import hudson.model.Computer;
+import hudson.model.Queue;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
+import jenkins.model.Jenkins;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 public class DockerComputerLauncher extends ComputerLauncher {
 
 
     private String label;
-    private String jobName;
-    private int buildNumber;
-    private String lastFinishedBuild;
 
-    public DockerComputerLauncher(String label, String jobName, int buildNumber, String lastFinishedBuild) {
-        this.label = label;
-        this.jobName = jobName;
-        this.buildNumber = buildNumber;
-        this.lastFinishedBuild = lastFinishedBuild;
+
+    private String jobName;
+
+
+    private String lastFinishedBuild;
+    private AbstractProject job;
+
+
+    public DockerComputerLauncher(AbstractProject job) {
+        this.job = job;
+        this.label = job.getAssignedLabel().getName();
+        this.jobName = job.getFullName();
+        this.lastFinishedBuild = (job.getLastCompletedBuild() == null ? "0" : job.getLastCompletedBuild().getNumber() + "");
     }
 
     @Override
@@ -67,6 +77,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
     private void launch(final DockerComputer computer, TaskListener listener) throws IOException, InterruptedException {
         try {
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
+            job.setCustomWorkspace(configuration.getBaseWorkspaceLocation());
             DockerClient dockerClient = configuration.newDockerClient();
             LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
 
@@ -75,7 +86,10 @@ public class DockerComputerLauncher extends ComputerLauncher {
             final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer,configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
             final String[] command = new String[] {"sh", "-c", "curl -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
 
-            CreateVolumeResponse createVolumeResponse = dockerClient.createVolumeCmd().withName(jobName+"-"+buildNumber).withDriverOpts(ImmutableMap.of("baseBuild",jobName+"-"+lastFinishedBuild))
+
+            int buildNumber = getBuildNumber();
+            listener.getLogger().println("Creating Volume " +getJobName()+":"+ buildNumber+ " From build: " + lastFinishedBuild);
+            CreateVolumeResponse createVolumeResponse = dockerClient.createVolumeCmd().withName(getJobName()+"@"+buildNumber).withDriverOpts(ImmutableMap.of("baseBuild",getJobName()+"@"+lastFinishedBuild))
                     .withDriver("cache-driver").exec();
             listener.getLogger().println("Created Volume " + createVolumeResponse.getName() + " at " + createVolumeResponse.getMountpoint());
 
@@ -98,7 +112,9 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
                 binds= new Bind[1];
             }
-            binds[binds.length-1] = new Bind(this.label,new Volume("/cache"));
+
+            listener.getLogger().println("Binding Volume" + labelConfiguration.getCacheDir()+ " to " + createVolumeResponse.getName());
+            binds[binds.length-1] = new Bind(createVolumeResponse.getName(),new Volume(labelConfiguration.getCacheDir()));
             containerCmd.withBinds(binds);
 
 
@@ -113,6 +129,12 @@ public class DockerComputerLauncher extends ComputerLauncher {
         }
     }
 
+    public int getBuildNumber() {
+        List<Queue.Item> queuedItems = getQueuedItems();
+
+        return queuedItems.size()==1 ? job.getNextBuildNumber()
+                : job.getNextBuildNumber()+queuedItems.size()-1;
+    }
     private String getSlaveJarUrl(DockerSlaveConfiguration configuration) {
         return getJenkinsUrl(configuration) + "jnlpJars/slave.jar";
     }
@@ -135,5 +157,17 @@ public class DockerComputerLauncher extends ComputerLauncher {
             return url + '/';
         }
     }
+    public List<Queue.Item> getQueuedItems() {
+        LinkedList<Queue.Item> list = new LinkedList<Queue.Item>();
+        for (Queue.Item item : Jenkins.getInstance().getQueue().getApproximateItemsQuickly()) {
+            if (item.task == job) {
+                list.addFirst(item);
+            }
+        }
+        return list;
+    }
 
+    public String getJobName() {
+        return jobName.replaceAll("/","_").replaceAll("-","_");
+    }
 }
