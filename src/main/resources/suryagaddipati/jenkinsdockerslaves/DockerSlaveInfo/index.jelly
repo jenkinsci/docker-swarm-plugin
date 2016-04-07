@@ -1,0 +1,11 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:test="/lib/test">
+    <l:layout>
+        <l:main-panel>
+            <div class="main">
+               <p>Container Id:  ${it.containerId}</p>
+                <p>Container Name:  ${it.containerName}</p>
+            </div>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>

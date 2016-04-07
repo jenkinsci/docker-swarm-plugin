@@ -54,13 +54,13 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
 
     private final Job job;
 
-    public DockerSlave(Job job, String labelString) throws Descriptor.FormException, IOException {
-        super(labelString, "Container slave for building " + job.getFullName()+job.getNextBuildNumber(),
+    public DockerSlave(Queue.BuildableItem bi, String labelString) throws Descriptor.FormException, IOException {
+        super(labelString, "Container slave for building " + ((AbstractProject)bi.task).getFullName()+((AbstractProject)bi.task).getNextBuildNumber(),
                 "/home/jenkins", 1, Mode.EXCLUSIVE, labelString,
-                new DockerComputerLauncher(((AbstractProject)job)),
+                new DockerComputerLauncher(bi),
                 RetentionStrategy.NOOP,
                 Collections.<NodeProperty<?>>emptyList());
-        this.job = job;
+        this.job = ((AbstractProject)bi.task);
     }
 
     public DockerComputer createComputer() {

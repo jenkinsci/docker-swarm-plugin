@@ -40,11 +40,10 @@ public class OneShotProvisionQueueListener extends QueueListener {
                 LOGGER.info("Creating a Container slave to host " + job.toString() + "#" + job.getNextBuildNumber());
                 DockerLabelAssignmentAction action = createLabelAssignmentAction();
                 bi.addAction(action);
-
                 // Immediately create a slave for this item
                 // Real provisioning will happen later
 
-                final Node node = new DockerSlave(job, action.getLabel().toString());
+                final Node node = new DockerSlave(bi, action.getLabel().toString());
                 Computer.threadPoolForRemoting.submit(new Runnable() {
                     @Override
                     public void run() {

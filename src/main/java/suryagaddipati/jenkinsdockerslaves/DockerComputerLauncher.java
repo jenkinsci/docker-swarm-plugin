@@ -29,10 +29,9 @@ package suryagaddipati.jenkinsdockerslaves;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.command.CreateVolumeResponse;
+import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Volume;
-import com.google.common.collect.ImmutableMap;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Queue;
@@ -55,10 +54,12 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
 
     private AbstractProject job;
+    private Queue.BuildableItem bi;
 
 
-    public DockerComputerLauncher(AbstractProject job) {
-        this.job = job;
+    public DockerComputerLauncher(Queue.BuildableItem bi) {
+        this.bi = bi;
+        this.job = ((AbstractProject)bi.task);
         this.label = job.getAssignedLabel().getName();
         this.jobName = job.getFullName();
     }
@@ -86,9 +87,9 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
 
             int buildNumber = getBuildNumber();
-            CreateVolumeResponse createVolumeResponse = dockerClient.createVolumeCmd().withName(getJobName()+"-"+buildNumber)
-                    .withDriver("cache-driver").exec();
-            listener.getLogger().println("Created Volume " + createVolumeResponse.getName() + " at " + createVolumeResponse.getMountpoint());
+//            CreateVolumeResponse createVolumeResponse = dockerClient.createVolumeCmd().withName(getJobName()+"-"+buildNumber)
+//                    .withDriver("cache-driver").exec();
+//            listener.getLogger().println("Created Volume " + createVolumeResponse.getName() + " at " + createVolumeResponse.getMountpoint());
 
 
             CreateContainerCmd containerCmd = dockerClient
@@ -110,14 +111,20 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 binds= new Bind[1];
             }
 
-            listener.getLogger().println("Binding Volume" + labelConfiguration.getCacheDir()+ " to " + createVolumeResponse.getName());
-            binds[binds.length-1] = new Bind(createVolumeResponse.getName(),new Volume(labelConfiguration.getCacheDir()));
-            containerCmd.withBinds(binds);
+//            listener.getLogger().println("Binding Volume" + labelConfiguration.getCacheDir()+ " to " + createVolumeResponse.getName());
+//            binds[binds.length-1] = new Bind(createVolumeResponse.getName(),new Volume(labelConfiguration.getCacheDir()));
+//            containerCmd.withBinds(binds);
 
 
-
+            listener.getLogger().print("Creating Container :" + containerCmd.toString() );
             CreateContainerResponse container = containerCmd.exec();
             listener.getLogger().print("Created container :" + container.getId() );
+
+
+            InspectContainerResponse inspectResponse = dockerClient.inspectContainerCmd(container.getId()).exec();
+
+
+            bi.addAction(new DockerSlaveInfo(inspectResponse));
             dockerClient.startContainerCmd(container.getId()) .exec();
             computer.connect(false).get();
 
