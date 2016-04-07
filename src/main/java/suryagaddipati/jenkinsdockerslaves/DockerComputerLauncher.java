@@ -54,7 +54,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
     private String jobName;
 
 
-    private String lastFinishedBuild;
     private AbstractProject job;
 
 
@@ -62,7 +61,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
         this.job = job;
         this.label = job.getAssignedLabel().getName();
         this.jobName = job.getFullName();
-        this.lastFinishedBuild = (job.getLastCompletedBuild() == null ? "0" : job.getLastCompletedBuild().getNumber() + "");
     }
 
     @Override
@@ -88,8 +86,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
 
             int buildNumber = getBuildNumber();
-            listener.getLogger().println("Creating Volume " +getJobName()+":"+ buildNumber+ " From build: " + lastFinishedBuild);
-            CreateVolumeResponse createVolumeResponse = dockerClient.createVolumeCmd().withName(getJobName()+"@"+buildNumber).withDriverOpts(ImmutableMap.of("baseBuild",getJobName()+"@"+lastFinishedBuild))
+            CreateVolumeResponse createVolumeResponse = dockerClient.createVolumeCmd().withName(getJobName()+"-"+buildNumber)
                     .withDriver("cache-driver").exec();
             listener.getLogger().println("Created Volume " + createVolumeResponse.getName() + " at " + createVolumeResponse.getMountpoint());
 
