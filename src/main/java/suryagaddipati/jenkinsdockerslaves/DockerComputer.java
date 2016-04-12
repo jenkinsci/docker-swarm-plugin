@@ -25,6 +25,7 @@
 
 package suryagaddipati.jenkinsdockerslaves;
 
+import com.github.dockerjava.api.DockerClient;
 import hudson.model.AbstractProject;
 import hudson.model.Executor;
 import hudson.model.Job;
@@ -39,6 +40,8 @@ import java.util.logging.Logger;
 public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
     private final Job job;
+    private String containerId;
+    private String volumeName;
 
 
     public DockerComputer(DockerSlave dockerSlave, Job job) {
@@ -69,6 +72,13 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     public void terminate() {
         LOGGER.info("Stopping Docker Slave after build completion");
         setAcceptingTasks(false);
+        if (containerId != null){
+
+            DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
+            DockerClient dockerClient = configuration.newDockerClient();
+            dockerClient.removeContainerCmd(containerId).exec();
+            dockerClient.removeVolumeCmd(volumeName).exec();
+        }
         try {
             getNode().terminate();
         } catch (InterruptedException e) {
@@ -87,4 +97,11 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
     private static final Logger LOGGER = Logger.getLogger(DockerComputer.class.getName());
 
+    public void setContainerId(String containerId) {
+        this.containerId = containerId;
+    }
+
+    public void setVolumeName(String volumeName) {
+        this.volumeName = volumeName;
+    }
 }

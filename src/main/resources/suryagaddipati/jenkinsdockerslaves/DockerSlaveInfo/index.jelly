@@ -4,7 +4,6 @@
         <l:main-panel>
             <div class="main">
                <p>Container Id:  ${it.containerId}</p>
-                <p>Container Name:  ${it.containerName}</p>
             </div>
         </l:main-panel>
     </l:layout>

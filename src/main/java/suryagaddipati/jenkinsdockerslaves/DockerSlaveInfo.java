@@ -9,11 +9,9 @@ public class DockerSlaveInfo implements RunAction2 {
     private final String containerId;
 
 
-    private final String containerName;
 
-    public DockerSlaveInfo(InspectContainerResponse containerResponse) {
+    public DockerSlaveInfo(CreateContainerResponse containerResponse) {
         this.containerId = containerResponse.getId();
-        containerName = containerResponse.getName();
     }
 
     @Override
@@ -44,8 +42,5 @@ public class DockerSlaveInfo implements RunAction2 {
 
     public String getContainerId() {
         return containerId;
-    }
-    public String getContainerName() {
-        return containerName;
     }
 }
