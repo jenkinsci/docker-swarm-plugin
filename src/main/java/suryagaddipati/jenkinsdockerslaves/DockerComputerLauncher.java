@@ -118,6 +118,14 @@ public class DockerComputerLauncher extends ComputerLauncher {
             containerCmd.withBinds(binds);
 
 
+//            containerCmd.withCp
+            if(labelConfiguration.getCpus() != null){
+                containerCmd.withCpuShares( labelConfiguration.getCpus());
+            }
+            if(labelConfiguration.getMemory() != null){
+                containerCmd.withMemory(labelConfiguration.getMemory());
+            }
+
             listener.getLogger().print("Creating Container :" + containerCmd.toString() );
             CreateContainerResponse container = containerCmd.exec();
             listener.getLogger().print("Created container :" + container.getId() );

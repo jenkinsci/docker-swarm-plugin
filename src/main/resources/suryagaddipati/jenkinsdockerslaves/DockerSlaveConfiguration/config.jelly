@@ -65,6 +65,15 @@ THE SOFTWARE.
                 <f:entry title="Host Binds( space seperated)" field="hostBinds">
                     <f:textbox  value="${labelConfiguration.hostBinds}"/>
                 </f:entry>
+
+                <f:entry title="CPU's" field="cpus">
+                    <f:number  value="${labelConfiguration.cpus}"/>
+                </f:entry>
+
+                <f:entry title="Memory" field="memory">
+                    <f:number  value="${labelConfiguration.memory}"/>
+                </f:entry>
+
                 <f:entry title="Cache Dir" field="cacheDir">
                     <f:textbox  value="${labelConfiguration.cacheDir}"/>
                 </f:entry>
