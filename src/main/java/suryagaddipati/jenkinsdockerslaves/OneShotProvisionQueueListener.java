@@ -36,31 +36,11 @@ public class OneShotProvisionQueueListener extends QueueListener {
             }
 
 
-            try {
-                LOGGER.info("Creating a Container slave to host " + job.toString() + "#" + job.getNextBuildNumber());
-                DockerLabelAssignmentAction action = createLabelAssignmentAction();
-                bi.addAction(action);
-                // Immediately create a slave for this item
-                // Real provisioning will happen later
-
-                final Node node = new DockerSlave(bi, action.getLabel().toString());
-                Computer.threadPoolForRemoting.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Jenkins.getInstance().addNode(node);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (Descriptor.FormException e) {
-                e.printStackTrace();
-            }
+            OneshotScheduler.scheduleBuild(bi,false);
         }
     }
+
+
 
     @Override
     public void onLeft(Queue.LeftItem li) {
@@ -76,7 +56,7 @@ public class OneShotProvisionQueueListener extends QueueListener {
                         try {
                             Jenkins.getInstance().removeNode(node);
                         } catch (IOException e) {
-                            e.printStackTrace();
+//                            e.printStackTrace();
                         }
                     }
                 });
@@ -84,17 +64,6 @@ public class OneShotProvisionQueueListener extends QueueListener {
         }
     }
 
-    private DockerLabelAssignmentAction createLabelAssignmentAction() {
-        try {
-            Thread.sleep(5,10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        final String id = Long.toHexString(System.nanoTime());
-        final Label label = new DockerMachineLabel(id);
-        return new DockerLabelAssignmentAction(label);
-    }
 
     private static final Logger LOGGER = Logger.getLogger(OneShotProvisionQueueListener.class.getName());
 }

@@ -5,6 +5,7 @@ import hudson.model.Descriptor;
 import hudson.model.Label;
 import hudson.slaves.Cloud;
 import hudson.slaves.NodeProvisioner;
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.util.ArrayList;
