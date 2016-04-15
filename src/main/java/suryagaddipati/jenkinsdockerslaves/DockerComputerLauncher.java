@@ -34,6 +34,7 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Volume;
 import hudson.model.AbstractProject;
+import hudson.model.Action;
 import hudson.model.Computer;
 import hudson.model.Queue;
 import hudson.model.TaskListener;
@@ -44,10 +45,12 @@ import jenkins.model.Jenkins;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DockerComputerLauncher extends ComputerLauncher {
 
-
+    private static final Logger LOGGER = Logger.getLogger(DockerComputerLauncher.class.getName());
     private String label;
 
 
@@ -76,6 +79,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
     private void launch(final DockerComputer computer, TaskListener listener) throws IOException, InterruptedException {
         try {
+            bi.replaceAction(new DockerSlaveInfo(true));
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
             job.setCustomWorkspace(configuration.getBaseWorkspaceLocation());
             DockerClient dockerClient = configuration.newDockerClient();
@@ -132,7 +136,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
 
 
-            bi.addAction(new DockerSlaveInfo(container));
+            bi.getAction(DockerSlaveInfo.class).setContainerId(container);
             dockerClient.startContainerCmd(container.getId()) .exec();
             computer.setContainerId(container.getId());
             computer.setVolumeName(volumeName);
@@ -140,7 +144,8 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
         } catch (Exception e) {
             computer.terminate();
-            bi.addAction(new DockerNodeProvisioningAttempt());
+            LOGGER.log(Level.INFO,"Failed to schedule: " + bi, e);
+            bi.replaceAction(new DockerSlaveInfo(false));
             throw new RuntimeException(e);
         }
     }
@@ -185,6 +190,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
     }
 
     public String getJobName() {
-        return jobName.replaceAll("/","_").replaceAll("-","_");
+        return jobName.replaceAll("/","_").replaceAll("-","_").replaceAll(",","_").replaceAll(" ","_").replaceAll("\\.","_");
     }
 }

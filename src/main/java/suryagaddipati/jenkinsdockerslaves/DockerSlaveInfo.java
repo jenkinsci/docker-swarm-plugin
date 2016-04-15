@@ -6,13 +6,13 @@ import hudson.model.Run;
 import jenkins.model.RunAction2;
 
 public class DockerSlaveInfo implements RunAction2 {
-    private final String containerId;
+    private  String containerId;
+    private boolean provisioningInProgress;
 
-
-
-    public DockerSlaveInfo(CreateContainerResponse containerResponse) {
-        this.containerId = containerResponse.getId();
+    public DockerSlaveInfo(boolean provisioningInProgress) {
+        this.provisioningInProgress = provisioningInProgress;
     }
+
 
     @Override
     public void onAttached(Run<?, ?> r) {
@@ -42,5 +42,17 @@ public class DockerSlaveInfo implements RunAction2 {
 
     public String getContainerId() {
         return containerId;
+    }
+
+    public void setContainerId(CreateContainerResponse container) {
+        this.containerId = container.getId();
+    }
+
+    public boolean isProvisioningInProgress() {
+        return provisioningInProgress;
+    }
+
+    public void setProvisioningInProgress(boolean provisioningInProgress) {
+        this.provisioningInProgress = provisioningInProgress;
     }
 }
