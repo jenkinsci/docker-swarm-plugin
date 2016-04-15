@@ -113,9 +113,9 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 binds= new Bind[1];
             }
 
-//            listener.getLogger().println("Binding Volume" + labelConfiguration.getCacheDir()+ " to " + createVolumeResponse.getName());
-//            binds[binds.length-1] = new Bind(createVolumeResponse.getName(),new Volume(labelConfiguration.getCacheDir()));
-//            containerCmd.withBinds(binds);
+            listener.getLogger().println("Binding Volume" + labelConfiguration.getCacheDir()+ " to " + createVolumeResponse.getName());
+            binds[binds.length-1] = new Bind(createVolumeResponse.getName(),new Volume(labelConfiguration.getCacheDir()));
+            containerCmd.withBinds(binds);
 
 
             if(labelConfiguration.getCpus() != null){
