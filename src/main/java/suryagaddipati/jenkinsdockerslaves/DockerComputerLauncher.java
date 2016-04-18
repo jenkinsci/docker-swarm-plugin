@@ -43,6 +43,7 @@ import hudson.slaves.SlaveComputer;
 import jenkins.model.Jenkins;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -79,7 +80,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
     private void launch(final DockerComputer computer, TaskListener listener) throws IOException, InterruptedException {
         try {
-            bi.replaceAction(new DockerSlaveInfo(true));
+            setToInProgress(bi);
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
             job.setCustomWorkspace(configuration.getBaseWorkspaceLocation());
             DockerClient dockerClient = configuration.newDockerClient();
@@ -141,12 +142,23 @@ public class DockerComputerLauncher extends ComputerLauncher {
             computer.setContainerId(container.getId());
             computer.setVolumeName(volumeName);
             computer.connect(false).get();
+            bi.getAction(DockerSlaveInfo.class).setProvisionedTime(new Date());
 
         } catch (Exception e) {
             computer.terminate();
+            bi.getAction(DockerSlaveInfo.class).setProvisioningInProgress(false);
+            bi.getAction(DockerSlaveInfo.class).incrementProvisioningAttemptCount();
             LOGGER.log(Level.INFO,"Failed to schedule: " + bi, e);
-            bi.replaceAction(new DockerSlaveInfo(false));
             throw new RuntimeException(e);
+        }
+    }
+
+    private void setToInProgress(Queue.BuildableItem bi) {
+        DockerSlaveInfo slaveInfoAction = bi.getAction(DockerSlaveInfo.class);
+        if ( slaveInfoAction != null){
+            slaveInfoAction.setProvisioningInProgress(true);
+        }else{
+            bi.replaceAction(new DockerSlaveInfo(true));
         }
     }
 

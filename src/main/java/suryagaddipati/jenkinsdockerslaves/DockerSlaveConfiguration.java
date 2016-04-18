@@ -51,6 +51,9 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
     private String jenkinsUrl;
     private String baseWorkspaceLocation;
 
+
+    private int maxProvisioningAttempts;
+
     public List<LabelConfiguration> getLabelConfigurations() {
         return labelConfigurations;
     }
@@ -177,5 +180,13 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
 
     public boolean canProvision(Label label) {
         return getLabelConfiguration(label.getName()) != null;
+    }
+
+    public int getMaxProvisioningAttempts() {
+        return maxProvisioningAttempts;
+    }
+
+    public void setMaxProvisioningAttempts(int maxProvisioningAttempts) {
+        this.maxProvisioningAttempts = maxProvisioningAttempts;
     }
 }

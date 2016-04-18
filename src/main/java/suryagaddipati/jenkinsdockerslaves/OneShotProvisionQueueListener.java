@@ -3,8 +3,6 @@ package suryagaddipati.jenkinsdockerslaves;
 import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
-import hudson.model.Descriptor;
-import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.Queue;
 import hudson.model.queue.QueueListener;
@@ -36,7 +34,7 @@ public class OneShotProvisionQueueListener extends QueueListener {
             }
 
 
-            OneshotScheduler.scheduleBuild(bi,false);
+            OneshotBuildScheduler.scheduleBuild(bi,false);
         }
     }
 

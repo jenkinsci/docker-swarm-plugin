@@ -5,12 +5,23 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import hudson.model.Run;
 import jenkins.model.RunAction2;
 
+import java.util.Date;
+
 public class DockerSlaveInfo implements RunAction2 {
+    public int getProvisioningAttempts() {
+        return provisioningAttempts;
+    }
+
+    private  int provisioningAttempts;
     private  String containerId;
     private boolean provisioningInProgress;
+    private Date  firstProvisioningAttempt;
+    private Date provisionedTime;
 
     public DockerSlaveInfo(boolean provisioningInProgress) {
         this.provisioningInProgress = provisioningInProgress;
+        firstProvisioningAttempt = new Date();
+         provisioningAttempts = 1;
     }
 
 
@@ -54,5 +65,13 @@ public class DockerSlaveInfo implements RunAction2 {
 
     public void setProvisioningInProgress(boolean provisioningInProgress) {
         this.provisioningInProgress = provisioningInProgress;
+    }
+
+    public void setProvisionedTime(Date provisionedTime) {
+        this.provisionedTime = provisionedTime;
+    }
+
+    public void incrementProvisioningAttemptCount() {
+        provisioningAttempts++;
     }
 }

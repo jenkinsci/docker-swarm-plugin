@@ -10,7 +10,7 @@ import jenkins.model.Jenkins;
 
 import java.io.IOException;
 
-public class OneshotScheduler {
+public class OneshotBuildScheduler {
     public  static void scheduleBuild(Queue.BuildableItem bi, boolean replace) {
         AbstractProject job = (AbstractProject) bi.task;
         try {

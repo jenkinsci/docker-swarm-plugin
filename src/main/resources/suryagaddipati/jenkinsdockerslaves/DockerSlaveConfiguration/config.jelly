@@ -48,6 +48,10 @@ THE SOFTWARE.
             <f:checkbox/>
         </f:entry>
 
+        <f:entry title="Maximum Provisioning Attempts" field="maxProvisioningAttempts">
+            <f:number/>
+        </f:entry>
+
 
 
         <f:entry title="Image Labels">
