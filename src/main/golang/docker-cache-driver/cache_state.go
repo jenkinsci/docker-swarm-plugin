@@ -7,7 +7,7 @@ import (
 	"path"
 )
 
-const stateFile = "/cache/cache-driver.json"
+var stateFile = path.Join(cacheRootDir, "cache-state.json")
 
 type cacheState struct {
 	State map[string]string `json:"state"`
