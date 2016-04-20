@@ -1,14 +1,24 @@
 package main
 
 import (
-	"fmt"
-	"os/exec"
+	"errors"
+	"os"
+	"path/filepath"
+	"regexp"
 )
 
-func isEmpty(name string) (bool, error) {
-	cmd := fmt.Sprintf("find %s -type f   ! \\( -name \\*.lock -o -name \\*.properties -o -name \\*.xml\\*  \\) | egrep '.*'", name)
-	_, err := exec.Command(cmd).Output()
-	return err != nil, nil
+func isEmpty(dirPath string) (bool, error) {
+	//*.properties *.xml
+	err := filepath.Walk(dirPath, func(path string, f os.FileInfo, _ error) error {
+		if !f.IsDir() {
+			r, err := regexp.MatchString("(.properties|.xml)$", f.Name())
+			if err == nil && !r {
+				return errors.New("")
+			}
+		}
+		return nil
+	})
+	return err == nil, nil
 }
 
 func cloneDir(source string, dest string) (err error) {
