@@ -152,9 +152,9 @@ public class DockerComputerLauncher extends ComputerLauncher {
             if(noResourcesAvailable(e)){
               LOGGER.info("Not resources available for :" + build);
             }else {
+                LOGGER.log(Level.INFO,"Failed to schedule: " + build, e);
                 bi.getAction(DockerSlaveInfo.class).incrementProvisioningAttemptCount();
             }
-            LOGGER.log(Level.INFO,"Failed to schedule: " + build, e.getMessage());
             throw new RuntimeException(e);
         }
     }
