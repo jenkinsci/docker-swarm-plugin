@@ -31,6 +31,7 @@ import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.CreateVolumeResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.exception.InternalServerErrorException;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Volume;
 import hudson.model.AbstractProject;
@@ -146,11 +147,20 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
         } catch (Exception e) {
             computer.terminate();
+            String build = bi + "-" + job.getNextBuildNumber();
             bi.getAction(DockerSlaveInfo.class).setProvisioningInProgress(false);
-            bi.getAction(DockerSlaveInfo.class).incrementProvisioningAttemptCount();
-            LOGGER.log(Level.INFO,"Failed to schedule: " + bi, e);
+            if(noResourcesAvailable(e)){
+              LOGGER.info("Not resources available for :" + build);
+            }else {
+                bi.getAction(DockerSlaveInfo.class).incrementProvisioningAttemptCount();
+            }
+            LOGGER.log(Level.INFO,"Failed to schedule: " + build, e.getMessage());
             throw new RuntimeException(e);
         }
+    }
+
+    private boolean noResourcesAvailable(Exception e) {
+        return e instanceof  InternalServerErrorException && e.getMessage().trim().contains("no resources available to schedule container");
     }
 
     private void setToInProgress(Queue.BuildableItem bi) {
