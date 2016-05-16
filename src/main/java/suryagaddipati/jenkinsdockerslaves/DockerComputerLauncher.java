@@ -107,20 +107,20 @@ public class DockerComputerLauncher extends ComputerLauncher {
                     .withName(computer.getName());
 
             String[] bindOptions = labelConfiguration.getHostBindsConfig();
-            Bind[]  binds=null;
+            String[] cacheDirs = labelConfiguration.getCacheDirs();
+            Bind[]  binds= new Bind[bindOptions.length+cacheDirs.length];
             if(bindOptions.length != 0){
-                binds= new Bind[bindOptions.length+1];
                 for(int i = 0; i < bindOptions.length ; i++){
                     String[] bindConfig = bindOptions[i].split(":");
                    binds[i] = new Bind(bindConfig[0], new Volume(bindConfig[1]));
                 }
-            }else{
-
-                binds= new Bind[1];
             }
 
-            listener.getLogger().println("Binding Volume" + labelConfiguration.getCacheDir()+ " to " + createVolumeResponse.getName());
-            binds[binds.length-1] = new Bind(createVolumeResponse.getName(),new Volume(labelConfiguration.getCacheDir()));
+            for(int i = 0; i < cacheDirs.length ; i++){
+                listener.getLogger().println("Binding Volume" + cacheDirs[i]+ " to " + createVolumeResponse.getName());
+                binds[binds.length-1] = new Bind(createVolumeResponse.getName(),new Volume(cacheDirs[i]));
+            }
+
             containerCmd.withBinds(binds);
 
 
