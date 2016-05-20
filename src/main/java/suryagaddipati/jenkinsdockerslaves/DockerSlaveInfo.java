@@ -8,6 +8,8 @@ import jenkins.model.RunAction2;
 import java.util.Date;
 
 public class DockerSlaveInfo implements RunAction2 {
+
+
     public int getProvisioningAttempts() {
         return provisioningAttempts;
     }
@@ -55,9 +57,6 @@ public class DockerSlaveInfo implements RunAction2 {
         return containerId;
     }
 
-    public void setContainerId(CreateContainerResponse container) {
-        this.containerId = container.getId();
-    }
 
     public boolean isProvisioningInProgress() {
         return provisioningInProgress;
@@ -73,5 +72,9 @@ public class DockerSlaveInfo implements RunAction2 {
 
     public void incrementProvisioningAttemptCount() {
         provisioningAttempts++;
+    }
+
+    public void setContainerInfo(InspectContainerResponse containerInfo) {
+        this.containerId = containerInfo.getName();
     }
 }

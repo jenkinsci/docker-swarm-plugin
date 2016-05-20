@@ -31,6 +31,7 @@ import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.CreateVolumeResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.command.InspectImageResponse;
 import com.github.dockerjava.api.exception.InternalServerErrorException;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Volume;
@@ -113,7 +114,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
             }
 
             createCacheBindings(listener, dockerClient, volumeName, cacheDirs, binds);
-
             containerCmd.withBinds(binds);
 
 
@@ -131,7 +131,8 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
 
 
-            bi.getAction(DockerSlaveInfo.class).setContainerId(container);
+            InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(container.getId()).exec();
+            bi.getAction(DockerSlaveInfo.class).setContainerInfo(containerInfo);
             dockerClient.startContainerCmd(container.getId()) .exec();
             computer.setContainerId(container.getId());
             computer.setVolumeName(volumeName);

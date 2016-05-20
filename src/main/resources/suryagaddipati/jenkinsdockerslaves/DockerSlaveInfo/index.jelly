@@ -3,7 +3,7 @@
     <l:layout>
         <l:main-panel>
             <div class="main">
-               <p>Container Id:  ${it.containerId}</p>
+               <p>Container Name:  ${it.containerId}</p>
             </div>
         </l:main-panel>
     </l:layout>
