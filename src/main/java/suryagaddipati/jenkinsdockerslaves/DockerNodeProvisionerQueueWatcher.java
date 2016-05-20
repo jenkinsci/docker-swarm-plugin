@@ -13,7 +13,7 @@ public class DockerNodeProvisionerQueueWatcher extends PeriodicWork {
     private static final Logger LOGGER = Logger.getLogger(DockerNodeProvisionerQueueWatcher.class.getName());
     @Override
     public long getRecurrencePeriod() {
-        return 10*1000;
+        return 10*2000;
     }
 
     @Override
