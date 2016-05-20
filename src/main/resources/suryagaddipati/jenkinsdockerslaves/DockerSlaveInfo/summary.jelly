@@ -1,0 +1,8 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core"
+         xmlns:t="/lib/hudson" >
+    <t:summary icon="/plugin/jenkins-docker-slaves/images/24x24/docker.png">
+        <b>Docker Slave:</b>
+        ${it.containerId}
+    </t:summary>
+</j:jelly>

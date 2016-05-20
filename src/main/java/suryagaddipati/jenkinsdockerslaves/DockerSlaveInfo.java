@@ -40,7 +40,7 @@ public class DockerSlaveInfo implements RunAction2 {
 
     @Override
     public String getIconFileName() {
-        return "new-package.png";
+        return "/plugin/jenkins-docker-slaves/images/24x24/docker.png";
     }
 
     @Override
