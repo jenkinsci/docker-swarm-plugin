@@ -7,8 +7,9 @@
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
     <!-- Baseline Jenkins version you use to build and test the plugin. Users must have this version or newer to run. -->
-    <version>1.618</version>
-    <relativePath/>
+    <version>2.5</version>
+    <relativePath />
+    <!--<relativePath/>-->
   </parent>
   <groupId>suryagaddipati</groupId>
   <artifactId>jenkins-docker-slaves</artifactId>
@@ -40,6 +41,9 @@
     <url>http://github.com/jenkinsci/${project.artifactId}-plugin</url>
   </scm>
    -->
+  <properties>
+  <jenkins.version>2.3</jenkins.version>
+  </properties>
   <repositories>
     <repository>
       <id>repo.jenkins-ci.org</id>

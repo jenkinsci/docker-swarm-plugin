@@ -95,10 +95,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
             int buildNumber = getBuildNumber();
             String volumeName = getJobName() + "-" + buildNumber;
-            CreateVolumeResponse createVolumeResponse = dockerClient.createVolumeCmd().withName(volumeName)
-                    .withDriver("cache-driver").exec();
-            listener.getLogger().println("Created Volume " + createVolumeResponse.getName() + " at " + createVolumeResponse.getMountpoint());
-
 
             CreateContainerCmd containerCmd = dockerClient
                     .createContainerCmd(labelConfiguration.getImage())
@@ -116,10 +112,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 }
             }
 
-            for(int i = 0; i < cacheDirs.length ; i++){
-                listener.getLogger().println("Binding Volume" + cacheDirs[i]+ " to " + createVolumeResponse.getName());
-                binds[binds.length-1] = new Bind(createVolumeResponse.getName(),new Volume(cacheDirs[i]));
-            }
+            createCacheBindings(listener, dockerClient, volumeName, cacheDirs, binds);
 
             containerCmd.withBinds(binds);
 
@@ -156,6 +149,17 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 bi.getAction(DockerSlaveInfo.class).incrementProvisioningAttemptCount();
             }
             throw new RuntimeException(e);
+        }
+    }
+
+    private void createCacheBindings(TaskListener listener, DockerClient dockerClient, String volumeName, String[] cacheDirs, Bind[] binds) {
+        CreateVolumeResponse createVolumeResponse = dockerClient.createVolumeCmd().withName(volumeName)
+                .withDriver("cache-driver").exec();
+        listener.getLogger().println("Created Volume " + createVolumeResponse.getName() + " at " + createVolumeResponse.getMountpoint());
+
+        for(int i = 0; i < cacheDirs.length ; i++){
+            listener.getLogger().println("Binding Volume" + cacheDirs[i]+ " to " + createVolumeResponse.getName());
+            binds[binds.length-1] = new Bind(createVolumeResponse.getName(),new Volume(cacheDirs[i]));
         }
     }
 
