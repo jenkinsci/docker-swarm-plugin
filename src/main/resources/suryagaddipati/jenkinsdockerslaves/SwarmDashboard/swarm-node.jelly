@@ -1,0 +1,37 @@
+<?jelly escape-by-default='false'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+
+    <div class="mdl-card mdl-shadow--2dp ">
+
+        <div class="mdl-card__title">
+                <i class="material-icons mdl-list__item-avatar  mdl-badge mdl-badge--overlap" data-badge="${node.computerCount}" >computer</i>
+            <div class="mdl-layout-spacer"></div>
+                <h2 class="mdl-card__title-text ${node.full?'node-full':'node-empty'} ">
+                    ${node.name}
+                    <j:if test="${node.full}">
+                       (Full)
+                    </j:if>
+                </h2>
+        </div>
+
+        <div class="mdl-card__supporting-text">
+            <div>CPUs: ${node.reservedCPUs} </div>
+            <div>Memory: ${node.reservedMemory} </div>
+
+            <ul class="mdl-list">
+                <j:forEach items="${node.currentBuilds}" var="build">
+                <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                      <a href="${build.absoluteUrl}">   ${build.fullDisplayName}</a>
+                    </span>
+                </li>
+                </j:forEach>
+            </ul>
+
+        </div>
+
+    </div>
+
+
+
+</j:jelly>

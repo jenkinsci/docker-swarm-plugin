@@ -1,0 +1,9 @@
+<?jelly escape-by-default='false'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+        <h4> Swarm Status</h4>
+        <div class="mdl-grid">
+        <j:forEach items="${it.nodes}" var="node">
+                <st:include page="swarm-node.jelly"  />
+        </j:forEach>
+        </div>
+</j:jelly>

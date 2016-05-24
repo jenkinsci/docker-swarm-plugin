@@ -25,7 +25,7 @@ public   class LabelConfiguration {
         return cacheDir;
     }
     public String[] getCacheDirs() {
-        return cacheDir.split(" ");
+        return  StringUtils.isEmpty(cacheDir)? new String[]{}: cacheDir.split(" ");
     }
 
     public void setCacheDir(String cacheDir) {

@@ -94,8 +94,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
             final String[] command = new String[] {"sh", "-c", "curl -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
 
 
-            int buildNumber = getBuildNumber();
-            String volumeName = getJobName() + "-" + buildNumber;
+
 
             CreateContainerCmd containerCmd = dockerClient
                     .createContainerCmd(labelConfiguration.getImage())
@@ -103,17 +102,17 @@ public class DockerComputerLauncher extends ComputerLauncher {
                     .withPrivileged(configuration.isPrivileged())
                     .withName(computer.getName());
 
-            String[] bindOptions = labelConfiguration.getHostBindsConfig();
+            String[] bindOptions =  labelConfiguration.getHostBindsConfig();
             String[] cacheDirs = labelConfiguration.getCacheDirs();
             Bind[]  binds= new Bind[bindOptions.length+cacheDirs.length];
             if(bindOptions.length != 0){
                 for(int i = 0; i < bindOptions.length ; i++){
                     String[] bindConfig = bindOptions[i].split(":");
-                   binds[i] = new Bind(bindConfig[0], new Volume(bindConfig[1]));
+                    binds[i] = new Bind(bindConfig[0], new Volume(bindConfig[1]));
                 }
             }
 
-            createCacheBindings(listener, dockerClient, volumeName, cacheDirs, binds);
+            createCacheBindings(listener, dockerClient, computer, cacheDirs, binds);
             containerCmd.withBinds(binds);
 
 
@@ -132,10 +131,10 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
 
             InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(container.getId()).exec();
+            computer.setNodeName(containerInfo.getNode().getName());
             bi.getAction(DockerSlaveInfo.class).setContainerInfo(containerInfo);
             dockerClient.startContainerCmd(container.getId()) .exec();
             computer.setContainerId(container.getId());
-            computer.setVolumeName(volumeName);
             computer.connect(false).get();
             bi.getAction(DockerSlaveInfo.class).setProvisionedTime(new Date());
 
@@ -144,7 +143,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
             String build = bi + "-" + job.getNextBuildNumber();
             bi.getAction(DockerSlaveInfo.class).setProvisioningInProgress(false);
             if(noResourcesAvailable(e)){
-              LOGGER.info("Not resources available for :" + build);
+                LOGGER.info("Not resources available for :" + build);
             }else {
                 LOGGER.log(Level.INFO,"Failed to schedule: " + build, e);
                 bi.getAction(DockerSlaveInfo.class).incrementProvisioningAttemptCount();
@@ -153,14 +152,18 @@ public class DockerComputerLauncher extends ComputerLauncher {
         }
     }
 
-    private void createCacheBindings(TaskListener listener, DockerClient dockerClient, String volumeName, String[] cacheDirs, Bind[] binds) {
-        CreateVolumeResponse createVolumeResponse = dockerClient.createVolumeCmd().withName(volumeName)
-                .withDriver("cache-driver").exec();
-        listener.getLogger().println("Created Volume " + createVolumeResponse.getName() + " at " + createVolumeResponse.getMountpoint());
+    private void createCacheBindings(TaskListener listener, DockerClient dockerClient, DockerComputer computer, String[] cacheDirs, Bind[] binds) {
+        if(cacheDirs.length > 0){
+            String cacheVolumeName = getJobName() + "-" + getBuildNumber();
+            CreateVolumeResponse createVolumeResponse = dockerClient.createVolumeCmd().withName(cacheVolumeName)
+                    .withDriver("cache-driver").exec();
+            listener.getLogger().println("Created Volume " + createVolumeResponse.getName() + " at " + createVolumeResponse.getMountpoint());
+            computer.setVolumeName(cacheVolumeName);
 
-        for(int i = 0; i < cacheDirs.length ; i++){
-            listener.getLogger().println("Binding Volume" + cacheDirs[i]+ " to " + createVolumeResponse.getName());
-            binds[binds.length-1] = new Bind(createVolumeResponse.getName(),new Volume(cacheDirs[i]));
+            for(int i = 0; i < cacheDirs.length ; i++){
+                listener.getLogger().println("Binding Volume" + cacheDirs[i]+ " to " + createVolumeResponse.getName());
+                binds[binds.length-1] = new Bind(createVolumeResponse.getName(),new Volume(cacheDirs[i]));
+            }
         }
     }
 

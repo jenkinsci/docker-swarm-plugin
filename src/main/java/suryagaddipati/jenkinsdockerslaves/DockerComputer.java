@@ -26,15 +26,13 @@
 package suryagaddipati.jenkinsdockerslaves;
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.google.common.collect.Iterables;
 import hudson.model.AbstractProject;
 import hudson.model.Executor;
 import hudson.model.Job;
 import hudson.model.Queue;
-import hudson.model.TaskListener;
 import hudson.slaves.AbstractCloudComputer;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 
@@ -43,6 +41,9 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     private final Job job;
     private String containerId;
     private String volumeName;
+
+
+    private String swarmNodeName;
 
 
     public DockerComputer(DockerSlave dockerSlave, Job job) {
@@ -91,7 +92,9 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
             }
             dockerClient.removeContainerCmd(containerId).exec();
-            dockerClient.removeVolumeCmd(volumeName).exec();
+            if(volumeName != null){
+                dockerClient.removeVolumeCmd(volumeName).exec();
+            }
         }
     }
 
@@ -110,5 +113,20 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
     public void setVolumeName(String volumeName) {
         this.volumeName = volumeName;
+    }
+
+    public void setNodeName(String nodeName) {
+        this.swarmNodeName = nodeName;
+    }
+    public String getSwarmNodeName() {
+        return swarmNodeName;
+    }
+
+    public Queue.Executable getCurrentBuild(){
+        if (!Iterables.isEmpty(getExecutors())){
+            Executor exec = getExecutors().get(0);
+            return exec.getCurrentExecutable()==null? null: exec.getCurrentExecutable();
+        }
+        return null;
     }
 }
