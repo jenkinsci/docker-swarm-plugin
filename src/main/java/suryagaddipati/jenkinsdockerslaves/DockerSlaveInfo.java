@@ -23,7 +23,7 @@ public class DockerSlaveInfo implements RunAction2 {
     public DockerSlaveInfo(boolean provisioningInProgress) {
         this.provisioningInProgress = provisioningInProgress;
         firstProvisioningAttempt = new Date();
-         provisioningAttempts = 1;
+        provisioningAttempts = 1;
     }
 
 

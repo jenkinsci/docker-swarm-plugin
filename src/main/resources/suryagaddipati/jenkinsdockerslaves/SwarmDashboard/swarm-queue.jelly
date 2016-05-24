@@ -1,4 +1,21 @@
 <?jelly escape-by-default='false'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
-    <h4>Swarm Queue</h4>
+    <h4>Queue</h4>
+    <ul class="mdl-list">
+        <j:forEach items="${it.queue}" var="item">
+        <li class="mdl-list__item mdl-list__item--two-line">
+            <span class="mdl-list__item-primary-content">
+                <span>${item.name}</span>
+                <span class="mdl-list__item-sub-title">${item.inQueueSince}</span>
+            </span>
+            <span class="mdl-list__item-secondary-content">
+                <span class="mdl-list__item-secondary-info">
+                    ${item.label}<br></br>
+                    ${item.labelConfig.cpus} CPU
+                </span>
+            </span>
+        </li>
+        </j:forEach>
+    </ul>
+
 </j:jelly>

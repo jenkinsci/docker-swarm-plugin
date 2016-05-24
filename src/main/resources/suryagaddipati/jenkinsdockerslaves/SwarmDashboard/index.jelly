@@ -41,6 +41,9 @@
                 margin-left: 10px;
                 margin-right: 10px;
                 }
+                .queue{
+                margin-right: 10px;
+                }
 
             </style>
         </head>
@@ -48,7 +51,7 @@
             <l:layout>
                 <l:main-panel>
                         <div class="mdl-grid">
-                            <div class="mdl-cell mdl-cell--2-col">
+                            <div id="queue" class="mdl-cell mdl-cell--2-col mdl-color--grey-100 ">
                                 <st:include page="swarm-queue.jelly" />
                             </div>
                             <div class="mdl-cell mdl-cell--10-col">

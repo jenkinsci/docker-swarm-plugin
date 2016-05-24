@@ -32,6 +32,22 @@ public class SwarmDashboard implements RootAction{
         return "swarm-dashboard";
     }
 
+
+    public Iterable getQueue(){
+        List<SwarmQueueItem> queue = new ArrayList<>();
+        Queue.Item[] items = Jenkins.getInstance().getQueue().getItems();
+        DockerSlaveConfiguration slaveConfig = DockerSlaveConfiguration.get();
+        for(int i = items.length-1 ; i >=0 ; i-- ){ //reverse order
+            Queue.Item item = items[i];
+            DockerSlaveInfo slaveInfo = item.getAction(DockerSlaveInfo.class);
+            if( slaveInfo != null && item instanceof Queue.BuildableItem && !slaveInfo.isProvisioningInProgress()){
+                queue.add(new SwarmQueueItem((Queue.BuildableItem)item));
+            }
+        }
+        return  queue;
+    }
+
+
     public Iterable<SwarmNode> getNodes(){
 
         DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
@@ -63,6 +79,37 @@ public class SwarmDashboard implements RootAction{
             if(stat.get(0).equals("Nodes"))return i+1;
         }
         return 0;
+    }
+
+
+    public static class SwarmQueueItem{
+
+        private final String name;
+        private final String label;
+        private final LabelConfiguration labelConfig;
+        private final String inQueueSince;
+
+        public SwarmQueueItem(Queue.BuildableItem item) {
+            name = item.task.getFullDisplayName();
+            label = item.task.getAssignedLabel().getName();
+            labelConfig = DockerSlaveConfiguration.get().getLabelConfiguration(label);
+            inQueueSince = item.getInQueueForString();
+        }
+        public String getName() {
+            return name;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public LabelConfiguration getLabelConfig() {
+            return labelConfig;
+        }
+
+        public String getInQueueSince() {
+            return inQueueSince;
+        }
     }
 
     public static class SwarmNode{
