@@ -7,28 +7,24 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import hudson.Extension;
-import hudson.model.AbstractBuild;
 import hudson.model.Computer;
 import hudson.model.Queue;
 import hudson.model.RootAction;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Extension
 public class SwarmDashboard implements RootAction{
     @Override
     public String getIconFileName() {
-        return null;
+        return "/plugin/jenkins-docker-slaves/images/24x24/docker.png";
     }
-
     @Override
     public String getDisplayName() {
-        return null;
+        return "Swarm Dashboard";
     }
 
     @Override
