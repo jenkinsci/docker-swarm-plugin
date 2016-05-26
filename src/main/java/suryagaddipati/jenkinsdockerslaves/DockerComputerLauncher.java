@@ -7,6 +7,7 @@ import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.CreateVolumeResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.InspectImageResponse;
+import com.github.dockerjava.api.command.InspectVolumeResponse;
 import com.github.dockerjava.api.exception.InternalServerErrorException;
 import com.github.dockerjava.api.model.Bind;
 import com.github.dockerjava.api.model.Volume;
@@ -106,6 +107,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
 
             InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(container.getId()).exec();
+
             computer.setNodeName(containerInfo.getNode().getName());
             bi.getAction(DockerSlaveInfo.class).setContainerInfo(containerInfo);
             dockerClient.startContainerCmd(container.getId()) .exec();
@@ -134,6 +136,10 @@ public class DockerComputerLauncher extends ComputerLauncher {
                     .withDriver("cache-driver").exec();
             listener.getLogger().println("Created Volume " + createVolumeResponse.getName() + " at " + createVolumeResponse.getMountpoint());
             computer.setVolumeName(cacheVolumeName);
+
+
+            bi.getAction(DockerSlaveInfo.class).setCacheVolumeName(createVolumeResponse.getName());
+            bi.getAction(DockerSlaveInfo.class).setCacheVolumeMountpoint(createVolumeResponse.getMountpoint());
 
             for(int i = 0; i < cacheDirs.length ; i++){
                 listener.getLogger().println("Binding Volume" + cacheDirs[i]+ " to " + createVolumeResponse.getName());

@@ -2,6 +2,7 @@ package suryagaddipati.jenkinsdockerslaves;
 
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.command.InspectVolumeResponse;
 import hudson.model.Run;
 import jenkins.model.RunAction2;
 
@@ -9,6 +10,10 @@ import java.util.Date;
 
 public class DockerSlaveInfo implements RunAction2 {
 
+
+
+    private String cacheVolumeName;
+    private String cacheVolumeNameMountPoint;
 
     public int getProvisioningAttempts() {
         return provisioningAttempts;
@@ -75,6 +80,24 @@ public class DockerSlaveInfo implements RunAction2 {
     }
 
     public void setContainerInfo(InspectContainerResponse containerInfo) {
-        this.containerId = containerInfo.getName();
+        this.containerId =  containerInfo.getNode().getName() +containerInfo.getName();
     }
+
+
+    public void setCacheVolumeName(String name) {
+        this.cacheVolumeName = name;
+    }
+
+    public void setCacheVolumeMountpoint(String mountpoint) {
+        this.cacheVolumeNameMountPoint = mountpoint;
+    }
+
+    public String getCacheVolumeName() {
+        return cacheVolumeName;
+    }
+
+    public String getCacheVolumeNameMountPoint() {
+        return cacheVolumeNameMountPoint;
+    }
+
 }

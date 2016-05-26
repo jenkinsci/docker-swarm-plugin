@@ -3,7 +3,9 @@
     <l:layout>
         <l:main-panel>
             <div class="main">
-               <p>Container Name:  ${it.containerId}</p>
+               <p><b>Container Name</b>:  ${it.containerId}</p>
+                <p><b>Cache Volume</b>:  ${it.cacheVolumeName}</p>
+                <p><b>Cache Volume Mountpoint</b>:  ${it.cacheVolumeNameMountPoint}</p>
             </div>
         </l:main-panel>
     </l:layout>
