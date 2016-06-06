@@ -5,7 +5,6 @@ import hudson.model.PeriodicWork;
 import hudson.model.Queue;
 import jenkins.model.Jenkins;
 
-import java.util.List;
 import java.util.logging.Logger;
 
 @Extension
@@ -26,7 +25,7 @@ public class DockerNodeProvisionerQueueWatcher extends PeriodicWork {
             if( slaveInfo != null && item instanceof Queue.BuildableItem && !slaveInfo.isProvisioningInProgress()){
                 if (! (slaveInfo.getProvisioningAttempts() >  slaveConfig.getMaxProvisioningAttempts())){
                     LOGGER.info("Scheduling build: "+ item.task);
-                    OneshotBuildScheduler.scheduleBuild(((Queue.BuildableItem)item),true);
+                    BuildScheduler.scheduleBuild(((Queue.BuildableItem)item),true);
                 }else{
                     LOGGER.info("Ignoring "+ item.task + " since it exceeded max provisioning attempts. Attempts :" + slaveInfo.getProvisioningAttempts());
                 }

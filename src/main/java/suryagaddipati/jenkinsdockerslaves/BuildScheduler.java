@@ -10,9 +10,8 @@ import jenkins.model.Jenkins;
 
 import java.io.IOException;
 
-public class OneshotBuildScheduler {
+public class BuildScheduler {
     public  static void scheduleBuild(Queue.BuildableItem bi, boolean replace) {
-        AbstractProject job = (AbstractProject) bi.task;
         try {
             DockerLabelAssignmentAction action = createLabelAssignmentAction();
             if(replace){
