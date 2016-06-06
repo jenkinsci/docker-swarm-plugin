@@ -74,7 +74,11 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     public void terminate() {
         LOGGER.info("Stopping Docker Slave after build completion");
         setAcceptingTasks(false);
+        cleanupDockerVolumeAndContainer();
+        cleanupNode();
+    }
 
+    private void cleanupNode() {
         try {
             getNode().terminate();
         } catch (InterruptedException e) {
@@ -82,8 +86,10 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        if (containerId != null){
+    }
 
+    private void cleanupDockerVolumeAndContainer() {
+        if (containerId != null){
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
             DockerClient dockerClient = configuration.newDockerClient();
             try{
@@ -97,7 +103,6 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
             }
         }
     }
-
 
 
     public AbstractProject getJob() {
