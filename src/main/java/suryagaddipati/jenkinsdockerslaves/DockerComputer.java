@@ -34,6 +34,7 @@ import hudson.model.Queue;
 import hudson.slaves.AbstractCloudComputer;
 
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
@@ -42,6 +43,7 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     private String containerId;
     private String volumeName;
 
+    private static final Logger LOGGER = Logger.getLogger(DockerComputer.class.getName());
 
     private String swarmNodeName;
 
@@ -91,20 +93,19 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     private void cleanupDockerVolumeAndContainer() {
         DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
         try( DockerClient dockerClient = configuration.newDockerClient()){
-
-            if (containerId != null){
-                try{
+            try{
+                if (containerId != null){
                     dockerClient.killContainerCmd(containerId).exec();
-                }catch (Exception _){
-
+                    dockerClient.removeContainerCmd(containerId).exec();
                 }
-                dockerClient.removeContainerCmd(containerId).exec();
-            }
-            if(volumeName != null){
-                dockerClient.removeVolumeCmd(volumeName).exec();
+                if(volumeName != null){
+                    dockerClient.removeVolumeCmd(volumeName).exec();
+                }
+            }catch (Exception e){
+                LOGGER.log(Level.INFO,"failed to cleanup comtainer "+ containerId, e);
             }
         } catch (IOException e) {
-            //Nothing can be done for unclosable connection?ß
+            LOGGER.log(Level.INFO,"Failed to close connection to docker client"+ containerId, e);
         }
     }
 
@@ -114,7 +115,6 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     }
 
 
-    private static final Logger LOGGER = Logger.getLogger(DockerComputer.class.getName());
 
     public void setContainerId(String containerId) {
         this.containerId = containerId;
