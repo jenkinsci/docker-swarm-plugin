@@ -61,59 +61,56 @@ public class DockerComputerLauncher extends ComputerLauncher {
             setToInProgress(bi);
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
             job.setCustomWorkspace(configuration.getBaseWorkspaceLocation());
-            DockerClient dockerClient = configuration.newDockerClient();
-            LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
+            try(DockerClient dockerClient = configuration.newDockerClient()) {
+                LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
 
 
-            final String additionalSlaveOptions = "-noReconnect";
-            final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer,configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
-            final String[] command = new String[] {"sh", "-c", "curl -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
+                final String additionalSlaveOptions = "-noReconnect";
+                final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer, configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
+                final String[] command = new String[]{"sh", "-c", "curl -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
 
 
+                CreateContainerCmd containerCmd = dockerClient
+                        .createContainerCmd(labelConfiguration.getImage())
+                        .withCmd(command)
+                        .withPrivileged(configuration.isPrivileged())
+                        .withName(computer.getName());
 
-
-            CreateContainerCmd containerCmd = dockerClient
-                    .createContainerCmd(labelConfiguration.getImage())
-                    .withCmd(command)
-                    .withPrivileged(configuration.isPrivileged())
-                    .withName(computer.getName());
-
-            String[] bindOptions =  labelConfiguration.getHostBindsConfig();
-            String[] cacheDirs = labelConfiguration.getCacheDirs();
-            Bind[]  binds= new Bind[bindOptions.length+cacheDirs.length];
-            if(bindOptions.length != 0){
-                for(int i = 0; i < bindOptions.length ; i++){
-                    String[] bindConfig = bindOptions[i].split(":");
-                    binds[i] = new Bind(bindConfig[0], new Volume(bindConfig[1]));
+                String[] bindOptions = labelConfiguration.getHostBindsConfig();
+                String[] cacheDirs = labelConfiguration.getCacheDirs();
+                Bind[] binds = new Bind[bindOptions.length + cacheDirs.length];
+                if (bindOptions.length != 0) {
+                    for (int i = 0; i < bindOptions.length; i++) {
+                        String[] bindConfig = bindOptions[i].split(":");
+                        binds[i] = new Bind(bindConfig[0], new Volume(bindConfig[1]));
+                    }
                 }
+
+                createCacheBindings(listener, dockerClient, computer, cacheDirs, binds);
+                containerCmd.withBinds(binds);
+
+
+                if (labelConfiguration.getCpus() != null) {
+                    containerCmd.withCpuShares(labelConfiguration.getCpus());
+                }
+                if (labelConfiguration.getMemory() != null) {
+                    containerCmd.withMemory(labelConfiguration.getMemory());
+                }
+
+                listener.getLogger().print("Creating Container :" + containerCmd.toString());
+                CreateContainerResponse container = containerCmd.exec();
+                listener.getLogger().print("Created container :" + container.getId());
+
+
+                InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(container.getId()).exec();
+
+                computer.setNodeName(containerInfo.getNode().getName());
+                bi.getAction(DockerSlaveInfo.class).setContainerInfo(containerInfo);
+                dockerClient.startContainerCmd(container.getId()).exec();
+                computer.setContainerId(container.getId());
+                computer.connect(false).get();
+                bi.getAction(DockerSlaveInfo.class).setProvisionedTime(new Date());
             }
-
-            createCacheBindings(listener, dockerClient, computer, cacheDirs, binds);
-            containerCmd.withBinds(binds);
-
-
-            if(labelConfiguration.getCpus() != null){
-                containerCmd.withCpuShares( labelConfiguration.getCpus());
-            }
-            if(labelConfiguration.getMemory() != null){
-                containerCmd.withMemory(labelConfiguration.getMemory());
-            }
-
-            listener.getLogger().print("Creating Container :" + containerCmd.toString() );
-            CreateContainerResponse container = containerCmd.exec();
-            listener.getLogger().print("Created container :" + container.getId() );
-
-
-
-
-            InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(container.getId()).exec();
-
-            computer.setNodeName(containerInfo.getNode().getName());
-            bi.getAction(DockerSlaveInfo.class).setContainerInfo(containerInfo);
-            dockerClient.startContainerCmd(container.getId()) .exec();
-            computer.setContainerId(container.getId());
-            computer.connect(false).get();
-            bi.getAction(DockerSlaveInfo.class).setProvisionedTime(new Date());
 
         } catch (Exception e) {
             computer.terminate();

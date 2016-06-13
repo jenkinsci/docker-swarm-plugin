@@ -13,6 +13,7 @@ import hudson.model.RootAction;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,17 +52,20 @@ public class SwarmDashboard implements RootAction{
     public Iterable<SwarmNode> getNodes(){
 
         DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
-        final DockerClient dockerClient = configuration.newDockerClient();
-        Info info = dockerClient.infoCmd().exec();
-        List<Object> nodeInfo = info.getSystemStatus().subList(getNodeIndex(info), info.getSystemStatus().size() - 1);
-        List<List<Object>> nodes = Lists.partition(nodeInfo, 10);
-        final List<Computer> dockerComputers = filterDockerComputers( Jenkins.getInstance().getComputers());
+        try( DockerClient dockerClient = configuration.newDockerClient()) {
+            Info info = dockerClient.infoCmd().exec();
+            List<Object> nodeInfo = info.getSystemStatus().subList(getNodeIndex(info), info.getSystemStatus().size() - 1);
+            List<List<Object>> nodes = Lists.partition(nodeInfo, 10);
+            final List<Computer> dockerComputers = filterDockerComputers(Jenkins.getInstance().getComputers());
 
-        return Iterables.transform(nodes, new Function<List<Object>, SwarmNode>() {
-            public SwarmNode apply(List<Object> info) {
-                return new SwarmNode(info,dockerComputers) ;
-            }
-        });
+            return Iterables.transform(nodes, new Function<List<Object>, SwarmNode>() {
+                public SwarmNode apply(List<Object> info) {
+                    return new SwarmNode(info, dockerComputers);
+                }
+            });
+        } catch (IOException e) {
+            return new ArrayList<>();
+        }
     }
 
     private List<Computer> filterDockerComputers(Computer[] computers) {

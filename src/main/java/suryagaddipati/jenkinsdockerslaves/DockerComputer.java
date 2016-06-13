@@ -89,18 +89,22 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     }
 
     private void cleanupDockerVolumeAndContainer() {
-        if (containerId != null){
-            DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
-            DockerClient dockerClient = configuration.newDockerClient();
-            try{
-                dockerClient.killContainerCmd(containerId).exec();
-            }catch (Exception _){
+        DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
+        try( DockerClient dockerClient = configuration.newDockerClient()){
 
+            if (containerId != null){
+                try{
+                    dockerClient.killContainerCmd(containerId).exec();
+                }catch (Exception _){
+
+                }
+                dockerClient.removeContainerCmd(containerId).exec();
             }
-            dockerClient.removeContainerCmd(containerId).exec();
             if(volumeName != null){
                 dockerClient.removeVolumeCmd(volumeName).exec();
             }
+        } catch (IOException e) {
+            //Nothing can be done for unclosable connection?ß
         }
     }
 
