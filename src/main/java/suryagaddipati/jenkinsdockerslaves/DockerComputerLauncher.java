@@ -113,9 +113,9 @@ public class DockerComputerLauncher extends ComputerLauncher {
             }
 
         } catch (Exception e) {
+            bi.getAction(DockerSlaveInfo.class).setProvisioningInProgress(false);
             computer.terminate();
             String build = bi + "-" + job.getNextBuildNumber();
-            bi.getAction(DockerSlaveInfo.class).setProvisioningInProgress(false);
             if(noResourcesAvailable(e)){
                 LOGGER.info("Not resources available for :" + build);
             }else {

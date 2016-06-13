@@ -21,6 +21,7 @@ public class DockerNodeProvisionerQueueWatcher extends PeriodicWork {
         DockerSlaveConfiguration slaveConfig = DockerSlaveConfiguration.get();
         for(int i = items.length-1 ; i >=0 ; i-- ){ //reverse order
             Queue.Item item = items[i];
+            LOGGER.info("Processing item: "+ item.task);
             DockerSlaveInfo slaveInfo = item.getAction(DockerSlaveInfo.class);
             if( slaveInfo != null && item instanceof Queue.BuildableItem && !slaveInfo.isProvisioningInProgress()){
                 if (! (slaveInfo.getProvisioningAttempts() >  slaveConfig.getMaxProvisioningAttempts())){
