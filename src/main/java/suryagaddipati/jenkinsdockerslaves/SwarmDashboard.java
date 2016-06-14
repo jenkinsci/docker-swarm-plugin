@@ -136,7 +136,9 @@ public class SwarmDashboard implements RootAction{
             reservedMemory = get(info,5,1);
             Iterable<Computer> currentComputers = Iterables.filter(dockerComputers, new Predicate<Computer>() {
                 public boolean apply(Computer computer) {
-                    return name.equals(((DockerComputer) computer).getSwarmNodeName().trim());
+                    String computerSwarmNodeName = ((DockerComputer) computer).getSwarmNodeName();
+                    computerSwarmNodeName = (computerSwarmNodeName == null ? "" : computerSwarmNodeName.trim());
+                    return name.contains(computerSwarmNodeName) || computerSwarmNodeName.contains(name);
                 }
             });
 
@@ -151,7 +153,8 @@ public class SwarmDashboard implements RootAction{
             }
         }
         private static String get(List<Object> info, int i, int j) {
-            return info.get(i) == null? "_/-":  ((List<String>)info.get(i)).get(j);
+            return (info.get(i) == null|| ((List<String>)info.get(i)).size()-1 > j)  ? "_/-":  ((List<String>)info.get(i)).get(j);
+
         }
 
         public String getName() {
