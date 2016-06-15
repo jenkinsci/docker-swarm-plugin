@@ -54,8 +54,8 @@ public class SwarmDashboard implements RootAction{
         DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
         try( DockerClient dockerClient = configuration.newDockerClient()) {
             Info info = dockerClient.infoCmd().exec();
-            List<Object> nodeInfo = info.getSystemStatus().subList(getNodeIndex(info), info.getSystemStatus().size() - 1);
-            List<List<Object>> nodes = Lists.partition(nodeInfo, 10);
+            List<Object> nodeInfo = info.getSystemStatus().subList(getNodeIndex(info), info.getSystemStatus().size());
+            List<List<Object>> nodes = Lists.partition(nodeInfo, 9);
             final List<Computer> dockerComputers = filterDockerComputers(Jenkins.getInstance().getComputers());
 
             return Iterables.transform(nodes, new Function<List<Object>, SwarmNode>() {
@@ -153,7 +153,7 @@ public class SwarmDashboard implements RootAction{
             }
         }
         private static String get(List<Object> info, int i, int j) {
-            return (info.get(i) == null|| ((List<String>)info.get(i)).size()-1 > j)  ? "_/-":  ((List<String>)info.get(i)).get(j);
+            return (info.get(i) == null||  j > ((List<String>)info.get(i)).size()-1 )  ? "_/-":  ((List<String>)info.get(i)).get(j);
 
         }
 
