@@ -25,7 +25,6 @@
 
 package suryagaddipati.jenkinsdockerslaves;
 
-import hudson.Launcher;
 import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
 import hudson.model.Job;
@@ -43,13 +42,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.logging.Logger;
 
-/**
- * An ${@link EphemeralNode} using docker containers to host the build processes.
- * Slave is dedicated to a specific ${@link Job}, and even better to a specific build, but when this class
- * is created the build does not yet exists due to Jenkins lifecycle.
- *
- * @author <a href="mailto:nicolas.deloof@gmail.com">Nicolas De Loof</a>
- */
 public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
 
     private final Job job;
@@ -69,7 +61,6 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
 
     @Override
     protected void _terminate(TaskListener listener) throws IOException, InterruptedException {
-       // this.terminate();
     }
 
 
@@ -91,5 +82,5 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
         }
         return super.canTake(item);
     }
-    private static final Logger LOGGER = Logger.getLogger(DockerSlave.class.getName());
 }
+
