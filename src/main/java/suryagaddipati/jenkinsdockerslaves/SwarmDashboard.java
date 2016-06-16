@@ -37,7 +37,6 @@ public class SwarmDashboard implements RootAction{
     public Iterable getQueue(){
         List<SwarmQueueItem> queue = new ArrayList<>();
         Queue.Item[] items = Jenkins.getInstance().getQueue().getItems();
-        DockerSlaveConfiguration slaveConfig = DockerSlaveConfiguration.get();
         for(int i = items.length-1 ; i >=0 ; i-- ){ //reverse order
             Queue.Item item = items[i];
             DockerSlaveInfo slaveInfo = item.getAction(DockerSlaveInfo.class);
