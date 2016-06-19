@@ -6,4 +6,4 @@ This plugin does not use jenkin's cloud api for various reasons, main one being 
 
 ##Configuration 
 
-![configuration](http://i.imgur.com/sxZJFi9.png "Configuration")
+![configuration](http://i.imgur.com/sd5kVSr.png "Configuration")
