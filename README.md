@@ -8,6 +8,9 @@ This plugin does not use jenkin's cloud api for various reasons, main one being 
 
 ![configuration](http://i.imgur.com/sd5kVSr.png "Configuration")
 
+#### Add this 'cloud' for label completion
+![label](http://i.imgur.com/IfyzNW7.png)
+
 #### optional caching 
 if you would like you use build caching. Compile and launch [this volume driver] (https://github.com/suryagaddipati/jenkins-docker-swarm-plugin/tree/master/src/main/golang/docker-cache-driver). This driver is written to use overlayfs but anyother CoW should work in theory ( PR's welcome :)).
 
