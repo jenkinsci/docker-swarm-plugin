@@ -27,4 +27,4 @@ Plugin attempts to create a slave as soon as build enters the queue. And if requ
 Follow the link on sidebar to view the status of your swarm. What is executing where, what builds are in queue for what resources ect
 
 ![dashboard](http://i.imgur.com/A4Ltqkh.png "Dashboard")
-http://i.imgur.com/A4Ltqkh.png
+
