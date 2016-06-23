@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path"
 	"syscall"
 )
 
@@ -72,12 +73,12 @@ func (buildCache *buildCache) exists() bool {
 	return err == nil
 }
 
-func getMergedPath(jobName, name string) string {
-	return fmt.Sprintf("%s/%s/merged/%s", cacheRootDir, jobName, name)
+func getMergedPath(jobName, buildNumber string) string {
+	return path.Join(cacheMergedRootDir, jobName, buildNumber)
 }
 func getUpperPath(jobName, buildNumber string) string {
-	return "/cache/" + jobName + "/upper/" + buildNumber
+	return path.Join(cacheUpperRootDir, jobName, buildNumber)
 }
 func getWorkDirPath(jobName, buildNumber string) string {
-	return "/cache/" + jobName + "/work/" + buildNumber
+	return path.Join(cacheWorkRootDir, jobName, buildNumber)
 }

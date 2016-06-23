@@ -7,14 +7,17 @@ import (
 	"path"
 )
 
-var stateFile = path.Join(cacheRootDir, "cache-state.json")
+var stateFile = path.Join(cacheUpperRootDir, "cache-state.json")
 
 type cacheState struct {
 	State map[string]string `json:"state"`
 }
 
 func newCacheState() (*cacheState, error) {
-	os.MkdirAll(cacheRootDir, 0755)
+	os.MkdirAll(cacheLowerRootDir, 0755)
+	os.MkdirAll(cacheUpperRootDir, 0755)
+	os.MkdirAll(cacheWorkRootDir, 0755)
+	os.MkdirAll(cacheMergedRootDir, 0755)
 	_, err := os.Stat(stateFile)
 	if err != nil {
 		volumes := make(map[string]string)
@@ -43,13 +46,14 @@ func (cacheState *cacheState) baseBuildDir(jobName string) (string, error) {
 		baseBuild := "0"
 		cacheState.State[jobName] = "0"
 		cacheState.save()
-		os.MkdirAll(path.Join(cacheRootDir, jobName, "base", baseBuild), 0755)
-		return getBasePath(jobName, baseBuild), nil
+		baseBuildCachePath := getBasePath(jobName, baseBuild)
+		os.MkdirAll(baseBuildCachePath, 0755)
+		return baseBuildCachePath, nil
 	}
 }
 
 func getBasePath(jobName, buildNumber string) string {
-	return path.Join(cacheRootDir, jobName, "base", buildNumber)
+	return path.Join(cacheLowerRootDir, jobName, buildNumber)
 }
 
 func (cacheState *cacheState) save() error {

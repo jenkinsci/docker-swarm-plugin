@@ -10,7 +10,10 @@ import (
 	"sync"
 )
 
-const cacheRootDir = "/cache"
+const cacheLowerRootDir = "/cache"
+const cacheUpperRootDir = "/mnt/cache-upper"
+const cacheWorkRootDir = "/mnt/cache-work"
+const cacheMergedRootDir = "/mnt/cache-merged"
 
 type cacheDriver struct {
 	mutex *sync.Mutex
@@ -48,15 +51,16 @@ func (driver cacheDriver) Get(req volume.Request) volume.Response {
 
 func (driver cacheDriver) List(req volume.Request) volume.Response {
 	fmt.Println("List Called... ")
-	matches, err := filepath.Glob(fmt.Sprintf("%s/*/merged/*", cacheRootDir))
+	matches, err := filepath.Glob(fmt.Sprintf("%s/*/*", cacheMergedRootDir))
 	if err != nil {
-		return volume.Response{Err: fmt.Sprintf("Couldn't glob cache dir %s due to %s", cacheRootDir, err)}
+		return volume.Response{Err: fmt.Sprintf("Couldn't glob cache dir %s due to %s", cacheMergedRootDir, err)}
 	}
 	if matches != nil {
 		var volumes []*volume.Volume = make([]*volume.Volume, len(matches))
 		for i, match := range matches {
-			dirs := strings.Split(match, "/")
-			volumes[i] = driver.volume(dirs[2], dirs[4])
+			mergeDir := strings.Replace(match, cacheMergedRootDir+"/", "", -1)
+			dirs := strings.Split(mergeDir, "/")
+			volumes[i] = driver.volume(dirs[0], dirs[1])
 		}
 		fmt.Printf("Found %s volumes\n", strconv.Itoa(len(volumes)))
 		return volume.Response{
