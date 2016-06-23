@@ -7,7 +7,7 @@ import (
 	"path"
 )
 
-var stateFile = path.Join(cacheUpperRootDir, "cache-state.json")
+var stateFile = path.Join(cacheLowerRootDir, "cache-state.json")
 
 type cacheState struct {
 	State map[string]string `json:"state"`
