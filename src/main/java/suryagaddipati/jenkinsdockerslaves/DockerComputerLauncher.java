@@ -120,6 +120,8 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 bi.getAction(DockerSlaveInfo.class).incrementProvisioningAttemptCount();
             }
             throw new RuntimeException(e);
+        }finally {
+            bi.getAction(DockerSlaveInfo.class).setProvisioningInProgress(false);
         }
     }
 

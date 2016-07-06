@@ -82,7 +82,9 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
     private void cleanupNode() {
         try {
-            getNode().terminate();
+            if(getNode() !=null){
+                getNode().terminate();
+            }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
