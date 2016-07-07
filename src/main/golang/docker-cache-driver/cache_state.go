@@ -7,17 +7,20 @@ import (
 	"path"
 )
 
-var stateFile = path.Join(cacheLowerRootDir, "cache-state.json")
-
 type cacheState struct {
 	State map[string]string `json:"state"`
 }
 
-func newCacheState() (*cacheState, error) {
-	os.MkdirAll(cacheLowerRootDir, 0755)
-	os.MkdirAll(cacheUpperRootDir, 0755)
-	os.MkdirAll(cacheWorkRootDir, 0755)
-	os.MkdirAll(cacheMergedRootDir, 0755)
+func getStateFile(cacheLowerRootDir string) string {
+	return path.Join(cacheLowerRootDir, "cache-state.json")
+}
+
+func newCacheState(driver cacheDriver) (*cacheState, error) {
+	os.MkdirAll(driver.cacheLocations.cacheLowerRootDir, 0755)
+	os.MkdirAll(driver.cacheLocations.cacheUpperRootDir, 0755)
+	os.MkdirAll(driver.cacheLocations.cacheWorkRootDir, 0755)
+	os.MkdirAll(driver.cacheLocations.cacheMergedRootDir, 0755)
+	stateFile := getStateFile(driver.cacheLocations.cacheLowerRootDir)
 	_, err := os.Stat(stateFile)
 	if err != nil {
 		volumes := make(map[string]string)
@@ -39,24 +42,25 @@ func newCacheState() (*cacheState, error) {
 		return &data, nil
 	}
 }
-func (cacheState *cacheState) baseBuildDir(jobName string) (string, error) {
+func (cacheState *cacheState) baseBuildDir(jobName, cacheLowerRootDir string) (string, error) {
 	if baseBuild, ok := cacheState.State[jobName]; ok {
-		return getBasePath(jobName, baseBuild), nil
+		return getBasePath(jobName, baseBuild, cacheLowerRootDir), nil
 	} else {
 		baseBuild := "0"
 		cacheState.State[jobName] = "0"
-		cacheState.save()
-		baseBuildCachePath := getBasePath(jobName, baseBuild)
+		cacheState.save(cacheLowerRootDir)
+		baseBuildCachePath := getBasePath(jobName, baseBuild, cacheLowerRootDir)
 		os.MkdirAll(baseBuildCachePath, 0755)
 		return baseBuildCachePath, nil
 	}
 }
 
-func getBasePath(jobName, buildNumber string) string {
+func getBasePath(jobName, buildNumber, cacheLowerRootDir string) string {
 	return path.Join(cacheLowerRootDir, jobName, buildNumber)
 }
 
-func (cacheState *cacheState) save() error {
-	fileData, _ := json.Marshal(cacheState)
+func (cacheState *cacheState) save(cacheLowerRootDir string) error {
+	stateFile := getStateFile(cacheLowerRootDir)
+	fileData, _ := json.Marshal(stateFile)
 	return ioutil.WriteFile(stateFile, fileData, 0600)
 }

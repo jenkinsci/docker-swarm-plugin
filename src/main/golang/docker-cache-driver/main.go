@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/docker/go-plugins-helpers/volume"
 	"io/ioutil"
 	"os"
@@ -9,8 +10,14 @@ import (
 )
 
 func main() {
+	lowerRootDir := flag.String("cacheLowerDir", "/cache", "root location of lower dir")
+	upperRootDir := flag.String("cacheUpperDir", "/mnt/cache-upper", "root location of upper dir")
+	workRootDir := flag.String("cacheWorkDir", "/mnt/cache-work", "root location of work dir")
+	mergedRootDir := flag.String("cacheMergedDir", "/mnt/cache-merged", "root location of merged dir")
 	WithLock("/var/run/cache-driver.pid", func() {
-		driver := newCacheDriverDriver()
+		cacheLocations := newCacheLocations(lowerRootDir, upperRootDir, workRootDir, mergedRootDir)
+		flag.Parse()
+		driver := newCacheDriverDriver(&cacheLocations)
 
 		handler := volume.NewHandler(driver)
 		err := handler.ServeUnix("root", driver.name)
