@@ -61,6 +61,6 @@ func getBasePath(jobName, buildNumber, cacheLowerRootDir string) string {
 
 func (cacheState *cacheState) save(cacheLowerRootDir string) error {
 	stateFile := getStateFile(cacheLowerRootDir)
-	fileData, _ := json.Marshal(stateFile)
+	fileData, _ := json.Marshal(cacheState)
 	return ioutil.WriteFile(stateFile, fileData, 0600)
 }
