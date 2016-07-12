@@ -6,21 +6,12 @@ import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.Queue;
 import hudson.model.queue.QueueListener;
-import hudson.slaves.Cloud;
-import hudson.slaves.NodeProvisioner;
 import jenkins.model.Jenkins;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
-/**
- * {@link Cloud} API is designed to launch virtual machines, which is an heavy process, so relies on
- * {@link  NodeProvisioner} to determine when a new slave is required. Here we want the slave to start just as a job
- * enter the build queue. As an alternative we listen the Queue for Jobs to get scheduled, and when label match
- * immediately start a fresh new container executor with a unique label to enforce exclusive usage.
- *
- */
 @Extension
 public class OneShotProvisionQueueListener extends QueueListener {
 
@@ -61,6 +52,4 @@ public class OneShotProvisionQueueListener extends QueueListener {
         }
     }
 
-
-    private static final Logger LOGGER = Logger.getLogger(OneShotProvisionQueueListener.class.getName());
 }
