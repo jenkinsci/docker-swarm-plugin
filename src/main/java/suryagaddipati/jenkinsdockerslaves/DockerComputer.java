@@ -26,14 +26,17 @@
 package suryagaddipati.jenkinsdockerslaves;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.model.Statistics;
 import com.google.common.collect.Iterables;
 import hudson.model.AbstractProject;
 import hudson.model.Executor;
 import hudson.model.Job;
 import hudson.model.Queue;
+import hudson.model.Run;
 import hudson.slaves.AbstractCloudComputer;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -97,6 +100,14 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         try( DockerClient dockerClient = configuration.newDockerClient()){
             try{
                 if (containerId != null){
+                    Queue.Executable currentExecutable = getExecutors().get(0).getCurrentExecutable();
+                    if(currentExecutable instanceof Run && ((Run)currentExecutable).getAction(DockerSlaveInfo.class) != null){
+                        Statistics stats = dockerClient.statsCmd(containerId).exec();
+                        Map<String, Object> memoryStats = stats.getMemoryStats();
+                        Integer maxUsage = (Integer) memoryStats.get("max_usage");
+                        DockerSlaveInfo slaveInfo = ((Run) currentExecutable).getAction(DockerSlaveInfo.class);
+                        slaveInfo.setMaxMemoryUsage(maxUsage);
+                    }
                     dockerClient.killContainerCmd(containerId).exec();
                     dockerClient.removeContainerCmd(containerId).exec();
                 }

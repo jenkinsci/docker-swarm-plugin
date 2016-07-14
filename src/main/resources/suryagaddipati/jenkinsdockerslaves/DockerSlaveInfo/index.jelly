@@ -6,6 +6,7 @@
                <p><b>Container Name</b>:  ${it.containerId}</p>
                 <p><b>Cache Volume</b>:  ${it.cacheVolumeName}</p>
                 <p><b>Cache Volume Mountpoint</b>:  ${it.cacheVolumeNameMountPoint}</p>
+                <p><b>Max Memory Usage</b>:  ${it.memoryStats}</p>
             </div>
         </l:main-panel>
     </l:layout>

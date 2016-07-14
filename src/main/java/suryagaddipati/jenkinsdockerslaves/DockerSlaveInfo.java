@@ -14,6 +14,7 @@ public class DockerSlaveInfo implements RunAction2 {
 
     private String cacheVolumeName;
     private String cacheVolumeNameMountPoint;
+    private Integer maxMemoryUsage;
 
     public int getProvisioningAttempts() {
         return provisioningAttempts;
@@ -100,4 +101,14 @@ public class DockerSlaveInfo implements RunAction2 {
         return cacheVolumeNameMountPoint;
     }
 
+    public void setMaxMemoryUsage(Integer maxUsage) {
+        this.maxMemoryUsage = maxUsage;
+    }
+
+    public Integer getMaxMemoryUsage() {
+        return maxMemoryUsage;
+    }
+    public String getMemoryStats(){
+       return maxMemoryUsage + " bytes (" + Math.floor((maxMemoryUsage/1024)/1024) +" MB )";
+    }
 }

@@ -24,6 +24,7 @@ THE SOFTWARE.
 package suryagaddipati.jenkinsdockerslaves;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.google.common.base.Function;
@@ -81,7 +82,7 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
 
     public DockerClient newDockerClient(){
         if (Boolean.TRUE.equals(useTLS)) {
-            DockerClientConfig config = DockerClientConfig.createDefaultConfigBuilder()
+            DockerClientConfig config = new DefaultDockerClientConfig.Builder()
                     .withDockerHost(uri)
                     .withDockerTlsVerify(true)
                     .withDockerCertPath(certificatesPath)
@@ -89,7 +90,7 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
                     .build();
             return  DockerClientBuilder.getInstance(config).build();
         } else {
-            DockerClientConfig config = DockerClientConfig.createDefaultConfigBuilder().withDockerTlsVerify(false).withApiVersion(apiVersion).withDockerHost(uri).build();
+            DockerClientConfig config = new DefaultDockerClientConfig.Builder().withDockerTlsVerify(false).withApiVersion(apiVersion).withDockerHost(uri).build();
             return  DockerClientBuilder.getInstance(config).build();
         }
     }
