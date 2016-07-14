@@ -5,15 +5,9 @@ import (
 	"fmt"
 	"github.com/docker/go-plugins-helpers/volume"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 )
-
-// const cacheLowerRootDir = "/cache"
-// const cacheUpperRootDir = "/mnt/cache-upper"
-// const cacheWorkRootDir = "/mnt/cache-work"
-// const cacheMergedRootDir = "/mnt/cache-merged"
 
 type cacheLocations struct {
 	cacheLowerRootDir  string
@@ -68,7 +62,6 @@ func (driver cacheDriver) Get(req volume.Request) volume.Response {
 }
 
 func (driver cacheDriver) List(req volume.Request) volume.Response {
-	fmt.Println("List Called... ")
 	cacheMergedRootDir := driver.cacheLocations.cacheMergedRootDir
 	matches, err := filepath.Glob(fmt.Sprintf("%s/*/*", cacheMergedRootDir))
 	if err != nil {
@@ -81,7 +74,6 @@ func (driver cacheDriver) List(req volume.Request) volume.Response {
 			dirs := strings.Split(mergeDir, "/")
 			volumes[i] = driver.volume(dirs[0], dirs[1])
 		}
-		fmt.Printf("Found %s volumes\n", strconv.Itoa(len(volumes)))
 		return volume.Response{
 			Volumes: volumes,
 		}
@@ -97,7 +89,9 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 	defer driver.mutex.Unlock()
 	jobName, buildNumber, err := getNames(req.Name)
 	if err != nil {
-		return volume.Response{Err: fmt.Sprintf("The volume name %s is invalid.", req.Name)}
+		invalidVolumeNameErr := fmt.Sprintf("The volume name %s is invalid.", req.Name)
+		fmt.Println(invalidVolumeNameErr)
+		return volume.Response{Err: invalidVolumeNameErr}
 	}
 	cacheLocations := driver.cacheLocations
 	buildCache, _ := newBuildCache(jobName, buildNumber, cacheLocations)
