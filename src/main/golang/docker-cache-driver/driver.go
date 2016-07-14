@@ -112,7 +112,7 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 }
 
 func (driver cacheDriver) Remove(req volume.Request) volume.Response {
-	fmt.Println("Remove-%s: Called... ", req.Name)
+	fmt.Println(fmt.Sprintf("Remove-%s: Called... ", req.Name))
 	driver.mutex.Lock()
 	defer driver.mutex.Unlock()
 
