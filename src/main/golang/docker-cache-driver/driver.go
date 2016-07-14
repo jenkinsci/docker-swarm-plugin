@@ -43,8 +43,6 @@ func newCacheDriverDriver(cacheLocations *cacheLocations) cacheDriver {
 }
 
 func (driver cacheDriver) Get(req volume.Request) volume.Response {
-	fmt.Println("Get Called... ")
-
 	jobName, buildNumber, err := getNames(req.Name)
 	buildCache, _ := newBuildCache(jobName, buildNumber, driver.cacheLocations)
 	if err != nil {
