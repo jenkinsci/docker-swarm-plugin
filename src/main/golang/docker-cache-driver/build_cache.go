@@ -34,38 +34,49 @@ func (buildCache *buildCache) mount(baseBuildDir string) error {
 }
 
 func (buildCache *buildCache) destroy(driver cacheDriver) error {
+	volumeName := buildCache.job + "-" + buildCache.build
 	emptyUpper, err := isEmpty(buildCache.upperDir)
 	if err != nil {
 		return err
 	}
 	if !emptyUpper {
+		fmt.Println(fmt.Sprintf("Remove-%s: Upper not empty. Cloning", volumeName))
 		go func() {
-			fmt.Println("Clone begin", buildCache.mergeDir)
+			fmt.Println(fmt.Sprintf("Remove-%s: Clone Begin, %s", volumeName, buildCache.mergeDir))
 			if err = cloneDir(buildCache.mergeDir, getBasePath(buildCache.job, buildCache.build, driver.cacheLocations.cacheLowerRootDir)); err == nil {
 				cacheState, _ := newCacheState(driver)
 				cacheState.State[buildCache.job] = buildCache.build
 				cacheState.save(driver.cacheLocations.cacheLowerRootDir)
-				fmt.Println("Clone end", buildCache.mergeDir)
+				fmt.Println(fmt.Sprintf("Remove-%s: Clone complete. Cloned to %s", volumeName, driver.cacheLocations.cacheLowerRootDir))
 				cleanUpVolume(buildCache)
 			}
 		}()
 		return nil
 	} else {
+		fmt.Println(fmt.Sprintf("Remove-%s: Upper empty. cleaning up cache dirs", volumeName))
 		return cleanUpVolume(buildCache)
 	}
 }
 func cleanUpVolume(buildCache *buildCache) error {
+	volumeName := buildCache.job + "-" + buildCache.build
 	if err := syscall.Unmount(buildCache.mergeDir, 0); err != nil {
+		fmt.Println(fmt.Sprint("Remove-%s: Syscall unmount %s failed. %s", volumeName, buildCache.mergeDir, err))
 		return err
 	}
 
 	if err := os.RemoveAll(buildCache.mergeDir); err != nil {
+		fmt.Println(fmt.Sprint("Remove-%s: Could not delete dir %s. %s", volumeName, buildCache.mergeDir, err))
 		return err
 	}
 	if err := os.RemoveAll(buildCache.upperDir); err != nil {
+		fmt.Println(fmt.Sprint("Remove-%s: Could not delete dir %s. %s", volumeName, buildCache.upperDir, err))
 		return err
 	}
-	return os.RemoveAll(buildCache.workDir)
+	if err := os.RemoveAll(buildCache.workDir); err != nil {
+		fmt.Println(fmt.Sprint("Remove-%s: Could not delete dir %s. %s", volumeName, buildCache.workDir, err))
+		return err
+	}
+	return nil
 }
 
 func (buildCache *buildCache) exists() bool {

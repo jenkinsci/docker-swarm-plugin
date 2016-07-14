@@ -32,7 +32,7 @@ type cacheDriver struct {
 }
 
 func newCacheDriverDriver(cacheLocations *cacheLocations) cacheDriver {
-	fmt.Println("Starting... ")
+	fmt.Println("Starting Cache Driver... ")
 	driver := cacheDriver{
 		mutex:          &sync.Mutex{},
 		name:           "cache-driver",
@@ -84,18 +84,17 @@ func (driver cacheDriver) List(req volume.Request) volume.Response {
 }
 
 func (driver cacheDriver) Create(req volume.Request) volume.Response {
-	fmt.Println("Create Called :", req.Name)
+	fmt.Println("Create-%s: Create Called :", req.Name)
 	driver.mutex.Lock()
 	defer driver.mutex.Unlock()
 	jobName, buildNumber, err := getNames(req.Name)
 	if err != nil {
-		invalidVolumeNameErr := fmt.Sprintf("The volume name %s is invalid.", req.Name)
+		invalidVolumeNameErr := fmt.Sprintf("Create-%s: The volume name is invalid.", req.Name)
 		fmt.Println(invalidVolumeNameErr)
 		return volume.Response{Err: invalidVolumeNameErr}
 	}
 	cacheLocations := driver.cacheLocations
 	buildCache, _ := newBuildCache(jobName, buildNumber, cacheLocations)
-	fmt.Println("checking if exists", getMergedPath(jobName, buildNumber, cacheLocations.cacheMergedRootDir))
 	if buildCache.exists() {
 		return volume.Response{Err: fmt.Sprintf("The volume %s already exists", req.Name)}
 	}
@@ -105,25 +104,27 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 	baseBuildDir, err := cacheState.baseBuildDir(jobName, cacheLocations.cacheLowerRootDir)
 	err = buildCache.mount(baseBuildDir)
 	if err != nil {
-		return volume.Response{Err: fmt.Sprintf("Failed to mount overlay cache due to  %s", err)}
+		overlayMountError := fmt.Sprintf("Create-%s : Failed to mount overlay cache due to  %s", req.Name, err)
+		return volume.Response{Err: overlayMountError}
 	}
 
 	return volume.Response{}
 }
 
 func (driver cacheDriver) Remove(req volume.Request) volume.Response {
-	fmt.Print("Remove Called... ")
+	fmt.Println("Remove-%s: Called... ", req.Name)
 	driver.mutex.Lock()
 	defer driver.mutex.Unlock()
 
 	jobName, buildNumber, err := getNames(req.Name)
 	if err != nil {
-		return volume.Response{Err: fmt.Sprintf("The volume name %s is invalid.", req.Name)}
+		invalidNameErr := fmt.Sprintf("Remove-%s: The volume name is invalid.", req.Name)
+		return volume.Response{Err: invalidNameErr}
 	}
 	buildCache, _ := newBuildCache(jobName, buildNumber, driver.cacheLocations)
 	err = buildCache.destroy(driver)
 	if err != nil {
-		return volume.Response{Err: fmt.Sprintf("Failed to destory volume : %s", err)}
+		return volume.Response{Err: fmt.Sprintf("Remove-%s: Failed to destory volume : %s", req.Name, err)}
 	}
 
 	return volume.Response{}
@@ -135,7 +136,6 @@ func (driver cacheDriver) Path(req volume.Request) volume.Response {
 	if err != nil {
 		return volume.Response{Err: fmt.Sprintf("The volume name %s is invalid.", req.Name)}
 	}
-	fmt.Println("Path called with ", jobName, " ", buildNumber)
 	return volume.Response{Mountpoint: getMergedPath(jobName, buildNumber, driver.cacheLocations.cacheMergedRootDir)}
 }
 
