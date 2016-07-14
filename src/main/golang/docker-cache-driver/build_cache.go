@@ -43,7 +43,9 @@ func (buildCache *buildCache) destroy(driver cacheDriver) error {
 		fmt.Println(fmt.Sprintf("Remove-%s: Upper not empty. Cloning", volumeName))
 		go func() {
 			fmt.Println(fmt.Sprintf("Remove-%s: Clone Begin, %s", volumeName, buildCache.mergeDir))
-			if err = cloneDir(buildCache.mergeDir, getBasePath(buildCache.job, buildCache.build, driver.cacheLocations.cacheLowerRootDir)); err == nil {
+			if err = cloneDir(buildCache.mergeDir, getBasePath(buildCache.job, buildCache.build, driver.cacheLocations.cacheLowerRootDir)); err != nil {
+				fmt.Println(fmt.Sprintf("Remove-%s: Clone Dir failed %s", volumeName, err))
+			} else {
 				cacheState, _ := newCacheState(driver)
 				cacheState.State[buildCache.job] = buildCache.build
 				cacheState.save(driver.cacheLocations.cacheLowerRootDir)
