@@ -84,7 +84,7 @@ func (driver cacheDriver) List(req volume.Request) volume.Response {
 }
 
 func (driver cacheDriver) Create(req volume.Request) volume.Response {
-	fmt.Println("Create-%s: Create Called :", req.Name)
+	fmt.Println(fmt.Sprintf("Create-%s: Create Called :", req.Name))
 	driver.mutex.Lock()
 	defer driver.mutex.Unlock()
 	jobName, buildNumber, err := getNames(req.Name)
@@ -108,6 +108,7 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 		return volume.Response{Err: overlayMountError}
 	}
 
+	fmt.Println(fmt.Sprintf("Create-%s:  Mounted cache, base %s :", req.Name, baseBuildDir))
 	return volume.Response{}
 }
 
