@@ -90,6 +90,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 if (labelConfiguration.getCpus() != null) {
                     containerCmd.withCpuShares(labelConfiguration.getCpus());
                 }
+
                 if (labelConfiguration.getMemory() != null) {
                     containerCmd.withMemory(labelConfiguration.getMemory());
                 }

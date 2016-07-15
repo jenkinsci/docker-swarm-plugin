@@ -3,10 +3,12 @@ package suryagaddipati.jenkinsdockerslaves;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.InspectVolumeResponse;
+import com.google.common.base.Joiner;
 import hudson.model.Run;
 import jenkins.model.RunAction2;
 
 import java.util.Date;
+import java.util.List;
 
 public class DockerSlaveInfo implements RunAction2 {
 
@@ -15,6 +17,7 @@ public class DockerSlaveInfo implements RunAction2 {
     private String cacheVolumeName;
     private String cacheVolumeNameMountPoint;
     private Integer maxMemoryUsage;
+    private List<Long> perCpuUsage;
 
     public int getProvisioningAttempts() {
         return provisioningAttempts;
@@ -110,5 +113,12 @@ public class DockerSlaveInfo implements RunAction2 {
     }
     public String getMemoryStats(){
        return maxMemoryUsage + " bytes (" + Math.floor((maxMemoryUsage/1024)/1024) +" MB )";
+    }
+    public String getCpuUsage(){
+      return perCpuUsage == null? "": Joiner.on(", ").join(perCpuUsage);
+    }
+
+    public void setPerCpuUsage(List<Long> perCpuUsage) {
+        this.perCpuUsage = perCpuUsage;
     }
 }

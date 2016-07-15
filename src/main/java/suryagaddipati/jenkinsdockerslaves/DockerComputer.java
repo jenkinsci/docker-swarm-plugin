@@ -36,6 +36,7 @@ import hudson.model.Run;
 import hudson.slaves.AbstractCloudComputer;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -103,12 +104,27 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
                     Queue.Executable currentExecutable = getExecutors().get(0).getCurrentExecutable();
                     LOGGER.info("Getting Stats for " + currentExecutable);
                     if(currentExecutable instanceof Run && ((Run)currentExecutable).getAction(DockerSlaveInfo.class) != null){
+                        DockerSlaveInfo slaveInfo = ((Run) currentExecutable).getAction(DockerSlaveInfo.class);
                         Statistics stats = dockerClient.statsCmd(containerId).exec();
-                        LOGGER.info("Got Stats for " + currentExecutable + " : " + stats);
                         Map<String, Object> memoryStats = stats.getMemoryStats();
                         Integer maxUsage = (Integer) memoryStats.get("max_usage");
-                        DockerSlaveInfo slaveInfo = ((Run) currentExecutable).getAction(DockerSlaveInfo.class);
                         slaveInfo.setMaxMemoryUsage(maxUsage);
+
+                        Map<String, Object> cpuStats = stats.getCpuStats();
+                        if(cpuStats != null ){
+                           Map<String, Object>  cpuUsage= (Map<String, Object>) cpuStats.get("cpu_usage");
+                            if(cpuUsage != null ){
+                                List<Long> perCpuUsage= (List<Long>) cpuUsage.get("percpu_usage");
+                                if(perCpuUsage != null){
+                                  slaveInfo.setPerCpuUsage(perCpuUsage);
+                                }
+
+                            }
+                        }
+
+
+
+
                         ((Run) currentExecutable).save();
                     }
                     dockerClient.killContainerCmd(containerId).exec();
