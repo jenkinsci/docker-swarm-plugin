@@ -101,12 +101,15 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
             try{
                 if (containerId != null){
                     Queue.Executable currentExecutable = getExecutors().get(0).getCurrentExecutable();
+                    LOGGER.info("Getting Stats for " + currentExecutable);
                     if(currentExecutable instanceof Run && ((Run)currentExecutable).getAction(DockerSlaveInfo.class) != null){
                         Statistics stats = dockerClient.statsCmd(containerId).exec();
+                        LOGGER.info("Got Stats for " + currentExecutable + " : " + stats);
                         Map<String, Object> memoryStats = stats.getMemoryStats();
                         Integer maxUsage = (Integer) memoryStats.get("max_usage");
                         DockerSlaveInfo slaveInfo = ((Run) currentExecutable).getAction(DockerSlaveInfo.class);
                         slaveInfo.setMaxMemoryUsage(maxUsage);
+                        ((Run) currentExecutable).save();
                     }
                     dockerClient.killContainerCmd(containerId).exec();
                     dockerClient.removeContainerCmd(containerId).exec();
