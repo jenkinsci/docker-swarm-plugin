@@ -104,7 +104,7 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
                     dockerClient.removeVolumeCmd(volumeName).exec();
                 }
             }catch (Exception e){
-                LOGGER.log(Level.INFO,"failed to cleanup comtainer "+ containerId, e);
+                LOGGER.log(Level.INFO,"failed to cleanup container "+ containerId, e);
             }
         } catch (IOException e) {
             LOGGER.log(Level.INFO,"Failed to close connection to docker client"+ containerId, e);
