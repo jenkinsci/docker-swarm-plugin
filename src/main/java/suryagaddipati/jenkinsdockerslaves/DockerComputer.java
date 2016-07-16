@@ -106,21 +106,7 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
                     if(currentExecutable instanceof Run && ((Run)currentExecutable).getAction(DockerSlaveInfo.class) != null){
                         DockerSlaveInfo slaveInfo = ((Run) currentExecutable).getAction(DockerSlaveInfo.class);
                         Statistics stats = dockerClient.statsCmd(containerId).exec();
-                        Map<String, Object> memoryStats = stats.getMemoryStats();
-                        Integer maxUsage = (Integer) memoryStats.get("max_usage");
-                        slaveInfo.setMaxMemoryUsage(maxUsage);
-
-                        Map<String, Object> cpuStats = stats.getCpuStats();
-                        if(cpuStats != null ){
-                           Map<String, Object>  cpuUsage= (Map<String, Object>) cpuStats.get("cpu_usage");
-                            if(cpuUsage != null ){
-                                List<Long> perCpuUsage= (List<Long>) cpuUsage.get("percpu_usage");
-                                if(perCpuUsage != null){
-                                  slaveInfo.setPerCpuUsage(perCpuUsage);
-                                }
-
-                            }
-                        }
+                       slaveInfo.setStats(stats);
 
 
 
