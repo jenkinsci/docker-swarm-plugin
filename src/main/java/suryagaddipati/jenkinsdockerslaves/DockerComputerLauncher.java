@@ -12,6 +12,7 @@ import com.github.dockerjava.api.model.Volume;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Queue;
+import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
@@ -87,13 +88,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 containerCmd.withBinds(binds);
 
 
-                if (labelConfiguration.getCpus() != null) {
-                    containerCmd.withCpuShares(labelConfiguration.getCpus());
-                }
-
-                if (labelConfiguration.getMemory() != null) {
-                    containerCmd.withMemory(labelConfiguration.getMemory());
-                }
+                setCgroupLimits(labelConfiguration, containerCmd);
 
                 listener.getLogger().print("Creating Container :" + containerCmd.toString());
                 CreateContainerResponse container = containerCmd.exec();
@@ -122,6 +117,29 @@ public class DockerComputerLauncher extends ComputerLauncher {
             throw new RuntimeException(e);
         }finally {
             bi.getAction(DockerSlaveInfo.class).setProvisioningInProgress(false);
+        }
+    }
+
+    private void setCgroupLimits(LabelConfiguration labelConfiguration, CreateContainerCmd containerCmd) {
+        Run lastSuccessfulBuild = job.getLastSuccessfulBuild();
+        if(lastSuccessfulBuild !=null && lastSuccessfulBuild.getAction(DockerSlaveInfo.class)!=null){
+            DockerSlaveInfo dockerSlaveInfo = lastSuccessfulBuild.getAction(DockerSlaveInfo.class);
+            Integer cpuAllocation = dockerSlaveInfo.wereCpusAllocated()?  dockerSlaveInfo.getCpuAllocation(): labelConfiguration.getCpus();
+            if(dockerSlaveInfo.wasThrottled()){
+                containerCmd.withCpuShares( Math.min( cpuAllocation  + 1, 2));
+            }else{
+                containerCmd.withCpuShares(cpuAllocation);
+            }
+            containerCmd.withMemoryReservation(new Long(dockerSlaveInfo.getMaxMemoryUsage() == null? 0: dockerSlaveInfo.getMaxMemoryUsage()));
+        }else{ //set default values
+
+            if (labelConfiguration.getCpus() != null) {
+                containerCmd.withCpuShares(labelConfiguration.getCpus());
+            }
+
+            if (labelConfiguration.getMemory() != null) {
+                containerCmd.withMemoryReservation(labelConfiguration.getMemory());
+            }
         }
     }
 
@@ -157,12 +175,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
         }
     }
 
-    public int getBuildNumber() {
-        List<Queue.Item> queuedItems = getQueuedItems();
 
-        return queuedItems.size()==1 ? job.getNextBuildNumber()
-                : job.getNextBuildNumber()+queuedItems.size()-1;
-    }
     private String getSlaveJarUrl(DockerSlaveConfiguration configuration) {
         return getJenkinsUrl(configuration) + "jnlpJars/slave.jar";
     }

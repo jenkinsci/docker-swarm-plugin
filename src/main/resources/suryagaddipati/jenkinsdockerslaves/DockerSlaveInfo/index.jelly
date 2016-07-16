@@ -6,6 +6,11 @@
                <p><b>Container Name</b>:  ${it.containerId}</p>
                 <p><b>Cache Volume</b>:  ${it.cacheVolumeName}</p>
                 <p><b>Cache Volume Mountpoint</b>:  ${it.cacheVolumeNameMountPoint}</p>
+
+                <p><b>Memory Reservation</b>:  ${it.memoryReservationString}</p>
+                <p><b>CPU Reservation</b>:  ${it.allocatedCPUShares}</p>
+
+                <br/>
                 <p><b>Max Memory Usage</b>:  ${it.memoryStats}</p>
                 <p><b>Per Cpu Usage</b>:  ${it.cpuUsage}</p>
             </div>

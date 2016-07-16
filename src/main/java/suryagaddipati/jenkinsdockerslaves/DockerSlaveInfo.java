@@ -1,8 +1,6 @@
 package suryagaddipati.jenkinsdockerslaves;
 
-import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
-import com.github.dockerjava.api.command.InspectVolumeResponse;
 import com.github.dockerjava.api.model.Statistics;
 import com.google.common.base.Joiner;
 import hudson.model.Run;
@@ -154,4 +152,26 @@ public class DockerSlaveInfo implements RunAction2 {
         }
     }
 
+    public boolean wasThrottled() {
+        return throttledTime != null && throttledTime >0;
+    }
+
+    public Integer getCpuAllocation() {
+        return allocatedCPUShares;
+    }
+
+    public Long getMemoryReservation() {
+        return memoryReservation;
+    }
+    public String getMemoryReservationString(){
+        return memoryReservation + " bytes (" + Math.floor((memoryReservation/1024)/1024) +" MB )";
+    }
+
+    public Integer getAllocatedCPUShares() {
+        return allocatedCPUShares;
+    }
+
+    public boolean wereCpusAllocated() {
+        return allocatedCPUShares != null && allocatedCPUShares != 0;
+    }
 }

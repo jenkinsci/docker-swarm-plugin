@@ -104,14 +104,15 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
                     Queue.Executable currentExecutable = getExecutors().get(0).getCurrentExecutable();
                     LOGGER.info("Getting Stats for " + currentExecutable);
                     if(currentExecutable instanceof Run && ((Run)currentExecutable).getAction(DockerSlaveInfo.class) != null){
+                        Run run = ((Run) currentExecutable);
                         DockerSlaveInfo slaveInfo = ((Run) currentExecutable).getAction(DockerSlaveInfo.class);
                         Statistics stats = dockerClient.statsCmd(containerId).exec();
-                       slaveInfo.setStats(stats);
+                        slaveInfo.setStats(stats);
+                        if(slaveInfo.wasThrottled()){
 
-
-
-
-                        ((Run) currentExecutable).save();
+                        }
+//                        run.getParent().addAction(new JobRuntimeStatsAction(slaveInfo));
+                        run.save();
                     }
                     dockerClient.killContainerCmd(containerId).exec();
                     dockerClient.removeContainerCmd(containerId).exec();
