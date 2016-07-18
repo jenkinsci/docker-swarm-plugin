@@ -12,12 +12,13 @@ import java.util.Map;
 
 public class DockerSlaveInfo implements RunAction2 {
 
-
-
     private String cacheVolumeName;
     private String cacheVolumeNameMountPoint;
+
+
+
     private Integer allocatedCPUShares;
-    private Long memoryReservation;
+    private Long allocatedMemory;
 
     private Integer maxMemoryUsage;
     private List<Long> perCpuUsage;
@@ -91,8 +92,6 @@ public class DockerSlaveInfo implements RunAction2 {
 
     public void setContainerInfo(InspectContainerResponse containerInfo) {
         this.containerId =  containerInfo.getNode().getName() +containerInfo.getName();
-        this.allocatedCPUShares = containerInfo.getHostConfig().getCpuShares();
-        this.memoryReservation = containerInfo.getHostConfig().getMemoryReservation();
     }
 
 
@@ -162,11 +161,8 @@ public class DockerSlaveInfo implements RunAction2 {
         return allocatedCPUShares;
     }
 
-    public Long getMemoryReservation() {
-        return memoryReservation;
-    }
     public String getMemoryReservationString(){
-        return memoryReservation + " bytes (" + Math.floor((memoryReservation/1024)/1024) +" MB )";
+        return  allocatedMemory !=null ? allocatedMemory + " bytes (" + Math.floor((allocatedMemory/1024)/1024) +" MB )": "N/A";
     }
 
     public Integer getAllocatedCPUShares() {
@@ -178,5 +174,28 @@ public class DockerSlaveInfo implements RunAction2 {
     }
     public Integer getThrottledTime() {
         return throttledTime;
+    }
+
+    public Long getMemoryReservation() {
+        return allocatedMemory;
+    }
+
+    public Integer getNextCpuAllocation() {
+        if(allocatedCPUShares != null && allocatedCPUShares != 0) {
+          return wasThrottled()?allocatedCPUShares+1: allocatedCPUShares;
+        }
+        return 1;
+    }
+
+    public Long getNextMemoryAllocation() {
+        return maxMemoryUsage ==null? 0l : maxMemoryUsage;
+    }
+
+    public void setAllocatedCPUShares(Integer allocatedCPUShares) {
+        this.allocatedCPUShares = allocatedCPUShares;
+    }
+
+    public void setAllocatedMemory(Long allocatedMemory) {
+        this.allocatedMemory = allocatedMemory;
     }
 }

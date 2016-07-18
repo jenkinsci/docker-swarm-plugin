@@ -55,8 +55,10 @@ public class DockerComputerLauncher extends ComputerLauncher {
     }
 
     private void launch(final DockerComputer computer, TaskListener listener) throws IOException, InterruptedException {
+        DockerSlaveInfo dockerSlaveInfo = null;
         try {
             setToInProgress(bi);
+            dockerSlaveInfo = bi.getAction(DockerSlaveInfo.class);
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
             job.setCustomWorkspace(configuration.getBaseWorkspaceLocation());
             try(DockerClient dockerClient = configuration.newDockerClient()) {
@@ -88,7 +90,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 containerCmd.withBinds(binds);
 
 
-                setCgroupLimits(labelConfiguration, containerCmd);
+                setCgroupLimits(labelConfiguration, containerCmd,dockerSlaveInfo);
 
                 listener.getLogger().print("Creating Container :" + containerCmd.toString());
                 CreateContainerResponse container = containerCmd.exec();
@@ -96,13 +98,13 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
 
                 InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(container.getId()).exec();
-
                 computer.setNodeName(containerInfo.getNode().getName());
-                bi.getAction(DockerSlaveInfo.class).setContainerInfo(containerInfo);
+                dockerSlaveInfo.setContainerInfo(containerInfo);
+
                 dockerClient.startContainerCmd(container.getId()).exec();
                 computer.setContainerId(container.getId());
                 computer.connect(false).get();
-                bi.getAction(DockerSlaveInfo.class).setProvisionedTime(new Date());
+                dockerSlaveInfo.setProvisionedTime(new Date());
             }
 
         } catch (Exception e) {
@@ -112,34 +114,30 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 LOGGER.info("Not resources available for :" + build);
             }else {
                 LOGGER.log(Level.INFO,"Failed to schedule: " + build, e);
-                bi.getAction(DockerSlaveInfo.class).incrementProvisioningAttemptCount();
+                dockerSlaveInfo.incrementProvisioningAttemptCount();
             }
             throw new RuntimeException(e);
         }finally {
-            bi.getAction(DockerSlaveInfo.class).setProvisioningInProgress(false);
+            if(dockerSlaveInfo !=null)
+                dockerSlaveInfo.setProvisioningInProgress(false);
         }
     }
 
-    private void setCgroupLimits(LabelConfiguration labelConfiguration, CreateContainerCmd containerCmd) {
+    private void setCgroupLimits(LabelConfiguration labelConfiguration, CreateContainerCmd containerCmd, DockerSlaveInfo dockerSlaveInfo) {
         Run lastSuccessfulBuild = job.getLastSuccessfulBuild();
-        if(lastSuccessfulBuild !=null && lastSuccessfulBuild.getAction(DockerSlaveInfo.class)!=null){DockerSlaveInfo dockerSlaveInfo = lastSuccessfulBuild.getAction(DockerSlaveInfo.class);
-            Integer cpuAllocation = dockerSlaveInfo.wereCpusAllocated()?  dockerSlaveInfo.getCpuAllocation(): labelConfiguration.getCpus();
-            if(dockerSlaveInfo.wasThrottled()){
-                containerCmd.withCpuShares( Math.min( cpuAllocation  + 1, 2));
-            }else{
-                containerCmd.withCpuShares((int) Math.round( Math.ceil(cpuAllocation/1024)));
-            }
-            containerCmd.withMemory(new Long(dockerSlaveInfo.getMaxMemoryUsage() == null? 0: dockerSlaveInfo.getMaxMemoryUsage()));
-        }else{ //set default values
+        Integer cpuAllocation = 1; //default to 1
+        Long memoryAllocation = 0l;
 
-            if (labelConfiguration.getCpus() != null) {
-                containerCmd.withCpuShares(labelConfiguration.getCpus());
-            }
-
-            if (labelConfiguration.getMemory() != null) {
-                containerCmd.withMemory(labelConfiguration.getMemory());
-            }
+        if(lastSuccessfulBuild !=null && lastSuccessfulBuild.getAction(DockerSlaveInfo.class)!=null){
+            DockerSlaveInfo lastSuccessfulSlaveInfo = lastSuccessfulBuild.getAction(DockerSlaveInfo.class);
+            cpuAllocation = Math.min(labelConfiguration.getMaxCpuShares(),  lastSuccessfulSlaveInfo.getNextCpuAllocation());
+            memoryAllocation =  Math.min(labelConfiguration.getMaxMemory(), lastSuccessfulSlaveInfo.getNextMemoryAllocation());
         }
+        containerCmd.withCpuShares(cpuAllocation);
+        containerCmd.withMemory(memoryAllocation);
+        dockerSlaveInfo.setAllocatedCPUShares(cpuAllocation);
+        dockerSlaveInfo.setAllocatedMemory(memoryAllocation);
+
     }
 
     private void createCacheBindings(TaskListener listener, DockerClient dockerClient, DockerComputer computer, String[] cacheDirs, Bind[] binds) {

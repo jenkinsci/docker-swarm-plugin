@@ -70,12 +70,12 @@ THE SOFTWARE.
                     <f:textbox  value="${labelConfiguration.hostBinds}"/>
                 </f:entry>
 
-                <f:entry title="CPU's" field="cpus">
-                    <f:number  value="${labelConfiguration.cpus}"/>
+                <f:entry title="Max CPU shares" field="maxCpuShares">
+                    <f:number  value="${labelConfiguration.maxCpuShares}"/>
                 </f:entry>
 
-                <f:entry title="Memory" field="memory">
-                    <f:number  value="${labelConfiguration.memory}"/>
+                <f:entry title="Max Memory(bytes)" field="maxMemory">
+                    <f:number  value="${labelConfiguration.maxMemory}"/>
                 </f:entry>
 
                 <f:entry title="Cache Dir" field="cacheDir">
