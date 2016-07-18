@@ -116,7 +116,7 @@ public class DockerSlaveInfo implements RunAction2 {
         return maxMemoryUsage;
     }
     public String getMemoryStats(){
-       return maxMemoryUsage + " bytes (" + Math.floor((maxMemoryUsage/1024)/1024) +" MB )";
+       return maxMemoryUsage != null? maxMemoryUsage + " bytes (" + Math.floor((maxMemoryUsage/1024)/1024) +" MB )" : "";
     }
     public String getCpuUsage(){
       return perCpuUsage == null? "": Joiner.on(", ").join(perCpuUsage);
