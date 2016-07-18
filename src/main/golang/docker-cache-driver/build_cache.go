@@ -50,7 +50,7 @@ func (buildCache *buildCache) destroy(driver cacheDriver) error {
 			if err = cloneDir(buildCache.mergeDir, getBasePath(buildCache.job, buildCache.build, driver.cacheLocations.cacheLowerRootDir)); err != nil {
 				fmt.Println(fmt.Sprintf("Remove-%s: Clone Dir failed %s", volumeName, err))
 			} else {
-				cacheState, _ := newCacheState(driver)
+				cacheState, _ := getCacheState(driver.cacheLocations.cacheLowerRootDir)
 				cacheState.State[buildCache.job] = buildCache.build
 				cacheState.save(driver.cacheLocations.cacheLowerRootDir)
 				fmt.Println(fmt.Sprintf("Remove-%s: Clone complete. Cloned to %s", volumeName, driver.cacheLocations.cacheLowerRootDir))

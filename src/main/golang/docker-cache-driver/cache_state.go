@@ -14,9 +14,22 @@ type cacheState struct {
 func getStateFile(cacheLowerRootDir string) string {
 	return path.Join(cacheLowerRootDir, "cache-state.json")
 }
+func getCacheState(fileLocationDir string) (*cacheState, error) {
+	stateFile := getStateFile(fileLocationDir)
+	fileData, err := ioutil.ReadFile(stateFile)
+	if err != nil {
+		return &cacheState{}, err
+	}
+	var data cacheState
+	e := json.Unmarshal(fileData, &data)
+	if e != nil {
+		return &cacheState{}, err
+	}
+	return &data, nil
+}
 
-func newCacheState(driver cacheDriver) (*cacheState, error) {
-	stateFile := getStateFile(driver.cacheLocations.cacheLowerRootDir)
+func newCacheState(fileLocationDir string) (*cacheState, error) {
+	stateFile := getStateFile(fileLocationDir)
 	_, err := os.Stat(stateFile)
 	if err != nil {
 		volumes := make(map[string]string)
@@ -25,18 +38,8 @@ func newCacheState(driver cacheDriver) (*cacheState, error) {
 		}
 		fileData, _ := json.Marshal(data)
 		return &data, ioutil.WriteFile(stateFile, fileData, 0600)
-	} else {
-		fileData, err := ioutil.ReadFile(stateFile)
-		if err != nil {
-			return &cacheState{}, err
-		}
-		var data cacheState
-		e := json.Unmarshal(fileData, &data)
-		if e != nil {
-			return &cacheState{}, err
-		}
-		return &data, nil
 	}
+	return &cacheState{}, nil
 }
 func (cacheState *cacheState) baseBuildDir(jobName, cacheLowerRootDir string) (string, error) {
 	if baseBuild, ok := cacheState.State[jobName]; ok {

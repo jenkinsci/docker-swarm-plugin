@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/docker/go-plugins-helpers/volume"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -42,7 +43,7 @@ func newCacheDriverDriver(cacheLocations *cacheLocations) cacheDriver {
 	os.MkdirAll(driver.cacheLocations.cacheUpperRootDir, 0755)
 	os.MkdirAll(driver.cacheLocations.cacheWorkRootDir, 0755)
 	os.MkdirAll(driver.cacheLocations.cacheMergedRootDir, 0755)
-	_, _ = newCacheState(driver) //handle error here
+	_, _ = newCacheState(driver.cacheLocations.cacheLowerRootDir) //handle error here
 	return driver
 }
 
@@ -103,7 +104,7 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 	if err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: Failed to create Dirs. %s", req.Name, err))
 	}
-	cacheState, err := newCacheState(driver)
+	cacheState, err := getCacheState(driver.cacheLocations.cacheLowerRootDir)
 	if err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: Failed to read cache state. %s", req.Name, err))
 	}
