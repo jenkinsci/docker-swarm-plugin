@@ -112,11 +112,10 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 	baseBuildDir, err := cacheState.baseBuildDir(jobName, cacheLocations.cacheLowerRootDir)
 	err = buildCache.mount(baseBuildDir)
 	if err != nil {
-		overlayMountError := fmt.Sprintf("Create-%s : Failed to mount overlay cache due to  %s", req.Name, err)
-		return volume.Response{Err: overlayMountError}
+		return volumeErrorResponse(fmt.Sprintf("Create-%s : Failed to mount overlay cache due to  %s", req.Name, err))
 	}
 
-	fmt.Println(fmt.Sprintf("Create-%s:  Mounted cache, base %s :", req.Name, baseBuildDir))
+	fmt.Println(fmt.Sprintf("Create-%s:  Mounted cache, base %s. Volume Created!!", req.Name, baseBuildDir))
 	return volume.Response{}
 }
 
