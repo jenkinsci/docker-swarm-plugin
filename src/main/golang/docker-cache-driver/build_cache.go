@@ -21,11 +21,15 @@ func newBuildCache(job, build string, cacheLocations *cacheLocations) (*buildCac
 }
 
 func (buildCache *buildCache) initDirs() error {
-	os.MkdirAll(buildCache.mergeDir, 0755)
-	os.MkdirAll(buildCache.upperDir, 0755)
-	os.MkdirAll(buildCache.workDir, 0755)
-	return nil
-
+	err := os.MkdirAll(buildCache.mergeDir, 0755)
+	if err != nil {
+		return err
+	}
+	err = os.MkdirAll(buildCache.upperDir, 0755)
+	if err != nil {
+		return err
+	}
+	return os.MkdirAll(buildCache.workDir, 0755)
 }
 
 func (buildCache *buildCache) mount(baseBuildDir string) error {

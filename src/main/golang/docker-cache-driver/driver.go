@@ -82,23 +82,28 @@ func (driver cacheDriver) List(req volume.Request) volume.Response {
 }
 
 func (driver cacheDriver) Create(req volume.Request) volume.Response {
-	fmt.Println(fmt.Sprintf("Create-%s: Create Called :", req.Name))
+	fmt.Println(fmt.Sprintf("Create-%s: Create Called.", req.Name))
 	driver.mutex.Lock()
 	defer driver.mutex.Unlock()
 	jobName, buildNumber, err := getNames(req.Name)
 	if err != nil {
-		invalidVolumeNameErr := fmt.Sprintf("Create-%s: The volume name is invalid.", req.Name)
-		fmt.Println(invalidVolumeNameErr)
-		return volume.Response{Err: invalidVolumeNameErr}
+		return volumeErrorResponse(fmt.Sprintf("Create-%s: The volume name is invalid.", req.Name))
 	}
 	cacheLocations := driver.cacheLocations
 	buildCache, _ := newBuildCache(jobName, buildNumber, cacheLocations)
 	if buildCache.exists() {
-		return volume.Response{Err: fmt.Sprintf("The volume %s already exists", req.Name)}
+		return volumeErrorResponse(fmt.Sprintf("Create-%s: The volume already exists", req.Name))
 	}
 
-	buildCache.initDirs()
+	err = buildCache.initDirs()
+	if err != nil {
+		return volumeErrorResponse(fmt.Sprintf("Create-%s: Failed to create Dirs. %s", req.Name, err))
+	}
 	cacheState, err := newCacheState(driver)
+	if err != nil {
+		return volumeErrorResponse(fmt.Sprintf("Create-%s: Failed to read cache state. %s", req.Name, err))
+	}
+
 	baseBuildDir, err := cacheState.baseBuildDir(jobName, cacheLocations.cacheLowerRootDir)
 	err = buildCache.mount(baseBuildDir)
 	if err != nil {
@@ -108,6 +113,11 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 
 	fmt.Println(fmt.Sprintf("Create-%s:  Mounted cache, base %s :", req.Name, baseBuildDir))
 	return volume.Response{}
+}
+
+func volumeErrorResponse(err string) volume.Response {
+	fmt.Println(err)
+	return volume.Response{Err: err}
 }
 
 func (driver cacheDriver) Remove(req volume.Request) volume.Response {
