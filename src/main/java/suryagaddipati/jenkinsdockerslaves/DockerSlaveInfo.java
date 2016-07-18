@@ -21,6 +21,8 @@ public class DockerSlaveInfo implements RunAction2 {
 
     private Integer maxMemoryUsage;
     private List<Long> perCpuUsage;
+
+
     private Integer throttledTime;
 
     public int getProvisioningAttempts() {
@@ -173,5 +175,8 @@ public class DockerSlaveInfo implements RunAction2 {
 
     public boolean wereCpusAllocated() {
         return allocatedCPUShares != null && allocatedCPUShares != 0;
+    }
+    public Integer getThrottledTime() {
+        return throttledTime;
     }
 }

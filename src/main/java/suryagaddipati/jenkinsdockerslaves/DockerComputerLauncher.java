@@ -122,15 +122,14 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
     private void setCgroupLimits(LabelConfiguration labelConfiguration, CreateContainerCmd containerCmd) {
         Run lastSuccessfulBuild = job.getLastSuccessfulBuild();
-        if(lastSuccessfulBuild !=null && lastSuccessfulBuild.getAction(DockerSlaveInfo.class)!=null){
-            DockerSlaveInfo dockerSlaveInfo = lastSuccessfulBuild.getAction(DockerSlaveInfo.class);
+        if(lastSuccessfulBuild !=null && lastSuccessfulBuild.getAction(DockerSlaveInfo.class)!=null){DockerSlaveInfo dockerSlaveInfo = lastSuccessfulBuild.getAction(DockerSlaveInfo.class);
             Integer cpuAllocation = dockerSlaveInfo.wereCpusAllocated()?  dockerSlaveInfo.getCpuAllocation(): labelConfiguration.getCpus();
             if(dockerSlaveInfo.wasThrottled()){
                 containerCmd.withCpuShares( Math.min( cpuAllocation  + 1, 2));
             }else{
-                containerCmd.withCpuShares(cpuAllocation);
+                containerCmd.withCpuShares((int) Math.round( Math.ceil(cpuAllocation/1024)));
             }
-            containerCmd.withMemoryReservation(new Long(dockerSlaveInfo.getMaxMemoryUsage() == null? 0: dockerSlaveInfo.getMaxMemoryUsage()));
+            containerCmd.withMemory(new Long(dockerSlaveInfo.getMaxMemoryUsage() == null? 0: dockerSlaveInfo.getMaxMemoryUsage()));
         }else{ //set default values
 
             if (labelConfiguration.getCpus() != null) {
@@ -138,7 +137,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
             }
 
             if (labelConfiguration.getMemory() != null) {
-                containerCmd.withMemoryReservation(labelConfiguration.getMemory());
+                containerCmd.withMemory(labelConfiguration.getMemory());
             }
         }
     }
@@ -198,15 +197,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
         } else {
             return url + '/';
         }
-    }
-    public List<Queue.Item> getQueuedItems() {
-        LinkedList<Queue.Item> list = new LinkedList<Queue.Item>();
-        for (Queue.Item item : Jenkins.getInstance().getQueue().getApproximateItemsQuickly()) {
-            if (item.task == job) {
-                list.addFirst(item);
-            }
-        }
-        return list;
     }
 
     public String getJobName() {
