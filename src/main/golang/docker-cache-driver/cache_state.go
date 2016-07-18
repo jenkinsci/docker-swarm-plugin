@@ -16,10 +16,6 @@ func getStateFile(cacheLowerRootDir string) string {
 }
 
 func newCacheState(driver cacheDriver) (*cacheState, error) {
-	os.MkdirAll(driver.cacheLocations.cacheLowerRootDir, 0755)
-	os.MkdirAll(driver.cacheLocations.cacheUpperRootDir, 0755)
-	os.MkdirAll(driver.cacheLocations.cacheWorkRootDir, 0755)
-	os.MkdirAll(driver.cacheLocations.cacheMergedRootDir, 0755)
 	stateFile := getStateFile(driver.cacheLocations.cacheLowerRootDir)
 	_, err := os.Stat(stateFile)
 	if err != nil {

@@ -38,6 +38,10 @@ func newCacheDriverDriver(cacheLocations *cacheLocations) cacheDriver {
 		name:           "cache-driver",
 		cacheLocations: cacheLocations,
 	}
+	os.MkdirAll(driver.cacheLocations.cacheLowerRootDir, 0755)
+	os.MkdirAll(driver.cacheLocations.cacheUpperRootDir, 0755)
+	os.MkdirAll(driver.cacheLocations.cacheWorkRootDir, 0755)
+	os.MkdirAll(driver.cacheLocations.cacheMergedRootDir, 0755)
 	_, _ = newCacheState(driver) //handle error here
 	return driver
 }
