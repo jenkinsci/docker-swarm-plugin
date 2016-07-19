@@ -188,7 +188,7 @@ public class DockerSlaveInfo implements RunAction2 {
     }
 
     public Long getNextMemoryAllocation() {
-        return maxMemoryUsage ==null? 0l : maxMemoryUsage;
+        return maxMemoryUsage ==null? 0l : maxMemoryUsage+ Bytes.MB(500);
     }
 
     public void setAllocatedCPUShares(Integer allocatedCPUShares) {
