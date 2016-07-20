@@ -99,7 +99,7 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 	if buildCache.exists() {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: The volume already exists", req.Name))
 	}
-
+	fmt.Sprintf("Create-%s: Creating dirs for the volume.", req.Name)
 	err = buildCache.initDirs()
 	if err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: Failed to create Dirs. %s", req.Name, err))
