@@ -49,7 +49,10 @@ func (cacheState *cacheState) baseBuildDir(jobName, cacheLowerRootDir string) (s
 		cacheState.State[jobName] = "0"
 		cacheState.save(cacheLowerRootDir)
 		baseBuildCachePath := getBasePath(jobName, baseBuild, cacheLowerRootDir)
-		os.MkdirAll(baseBuildCachePath, 0755)
+		err := os.MkdirAll(baseBuildCachePath, 0755)
+		if err != nil {
+			return "", err
+		}
 		return baseBuildCachePath, nil
 	}
 }
