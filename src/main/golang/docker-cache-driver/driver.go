@@ -119,8 +119,9 @@ func (driver cacheDriver) Unmount(req volume.Request) volume.Response {
 	buildCache, _ := newBuildCache(jobName, buildNumber, driver.cacheLocations)
 	err = buildCache.destroy(driver)
 	if err != nil {
-		return volumeErrorResponse(fmt.Sprintf("Remove-%s: Failed to destory volume : %s", req.Name, err))
+		return volumeErrorResponse(fmt.Sprintf("Unmount-%s: Failed to destory volume : %s", req.Name, err))
 	}
+	fmt.Println(fmt.Sprintf("Unmount-%s: unmounted cache", req.Name))
 
 	return driver.Path(req)
 }
@@ -175,6 +176,7 @@ func (driver cacheDriver) Mount(req volume.Request) volume.Response {
 	if err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Mount-%s : Failed to mount overlay cache due to  %s", req.Name, err))
 	}
+	fmt.Println(fmt.Sprintf("Mount-%s: mounted cache", req.Name))
 	return driver.Path(req)
 }
 
