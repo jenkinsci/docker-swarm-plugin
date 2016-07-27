@@ -21,11 +21,15 @@ func newBuildCache(job, build string, cacheLocations *cacheLocations) (*buildCac
 }
 
 func (buildCache *buildCache) initDirs() error {
-	os.MkdirAll(buildCache.mergeDir, 0755)
-	os.MkdirAll(buildCache.upperDir, 0755)
-	os.MkdirAll(buildCache.workDir, 0755)
-	return nil
-
+	err := os.MkdirAll(buildCache.mergeDir, 0755)
+	if err != nil {
+		return err
+	}
+	err = os.MkdirAll(buildCache.upperDir, 0755)
+	if err != nil {
+		return err
+	}
+	return os.MkdirAll(buildCache.workDir, 0755)
 }
 
 func (buildCache *buildCache) mount(baseBuildDir string) error {
@@ -34,38 +38,52 @@ func (buildCache *buildCache) mount(baseBuildDir string) error {
 }
 
 func (buildCache *buildCache) destroy(driver cacheDriver) error {
+	volumeName := buildCache.job + "-" + buildCache.build
 	emptyUpper, err := isEmpty(buildCache.upperDir)
 	if err != nil {
 		return err
 	}
 	if !emptyUpper {
-		go func() {
-			fmt.Println("Clone begin", buildCache.mergeDir)
-			if err = cloneDir(buildCache.mergeDir, getBasePath(buildCache.job, buildCache.build, driver.cacheLocations.cacheLowerRootDir)); err == nil {
-				cacheState, _ := newCacheState(driver)
-				cacheState.State[buildCache.job] = buildCache.build
-				cacheState.save(driver.cacheLocations.cacheLowerRootDir)
-				fmt.Println("Clone end", buildCache.mergeDir)
-				cleanUpVolume(buildCache)
-			}
-		}()
-		return nil
+		fmt.Println(fmt.Sprintf("Remove-%s: Clone Begin, %s", volumeName, buildCache.mergeDir))
+		if err = cloneDir(buildCache.mergeDir, getBasePath(buildCache.job, buildCache.build, driver.cacheLocations.cacheLowerRootDir)); err != nil {
+			fmt.Println(fmt.Sprintf("Remove-%s: Clone Dir failed %s", volumeName, err))
+			return err
+		} else {
+			cacheState, _ := getCacheState(driver.cacheLocations.cacheLowerRootDir)
+			cacheState.State[buildCache.job] = buildCache.build
+			cacheState.save(driver.cacheLocations.cacheLowerRootDir)
+			fmt.Println(fmt.Sprintf("Remove-%s: Clone complete. Cloned to %s", volumeName, driver.cacheLocations.cacheLowerRootDir))
+			return unMountVolume(buildCache)
+		}
 	} else {
-		return cleanUpVolume(buildCache)
+		fmt.Println(fmt.Sprintf("Remove-%s: Upper empty. cleaning up cache dirs", volumeName))
+		return unMountVolume(buildCache)
 	}
 }
-func cleanUpVolume(buildCache *buildCache) error {
+func unMountVolume(buildCache *buildCache) error {
+	volumeName := buildCache.job + "-" + buildCache.build
 	if err := syscall.Unmount(buildCache.mergeDir, 0); err != nil {
+		fmt.Println(fmt.Sprintf("Remove-%s: Syscall unmount %s failed. %s", volumeName, buildCache.mergeDir, err))
 		return err
 	}
+	return nil
+}
+func (buildCache *buildCache) cleanUpVolume() error {
+	volumeName := buildCache.job + "-" + buildCache.build
 
 	if err := os.RemoveAll(buildCache.mergeDir); err != nil {
+		fmt.Println(fmt.Sprintf("Remove-%s: Could not delete dir %s. %s", volumeName, buildCache.mergeDir, err))
 		return err
 	}
 	if err := os.RemoveAll(buildCache.upperDir); err != nil {
+		fmt.Println(fmt.Sprintf("Remove-%s: Could not delete dir %s. %s", volumeName, buildCache.upperDir, err))
 		return err
 	}
-	return os.RemoveAll(buildCache.workDir)
+	if err := os.RemoveAll(buildCache.workDir); err != nil {
+		fmt.Println(fmt.Sprintf("Remove-%s: Could not delete dir %s. %s", volumeName, buildCache.workDir, err))
+		return err
+	}
+	return nil
 }
 
 func (buildCache *buildCache) exists() bool {
