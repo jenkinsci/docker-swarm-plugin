@@ -62,7 +62,7 @@ public   class LabelConfiguration {
 
 
     public Integer getMaxCpuShares() {
-        return maxCpuShares;
+        return maxCpuShares == null ? 1: maxCpuShares;
     }
 
     public void setMaxCpuShares(Integer maxCpuShares) {
@@ -70,10 +70,14 @@ public   class LabelConfiguration {
     }
 
     public Long getMaxMemory() {
-        return maxMemory;
+        return maxMemory == null? 0l: maxMemory;
     }
 
     public void setMaxMemory(Long maxMemory) {
         this.maxMemory = maxMemory;
+    }
+
+    public boolean isDynamicResourceAllocation() {
+        return false;
     }
 }

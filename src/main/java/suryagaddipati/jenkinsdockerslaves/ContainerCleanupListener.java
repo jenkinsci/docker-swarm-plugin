@@ -1,8 +1,9 @@
 package suryagaddipati.jenkinsdockerslaves;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.model.Statistics;
 import hudson.Extension;
-import hudson.model.Computer;
+import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
@@ -28,6 +29,7 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
 
     public void terminate(DockerComputer computer, PrintStream logger) {
         computer.setAcceptingTasks(false);
+        gatherStats(computer,logger);
         cleanupNode(computer,logger);
         cleanupDockerVolumeAndContainer(computer,logger);
     }
@@ -54,6 +56,23 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
             }
             removeVolume(logger, volumeName, dockerClient);
         } catch (Exception e) {
+            e.printStackTrace(logger);
+        }
+    }
+
+    private void gatherStats(DockerComputer computer, PrintStream logger) {
+        DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
+        try( DockerClient dockerClient = configuration.newDockerClient()){
+            String containerId = computer.getContainerId();
+            Queue.Executable currentExecutable = computer.getExecutors().get(0).getCurrentExecutable();
+            if(currentExecutable instanceof Run && ((Run)currentExecutable).getAction(DockerSlaveInfo.class) != null){
+                Run run = ((Run) currentExecutable);
+                DockerSlaveInfo slaveInfo = ((Run) currentExecutable).getAction(DockerSlaveInfo.class);
+                Statistics stats = dockerClient.statsCmd(containerId).exec();
+                slaveInfo.setStats(stats);
+                run.save();
+            }
+        }catch (Exception e){
             e.printStackTrace(logger);
         }
     }
