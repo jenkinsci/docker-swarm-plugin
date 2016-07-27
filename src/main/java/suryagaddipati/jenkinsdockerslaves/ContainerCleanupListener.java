@@ -38,9 +38,7 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
                 logger.println("Removing node "+ computer.getNode().getDisplayName());
                 computer.getNode().terminate();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace(logger);
-        } catch (IOException e) {
+        } catch (InterruptedException | IOException e) {
             e.printStackTrace(logger);
         }
     }
@@ -50,23 +48,31 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
         String volumeName = computer.getVolumeName();
         DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
         try( DockerClient dockerClient = configuration.newDockerClient()){
-            try{
-                if (containerId != null){
-                    try {
-                        dockerClient.killContainerCmd(containerId).exec();
-                    }catch (Exception _){}
-                    dockerClient.removeContainerCmd(containerId).exec();
-                    logger.println("Removed Container " + containerId);
-                }
-                if(volumeName != null){
-                    dockerClient.removeVolumeCmd(volumeName).exec();
-                    logger.println("Removed volume " + volumeName);
-                }
-            }catch (Exception e){
-                e.printStackTrace(logger);
+            if (containerId != null){
+                killContainer(containerId, dockerClient);
+                removeContainer(logger, containerId, dockerClient);
             }
-        } catch (IOException e) {
+            removeVolume(logger, volumeName, dockerClient);
+        } catch (Exception e) {
             e.printStackTrace(logger);
         }
+    }
+
+    private void removeVolume(PrintStream logger, String volumeName, DockerClient dockerClient) {
+        if(volumeName != null){
+            dockerClient.removeVolumeCmd(volumeName).exec();
+            logger.println("Removed volume " + volumeName);
+        }
+    }
+
+    private void removeContainer(PrintStream logger, String containerId, DockerClient dockerClient) {
+        dockerClient.removeContainerCmd(containerId).exec();
+        logger.println("Removed Container " + containerId);
+    }
+
+    private void killContainer(String containerId, DockerClient dockerClient) {
+        try {
+            dockerClient.killContainerCmd(containerId).exec();
+        }catch (Exception _){}
     }
 }
