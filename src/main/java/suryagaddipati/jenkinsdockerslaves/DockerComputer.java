@@ -43,7 +43,6 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     private String containerId;
     private String volumeName;
 
-    private static final Logger LOGGER = Logger.getLogger(DockerComputer.class.getName());
 
     private String swarmNodeName;
 
@@ -51,18 +50,6 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     public DockerComputer(DockerSlave dockerSlave, Job job) {
         super(dockerSlave);
         this.job = job;
-    }
-
-    @Override
-    public void taskCompleted(Executor executor, Queue.Task task, long durationMS) {
-        super.taskCompleted(executor, task, durationMS);
-        terminate();
-    }
-
-    @Override
-    public void taskCompletedWithProblems(Executor executor, Queue.Task task, long durationMS, Throwable problems) {
-        super.taskCompletedWithProblems(executor, task, durationMS, problems);
-        terminate();
     }
 
 
@@ -73,43 +60,7 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         }
     }
 
-    public void terminate() {
-        LOGGER.info("Stopping Docker Slave after build completion");
-        setAcceptingTasks(false);
-        cleanupDockerVolumeAndContainer();
-        cleanupNode();
-    }
 
-    private void cleanupNode() {
-        try {
-            if(getNode() !=null){
-                getNode().terminate();
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void cleanupDockerVolumeAndContainer() {
-        DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
-        try( DockerClient dockerClient = configuration.newDockerClient()){
-            try{
-                if (containerId != null){
-                    dockerClient.killContainerCmd(containerId).exec();
-                    dockerClient.removeContainerCmd(containerId).exec();
-                }
-                if(volumeName != null){
-                    dockerClient.removeVolumeCmd(volumeName).exec();
-                }
-            }catch (Exception e){
-                LOGGER.log(Level.INFO,"failed to cleanup container "+ containerId, e);
-            }
-        } catch (IOException e) {
-            LOGGER.log(Level.INFO,"Failed to close connection to docker client"+ containerId, e);
-        }
-    }
 
 
     public AbstractProject getJob() {
@@ -139,5 +90,13 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
             return exec.getCurrentExecutable()==null? null: exec.getCurrentExecutable();
         }
         return null;
+    }
+
+    public String getContainerId() {
+        return containerId;
+    }
+
+    public String getVolumeName() {
+        return volumeName;
     }
 }

@@ -110,7 +110,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
             }
 
         } catch (Exception e) {
-            computer.terminate();
+            new ContainerCleanupListener().terminate(computer, listener.getLogger());
             String build = bi + "-" + job.getNextBuildNumber();
             if(noResourcesAvailable(e)){
                 LOGGER.info("Not resources available for :" + build);
