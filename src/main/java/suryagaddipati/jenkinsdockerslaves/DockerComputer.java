@@ -25,21 +25,12 @@
 
 package suryagaddipati.jenkinsdockerslaves;
 
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.model.Statistics;
 import com.google.common.collect.Iterables;
 import hudson.model.AbstractProject;
 import hudson.model.Executor;
 import hudson.model.Job;
 import hudson.model.Queue;
-import hudson.model.Run;
 import hudson.slaves.AbstractCloudComputer;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
@@ -63,42 +54,6 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
             super.recordTermination();
         }
     }
-
-//
-//<<<<<<< HEAD
-//    private void cleanupDockerVolumeAndContainer() {
-//        DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
-//        try( DockerClient dockerClient = configuration.newDockerClient()){
-//            try{
-//                if (containerId != null){
-//                    Queue.Executable currentExecutable = getExecutors().get(0).getCurrentExecutable();
-//                    LOGGER.info("Getting Stats for " + currentExecutable);
-//                    if(currentExecutable instanceof Run && ((Run)currentExecutable).getAction(DockerSlaveInfo.class) != null){
-//                        Run run = ((Run) currentExecutable);
-//                        DockerSlaveInfo slaveInfo = ((Run) currentExecutable).getAction(DockerSlaveInfo.class);
-//                        Statistics stats = dockerClient.statsCmd(containerId).exec();
-//                        slaveInfo.setStats(stats);
-//                        if(slaveInfo.wasThrottled()){
-//
-//                        }
-////                        run.getParent().addAction(new JobRuntimeStatsAction(slaveInfo));
-//                        run.save();
-//                    }
-//                    dockerClient.killContainerCmd(containerId).exec();
-//                    dockerClient.removeContainerCmd(containerId).exec();
-//                }
-//                if(volumeName != null){
-//                    dockerClient.removeVolumeCmd(volumeName).exec();
-//                }
-//            }catch (Exception e){
-//                LOGGER.log(Level.INFO,"failed to cleanup comtainer "+ containerId, e);
-//            }
-//        } catch (IOException e) {
-//            LOGGER.log(Level.INFO,"Failed to close connection to docker client"+ containerId, e);
-//        }
-//    }
-//=======
-//>>>>>>> master
 
 
     public AbstractProject getJob() {
