@@ -20,7 +20,7 @@ public class DockerSlaveInfo implements RunAction2 {
     private Integer allocatedCPUShares;
     private Long allocatedMemory;
 
-    private Integer maxMemoryUsage;
+    private Long maxMemoryUsage;
     private List<Long> perCpuUsage;
 
 
@@ -112,7 +112,7 @@ public class DockerSlaveInfo implements RunAction2 {
     }
 
 
-    public Integer getMaxMemoryUsage() {
+    public Long getMaxMemoryUsage() {
         return maxMemoryUsage;
     }
     public String getMemoryStats(){
@@ -129,8 +129,12 @@ public class DockerSlaveInfo implements RunAction2 {
     }
 
     private void setMemoryStats(Map<String, Object> memoryStats) {
-        Integer maxUsage = (Integer) memoryStats.get("max_usage");
-        this.maxMemoryUsage = maxUsage;
+        Object maxUsage =  memoryStats.get("max_usage");
+        if(maxUsage instanceof Integer){
+            this.maxMemoryUsage = ((Integer)maxUsage).longValue();
+        }else {
+           this.maxMemoryUsage = (Long) maxUsage;
+        }
     }
 
     private void setCpuStats(Statistics stats) {
