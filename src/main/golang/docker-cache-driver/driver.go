@@ -108,10 +108,33 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 	return volume.Response{}
 }
 
-func volumeErrorResponse(err string) volume.Response {
-	fmt.Println(err)
-	return volume.Response{Err: err}
+func (driver cacheDriver) Mount(req volume.Request) volume.Response {
+	driver.mutex.Lock()
+	defer driver.mutex.Unlock()
+	jobName, buildNumber, err := getNames(req.Name)
+	if err != nil {
+		return volumeErrorResponse(fmt.Sprintf("Mount-%s: The volume name is invalid.", req.Name))
+	}
+	cacheLocations := driver.cacheLocations
+	cacheState, err := getCacheState(driver.cacheLocations.cacheLowerRootDir)
+	if err != nil {
+		return volumeErrorResponse(fmt.Sprintf("Mount-%s: Failed to read cache state. %s", req.Name, err))
+	}
+	buildCache, _ := newBuildCache(jobName, buildNumber, cacheLocations)
+
+	baseBuildDir, err := cacheState.baseBuildDir(jobName, cacheLocations.cacheLowerRootDir)
+	if err != nil {
+		return volumeErrorResponse(fmt.Sprintf("Mount-%s : Failed to create lower base dir  %s", req.Name, err))
+	}
+
+	err = buildCache.mount(baseBuildDir)
+	if err != nil {
+		return volumeErrorResponse(fmt.Sprintf("Mount-%s : Failed to mount overlay cache due to  %s", req.Name, err))
+	}
+	fmt.Println(fmt.Sprintf("Mount-%s: mounted cache", req.Name))
+	return driver.Path(req)
 }
+
 func (driver cacheDriver) Unmount(req volume.Request) volume.Response {
 	driver.mutex.Lock()
 	defer driver.mutex.Unlock()
@@ -153,33 +176,6 @@ func (driver cacheDriver) Path(req volume.Request) volume.Response {
 	return volume.Response{Mountpoint: getMergedPath(jobName, buildNumber, driver.cacheLocations.cacheMergedRootDir)}
 }
 
-func (driver cacheDriver) Mount(req volume.Request) volume.Response {
-	driver.mutex.Lock()
-	defer driver.mutex.Unlock()
-	jobName, buildNumber, err := getNames(req.Name)
-	if err != nil {
-		return volumeErrorResponse(fmt.Sprintf("Mount-%s: The volume name is invalid.", req.Name))
-	}
-	cacheLocations := driver.cacheLocations
-	cacheState, err := getCacheState(driver.cacheLocations.cacheLowerRootDir)
-	if err != nil {
-		return volumeErrorResponse(fmt.Sprintf("Mount-%s: Failed to read cache state. %s", req.Name, err))
-	}
-	buildCache, _ := newBuildCache(jobName, buildNumber, cacheLocations)
-
-	baseBuildDir, err := cacheState.baseBuildDir(jobName, cacheLocations.cacheLowerRootDir)
-	if err != nil {
-		return volumeErrorResponse(fmt.Sprintf("Mount-%s : Failed to create lower base dir  %s", req.Name, err))
-	}
-
-	err = buildCache.mount(baseBuildDir)
-	if err != nil {
-		return volumeErrorResponse(fmt.Sprintf("Mount-%s : Failed to mount overlay cache due to  %s", req.Name, err))
-	}
-	fmt.Println(fmt.Sprintf("Mount-%s: mounted cache", req.Name))
-	return driver.Path(req)
-}
-
 func (driver cacheDriver) volume(jobName, name string) *volume.Volume {
 	return &volume.Volume{
 		Name:       jobName + "-" + name,
@@ -193,4 +189,8 @@ func getNames(volumeName string) (string, string, error) {
 		return names[0], names[1], nil
 	}
 	return "", "", errors.New(volumeName + " is not valid.")
+}
+func volumeErrorResponse(err string) volume.Response {
+	fmt.Println(err)
+	return volume.Response{Err: err}
 }
