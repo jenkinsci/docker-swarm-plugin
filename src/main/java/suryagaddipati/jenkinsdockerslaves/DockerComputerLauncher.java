@@ -121,8 +121,8 @@ public class DockerComputerLauncher extends ComputerLauncher {
     }
 
     private void setCgroupLimits(LabelConfiguration labelConfiguration, CreateContainerCmd containerCmd, DockerSlaveInfo dockerSlaveInfo) {
-        Integer cpuAllocation = 1; //default to 1
-        Long memoryAllocation = 0l;
+        Integer cpuAllocation = labelConfiguration.getMaxCpuShares();
+        Long memoryAllocation = labelConfiguration.getMaxMemory();
 
         if(labelConfiguration.isDynamicResourceAllocation()){
             Run lastSuccessfulBuild = job.getLastSuccessfulBuild();
@@ -131,9 +131,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 cpuAllocation = Math.min(labelConfiguration.getMaxCpuShares(),  lastSuccessfulSlaveInfo.getNextCpuAllocation());
                 memoryAllocation =  Math.min(labelConfiguration.getMaxMemory(), lastSuccessfulSlaveInfo.getNextMemoryAllocation());
             }
-        }else {
-           cpuAllocation = labelConfiguration.getMaxCpuShares();
-            memoryAllocation  = labelConfiguration.getMaxMemory();
         }
         containerCmd.withCpuShares(cpuAllocation);
         containerCmd.withMemory(memoryAllocation);

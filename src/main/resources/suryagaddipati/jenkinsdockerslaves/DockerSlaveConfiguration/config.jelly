@@ -81,6 +81,9 @@ THE SOFTWARE.
                 <f:entry title="Cache Dir" field="cacheDir">
                     <f:textbox  value="${labelConfiguration.cacheDir}"/>
                 </f:entry>
+                <f:entry title="Dynamic Resource Allocation" field="dynamicResourceAllocation">
+                    <f:checkbox checked="${labelConfiguration.dynamicResourceAllocation}"/>
+                </f:entry>
 
                 <f:entry title="">
                     <div align="right">

@@ -9,14 +9,18 @@ public   class LabelConfiguration {
     private Integer maxCpuShares;
     private Long maxMemory;
 
+
+    private boolean dynamicResourceAllocation;
+
     @DataBoundConstructor
-    public LabelConfiguration(String image, String hostBinds, String label, String cacheDir, Integer maxCpuShares, Long maxMemory) {
+    public LabelConfiguration(String image, String hostBinds, String label, String cacheDir, Integer maxCpuShares, Long maxMemory, boolean dynamicResourceAllocation) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.label = label;
         this.cacheDir = cacheDir;
         this.maxCpuShares = maxCpuShares;
         this.maxMemory = maxMemory;
+        this.dynamicResourceAllocation = dynamicResourceAllocation;
     }
 
     private String label;
@@ -78,6 +82,10 @@ public   class LabelConfiguration {
     }
 
     public boolean isDynamicResourceAllocation() {
-        return false;
+        return dynamicResourceAllocation;
+    }
+
+    public void setDynamicResourceAllocation(boolean dynamicResourceAllocation) {
+        this.dynamicResourceAllocation = dynamicResourceAllocation;
     }
 }
