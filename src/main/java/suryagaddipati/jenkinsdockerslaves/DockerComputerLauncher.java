@@ -197,6 +197,12 @@ public class DockerComputerLauncher extends ComputerLauncher {
     }
 
     public String getJobName() {
-        return jobName.replaceAll("/","_").replaceAll("-","_").replaceAll(",","_").replaceAll(" ","_").replaceAll("\\.","_");
+        return jobName
+                .replaceAll("/","_")
+                .replaceAll("-","_")
+                .replaceAll(",","_")
+                .replaceAll(" ","_")
+                .replaceAll("=","_")
+                .replaceAll("\\.","_");
     }
 }

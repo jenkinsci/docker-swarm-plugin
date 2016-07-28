@@ -46,7 +46,7 @@ public class BuildScheduler {
             e.printStackTrace();
         }
 
-        final String id = Long.toHexString(System.nanoTime());
+        final String id = System.nanoTime()  + "";
         final Label label = new DockerMachineLabel(id);
         return new DockerLabelAssignmentAction(label);
     }
