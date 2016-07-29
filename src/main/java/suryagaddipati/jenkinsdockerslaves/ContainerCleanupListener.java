@@ -12,10 +12,13 @@ import jenkins.model.Jenkins;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Extension
 public class ContainerCleanupListener extends RunListener<Run<?,?>> {
 
+    private static final Logger LOGGER = Logger.getLogger(ContainerCleanupListener.class.getName());
     @Override
     public void onCompleted(Run<?, ?> run, @Nonnull TaskListener listener) {
         if(run.getAction(DockerLabelAssignmentAction.class) !=null){
@@ -41,6 +44,7 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
                 computer.getNode().terminate();
             }
         } catch (InterruptedException | IOException e) {
+            LOGGER.log(Level.INFO,"Failed to remove node : " +computer.getNode(),e);
             e.printStackTrace(logger);
         }
     }
@@ -56,6 +60,7 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
             }
             removeVolume(logger, volumeName, dockerClient);
         } catch (Exception e) {
+            LOGGER.log(Level.INFO,"Failed to cleanup container : " +computer.getName(),e);
             e.printStackTrace(logger);
         }
     }
@@ -73,6 +78,7 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
                 run.save();
             }
         }catch (Exception e){
+            LOGGER.log(Level.INFO,"Failed to gather stats : " +computer.getName(),e);
             e.printStackTrace(logger);
         }
     }
