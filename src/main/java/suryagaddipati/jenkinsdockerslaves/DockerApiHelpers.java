@@ -1,7 +1,7 @@
 package suryagaddipati.jenkinsdockerslaves;
 
 public class DockerApiHelpers {
-    public static void retryOnError(Runnable runnable){
+    public static void executeWithRetryOnError(Runnable runnable){
        try{
            runnable.run();
        }catch (Exception e){
@@ -11,5 +11,11 @@ public class DockerApiHelpers {
            } catch (InterruptedException e1) {
            }
        }
+    }
+
+    public static void executeSliently(Runnable runnable) {
+        try {
+            runnable.run();
+        }catch (Exception _){}
     }
 }

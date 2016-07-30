@@ -91,15 +91,11 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
     }
 
     private void removeContainer(PrintStream logger, String containerId, DockerClient dockerClient) {
-        DockerApiHelpers.retryOnError( () ->{
-            dockerClient.removeContainerCmd(containerId).exec();
-            logger.println("Removed Container " + containerId);
-        });
+        DockerApiHelpers.executeWithRetryOnError(() -> dockerClient.removeContainerCmd(containerId).exec() );
+        logger.println("Removed Container " + containerId);
     }
 
     private void killContainer(String containerId, DockerClient dockerClient) {
-        try {
-            dockerClient.killContainerCmd(containerId).exec();
-        }catch (Exception _){}
+        DockerApiHelpers.executeSliently(() -> dockerClient.killContainerCmd(containerId).exec());
     }
 }
