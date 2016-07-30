@@ -85,23 +85,16 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
 
     private void removeVolume(PrintStream logger, String volumeName, DockerClient dockerClient) {
         if(volumeName != null){
-            try{
                 dockerClient.removeVolumeCmd(volumeName).exec();
                 logger.println("Removed volume " + volumeName);
-            }catch (Exception e){ // seems like container rm is not reliable, sometimes we see 'container still in use' despite api saying otherwise
-                try {
-                    Thread.sleep(5000);
-                    dockerClient.removeVolumeCmd(volumeName).exec();
-                    logger.println("Removed volume " + volumeName);
-                } catch (InterruptedException e1 ) {
-                }
-            }
         }
     }
 
     private void removeContainer(PrintStream logger, String containerId, DockerClient dockerClient) {
-        dockerClient.removeContainerCmd(containerId).exec();
-        logger.println("Removed Container " + containerId);
+        DockerApiHelpers.retryOnError( () ->{
+            dockerClient.removeContainerCmd(containerId).exec();
+            logger.println("Removed Container " + containerId);
+        });
     }
 
     private void killContainer(String containerId, DockerClient dockerClient) {

@@ -94,9 +94,12 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 listener.getLogger().print("Created container :" + container.getId());
 
 
-                InspectContainerResponse containerInfo = dockerClient.inspectContainerCmd(container.getId()).exec();
-                computer.setNodeName(containerInfo.getNode().getName());
-                dockerSlaveInfo.setContainerInfo(containerInfo);
+                final InspectContainerResponse[] containerInfo = {null};
+                DockerApiHelpers.retryOnError(() ->{
+                   containerInfo[0] = dockerClient.inspectContainerCmd(container.getId()).exec();
+                });
+                computer.setNodeName(containerInfo[0].getNode().getName());
+                dockerSlaveInfo.setContainerInfo(containerInfo[0]);
 
                 dockerClient.startContainerCmd(container.getId()).exec();
                 computer.setContainerId(container.getId());
