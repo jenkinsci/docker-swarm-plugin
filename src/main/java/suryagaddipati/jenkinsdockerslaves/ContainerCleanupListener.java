@@ -7,6 +7,7 @@ import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
+import hudson.tasks.LogRotator;
 import jenkins.model.Jenkins;
 
 import javax.annotation.Nonnull;
@@ -55,8 +56,8 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
         DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
         try( DockerClient dockerClient = configuration.newDockerClient()){
             if (containerId != null){
-                killContainer(containerId, dockerClient);
-                removeContainer(logger, containerId, dockerClient);
+                DockerApiHelpers.executeSliently(() -> dockerClient.killContainerCmd(containerId).exec());
+                DockerApiHelpers.executeSlientlyWithLogging(()->removeContainer(logger, containerId, dockerClient), LOGGER,"Failed to cleanup container : " +computer.getName());
             }
             removeVolume(logger, volumeName, dockerClient);
         } catch (Exception e) {
@@ -95,7 +96,4 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
         logger.println("Removed Container " + containerId);
     }
 
-    private void killContainer(String containerId, DockerClient dockerClient) {
-        DockerApiHelpers.executeSliently(() -> dockerClient.killContainerCmd(containerId).exec());
-    }
 }
