@@ -111,6 +111,7 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 func (driver cacheDriver) Mount(req volume.Request) volume.Response {
 	driver.mutex.Lock()
 	defer driver.mutex.Unlock()
+	fmt.Println(fmt.Sprintf("Mount-%s: mount callled..", req.Name))
 	jobName, buildNumber, err := getNames(req.Name)
 	if err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Mount-%s: The volume name is invalid.", req.Name))
@@ -164,6 +165,7 @@ func (driver cacheDriver) Remove(req volume.Request) volume.Response {
 		return volumeErrorResponse(fmt.Sprintf("Remove-%s: Failed to destory volume : %s", req.Name, err))
 	}
 
+	fmt.Println(fmt.Sprintf("Remove-%s: Volume Removed!!", req.Name))
 	return volume.Response{}
 }
 
