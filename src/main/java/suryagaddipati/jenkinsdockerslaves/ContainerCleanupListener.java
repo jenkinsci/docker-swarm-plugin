@@ -7,7 +7,6 @@ import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
-import hudson.tasks.LogRotator;
 import jenkins.model.Jenkins;
 
 import javax.annotation.Nonnull;
