@@ -72,15 +72,15 @@ func (buildCache *buildCache) cleanUpVolume() error {
 	volumeName := buildCache.job + "-" + buildCache.build
 
 	if err := os.RemoveAll(buildCache.mergeDir); err != nil {
-		fmt.Println(fmt.Sprintf("Remove-%s: Could not delete dir %s. %s", volumeName, buildCache.mergeDir, err))
+		fmt.Println(fmt.Sprintf("Unmount-%s: Could not delete dir %s. %s", volumeName, buildCache.mergeDir, err))
 		return err
 	}
 	if err := os.RemoveAll(buildCache.upperDir); err != nil {
-		fmt.Println(fmt.Sprintf("Remove-%s: Could not delete dir %s. %s", volumeName, buildCache.upperDir, err))
+		fmt.Println(fmt.Sprintf("Unmount-%s: Could not delete dir %s. %s", volumeName, buildCache.upperDir, err))
 		return err
 	}
 	if err := os.RemoveAll(buildCache.workDir); err != nil {
-		fmt.Println(fmt.Sprintf("Remove-%s: Could not delete dir %s. %s", volumeName, buildCache.workDir, err))
+		fmt.Println(fmt.Sprintf("Unmount-%s: Could not delete dir %s. %s", volumeName, buildCache.workDir, err))
 		return err
 	}
 	return nil

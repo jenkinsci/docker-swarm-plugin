@@ -141,31 +141,22 @@ func (driver cacheDriver) Unmount(req volume.Request) volume.Response {
 	defer driver.mutex.Unlock()
 	jobName, buildNumber, err := getNames(req.Name)
 	buildCache, _ := newBuildCache(jobName, buildNumber, driver.cacheLocations)
+
 	err = buildCache.destroy(driver)
 	if err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Unmount-%s: Failed to destory volume : %s", req.Name, err))
 	}
 	fmt.Println(fmt.Sprintf("Unmount-%s: unmounted cache", req.Name))
 
-	return driver.Path(req)
-}
-
-func (driver cacheDriver) Remove(req volume.Request) volume.Response {
-	fmt.Println(fmt.Sprintf("Remove-%s: Called... ", req.Name))
-	driver.mutex.Lock()
-	defer driver.mutex.Unlock()
-
-	jobName, buildNumber, err := getNames(req.Name)
-	if err != nil {
-		return volumeErrorResponse(fmt.Sprintf("Remove-%s: The volume name is invalid.", req.Name))
-	}
-	buildCache, _ := newBuildCache(jobName, buildNumber, driver.cacheLocations)
 	err = buildCache.cleanUpVolume()
 	if err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Remove-%s: Failed to destory volume : %s", req.Name, err))
 	}
+	fmt.Println(fmt.Sprintf("Unmount-%s: cache deleted", req.Name))
+	return driver.Path(req)
+}
 
-	fmt.Println(fmt.Sprintf("Remove-%s: Volume Removed!!", req.Name))
+func (driver cacheDriver) Remove(req volume.Request) volume.Response {
 	return volume.Response{}
 }
 
