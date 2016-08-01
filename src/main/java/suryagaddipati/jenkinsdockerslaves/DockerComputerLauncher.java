@@ -4,7 +4,6 @@ package suryagaddipati.jenkinsdockerslaves;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.command.CreateVolumeResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.exception.InternalServerErrorException;
 import com.github.dockerjava.api.model.Bind;
@@ -143,9 +142,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
     private void createCacheBindings(TaskListener listener, CreateContainerCmd createContainerCmd, DockerComputer computer, String[] cacheDirs, Bind[] binds) {
         if(cacheDirs.length > 0){
             String cacheVolumeName = getJobName() + "-" + computer.getName();
-//            CreateVolumeResponse createVolumeResponse = dockerClient.createVolumeCmd().withName(cacheVolumeName)
-//                    .withDriver("cache-driver").exec();
-//            listener.getLogger().println("Created Volume " + createVolumeResponse.getName() + " at " + createVolumeResponse.getMountpoint());
             createContainerCmd.withVolumeDriver("cache-driver");
             computer.setVolumeName(cacheVolumeName);
 
