@@ -83,7 +83,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
                     }
                 }
 
-                createCacheBindings(listener, dockerClient, computer, cacheDirs, binds);
+                createCacheBindings(listener, containerCmd, computer, cacheDirs, binds);
                 containerCmd.withBinds(binds);
 
 
@@ -140,21 +140,22 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
     }
 
-    private void createCacheBindings(TaskListener listener, DockerClient dockerClient, DockerComputer computer, String[] cacheDirs, Bind[] binds) {
+    private void createCacheBindings(TaskListener listener, CreateContainerCmd createContainerCmd, DockerComputer computer, String[] cacheDirs, Bind[] binds) {
         if(cacheDirs.length > 0){
             String cacheVolumeName = getJobName() + "-" + computer.getName();
-            CreateVolumeResponse createVolumeResponse = dockerClient.createVolumeCmd().withName(cacheVolumeName)
-                    .withDriver("cache-driver").exec();
-            listener.getLogger().println("Created Volume " + createVolumeResponse.getName() + " at " + createVolumeResponse.getMountpoint());
+//            CreateVolumeResponse createVolumeResponse = dockerClient.createVolumeCmd().withName(cacheVolumeName)
+//                    .withDriver("cache-driver").exec();
+//            listener.getLogger().println("Created Volume " + createVolumeResponse.getName() + " at " + createVolumeResponse.getMountpoint());
+            createContainerCmd.withVolumeDriver("cache-driver");
             computer.setVolumeName(cacheVolumeName);
 
 
-            bi.getAction(DockerSlaveInfo.class).setCacheVolumeName(createVolumeResponse.getName());
-            bi.getAction(DockerSlaveInfo.class).setCacheVolumeMountpoint(createVolumeResponse.getMountpoint());
+            bi.getAction(DockerSlaveInfo.class).setCacheVolumeName(cacheVolumeName);
+            bi.getAction(DockerSlaveInfo.class).setCacheVolumeMountpoint("");
 
             for(int i = 0; i < cacheDirs.length ; i++){
-                listener.getLogger().println("Binding Volume" + cacheDirs[i]+ " to " + createVolumeResponse.getName());
-                binds[binds.length-1] = new Bind(createVolumeResponse.getName(),new Volume(cacheDirs[i]));
+                listener.getLogger().println("Binding Volume" + cacheDirs[i]+ " to " + cacheVolumeName);
+                binds[binds.length-1] = new Bind(cacheVolumeName,new Volume(cacheDirs[i]));
             }
         }
     }

@@ -12,7 +12,8 @@
 
                 <br/>
                 <p><b>Max Memory Usage</b>:  ${it.memoryStats}</p>
-                <p><b>Per Cpu Usage</b>:  ${it.cpuUsage}</p>
+                <p><b>Per Cpu Usage</b>:  ${it.perCpuUsage}</p>
+                <p><b>Total Cpu Usage</b>:  ${it.totalCpuUsage}</p>
                 <p><b>Throttled Time </b>:  ${it.throttledTime}</p>
             </div>
         </l:main-panel>

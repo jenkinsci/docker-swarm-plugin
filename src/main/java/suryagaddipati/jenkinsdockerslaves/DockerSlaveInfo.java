@@ -9,6 +9,7 @@ import jenkins.model.RunAction2;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class DockerSlaveInfo implements RunAction2 {
 
@@ -118,8 +119,23 @@ public class DockerSlaveInfo implements RunAction2 {
     public String getMemoryStats(){
        return maxMemoryUsage != null? maxMemoryUsage + " bytes (" + Math.floor((maxMemoryUsage/1024)/1024) +" MB )" : "";
     }
-    public String getCpuUsage(){
+
+    public String getPerCpuUsage(){
       return perCpuUsage == null? "": Joiner.on(", ").join(perCpuUsage);
+    }
+    public String getTotalCpuUsage(){
+        if(perCpuUsage == null){
+           return  null;
+        }
+        long sum = 0;
+        for(Long value : perCpuUsage){
+           sum = sum + value;
+        }
+        long seconds = TimeUnit.SECONDS.convert(sum, TimeUnit.NANOSECONDS);
+
+        long mins = TimeUnit.MINUTES.convert(sum, TimeUnit.NANOSECONDS);
+        return mins +" mins, " + (seconds - mins*60) + " secs.";
+
     }
 
     public void setStats(Statistics stats) {
