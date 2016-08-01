@@ -51,14 +51,12 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
 
     private void cleanupDockerVolumeAndContainer(DockerComputer computer, PrintStream logger) {
         String containerId = computer.getContainerId();
-        String volumeName = computer.getVolumeName();
         DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
         try( DockerClient dockerClient = configuration.newDockerClient()){
             if (containerId != null){
                 DockerApiHelpers.executeSliently(() -> dockerClient.killContainerCmd(containerId).exec());
                 DockerApiHelpers.executeSlientlyWithLogging(()->removeContainer(logger, containerId, dockerClient), LOGGER,"Failed to cleanup container : " +computer.getName());
             }
-            removeVolume(logger, volumeName, dockerClient);
         } catch (Exception e) {
             LOGGER.log(Level.INFO,"Failed to cleanup container : " +computer.getName(),e);
             e.printStackTrace(logger);
@@ -83,12 +81,6 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
         }
     }
 
-    private void removeVolume(PrintStream logger, String volumeName, DockerClient dockerClient) {
-        if(volumeName != null){
-                dockerClient.removeVolumeCmd(volumeName).exec();
-                logger.println("Removed volume " + volumeName);
-        }
-    }
 
     private void removeContainer(PrintStream logger, String containerId, DockerClient dockerClient) {
         DockerApiHelpers.executeWithRetryOnError(() -> dockerClient.removeContainerCmd(containerId).exec() );

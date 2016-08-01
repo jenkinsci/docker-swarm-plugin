@@ -144,11 +144,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
             String cacheVolumeName = getJobName() + "-" + computer.getName();
             createContainerCmd.withVolumeDriver("cache-driver");
             computer.setVolumeName(cacheVolumeName);
-
-
             bi.getAction(DockerSlaveInfo.class).setCacheVolumeName(cacheVolumeName);
-            bi.getAction(DockerSlaveInfo.class).setCacheVolumeMountpoint("");
-
             for(int i = 0; i < cacheDirs.length ; i++){
                 listener.getLogger().println("Binding Volume" + cacheDirs[i]+ " to " + cacheVolumeName);
                 binds[binds.length-1] = new Bind(cacheVolumeName,new Volume(cacheDirs[i]));
