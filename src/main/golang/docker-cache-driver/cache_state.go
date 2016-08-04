@@ -44,6 +44,12 @@ func newCacheState(fileLocationDir string) (*cacheState, error) {
 	}
 	return &cacheState{}, nil
 }
+
+func (cacheState *cacheState) updateState(cacheLowerRootDir, newLatest string) error {
+	cacheState.State["latest"] = newLatest
+	return cacheState.save(cacheLowerRootDir)
+}
+
 func (cacheState *cacheState) getBaseBuild(cacheLowerRootDir string) (string, error) {
 	if baseBuild, ok := cacheState.State["latest"]; ok {
 		return baseBuild, nil
