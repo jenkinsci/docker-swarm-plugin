@@ -49,7 +49,7 @@ func newCacheDriverDriver(cacheLocations *cacheLocations) cacheDriver {
 
 func (driver cacheDriver) Get(req volume.Request) volume.Response {
 	jobName, buildNumber, err := getNames(req.Name)
-	buildCache, _ := newBuildCache(jobName, buildNumber, driver.cacheLocations)
+	buildCache := newBuildCache(jobName, buildNumber, driver.cacheLocations)
 	if err != nil {
 		return volume.Response{Err: fmt.Sprintf("The volume name %s is invalid.", req.Name)}
 	}
@@ -94,11 +94,11 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 	if err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: The volume name is invalid.", req.Name))
 	}
-	cacheLocations := driver.cacheLocations
-	buildCache, _ := newBuildCache(jobName, buildNumber, cacheLocations)
-	if buildCache.exists() {
+
+	if newBuildCache(jobName, buildNumber, driver.cacheLocations).exists() {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: The volume already exists", req.Name))
 	}
+
 	fmt.Println(fmt.Sprintf("Create-%s: Creating dirs for the volume.", req.Name))
 	if err := buildCache.init(); err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: Failed to create Dirs. %s", req.Name, err))
@@ -115,11 +115,7 @@ func (driver cacheDriver) Mount(req volume.Request) volume.Response {
 	if err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Mount-%s: The volume name is invalid.", req.Name))
 	}
-	cacheLocations := driver.cacheLocations
-	buildCache, _ := newBuildCache(jobName, buildNumber, cacheLocations)
-
-	err = buildCache.mount()
-	if err != nil {
+	if err := newBuildCache(jobName, buildNumber, driver.cacheLocations).mount(); err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Mount-%s : Failed to mount overlay cache due to  %s", req.Name, err))
 	}
 	fmt.Println(fmt.Sprintf("Mount-%s: mounted cache", req.Name))
@@ -156,7 +152,7 @@ func (driver cacheDriver) volume(jobName, name string) *volume.Volume {
 
 func removeVolume(driver cacheDriver, req volume.Request) volume.Response {
 	jobName, buildNumber, err := getNames(req.Name)
-	buildCache, _ := newBuildCache(jobName, buildNumber, driver.cacheLocations)
+	buildCache := newBuildCache(jobName, buildNumber, driver.cacheLocations)
 
 	err = buildCache.destroy(driver)
 	if err != nil {
