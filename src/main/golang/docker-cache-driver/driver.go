@@ -100,8 +100,7 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: The volume already exists", req.Name))
 	}
 	fmt.Println(fmt.Sprintf("Create-%s: Creating dirs for the volume.", req.Name))
-	err = buildCache.initDirs()
-	if err != nil {
+	if err := buildCache.init(); err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: Failed to create Dirs. %s", req.Name, err))
 	}
 	fmt.Println(fmt.Sprintf("Create-%s: Volume Created!!", req.Name))
@@ -117,18 +116,9 @@ func (driver cacheDriver) Mount(req volume.Request) volume.Response {
 		return volumeErrorResponse(fmt.Sprintf("Mount-%s: The volume name is invalid.", req.Name))
 	}
 	cacheLocations := driver.cacheLocations
-	cacheState, err := getCacheState(driver.cacheLocations.cacheLowerRootDir)
-	if err != nil {
-		return volumeErrorResponse(fmt.Sprintf("Mount-%s: Failed to read cache state. %s", req.Name, err))
-	}
 	buildCache, _ := newBuildCache(jobName, buildNumber, cacheLocations)
 
-	baseBuildDir, err := cacheState.baseBuildDir(jobName, cacheLocations.cacheLowerRootDir)
-	if err != nil {
-		return volumeErrorResponse(fmt.Sprintf("Mount-%s : Failed to create lower base dir  %s", req.Name, err))
-	}
-
-	err = buildCache.mount(baseBuildDir)
+	err = buildCache.mount()
 	if err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Mount-%s : Failed to mount overlay cache due to  %s", req.Name, err))
 	}

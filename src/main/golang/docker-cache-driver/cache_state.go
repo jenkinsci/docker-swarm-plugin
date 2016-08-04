@@ -29,6 +29,9 @@ func getCacheState(fileLocationDir string) (*cacheState, error) {
 }
 
 func newCacheState(fileLocationDir string) (*cacheState, error) {
+	if err := mkdirIfDoesntExist(fileLocationDir); err != nil {
+		return &cacheState{}, err
+	}
 	stateFile := getStateFile(fileLocationDir)
 	_, err := os.Stat(stateFile)
 	if err != nil {
@@ -41,18 +44,17 @@ func newCacheState(fileLocationDir string) (*cacheState, error) {
 	}
 	return &cacheState{}, nil
 }
-func (cacheState *cacheState) baseBuildDir(jobName, cacheLowerRootDir string) (string, error) {
-	if baseBuild, ok := cacheState.State[jobName]; ok {
-		return getBasePath(jobName, baseBuild, cacheLowerRootDir), nil
+func (cacheState *cacheState) getBaseBuild(cacheLowerRootDir string) (string, error) {
+	if baseBuild, ok := cacheState.State["latest"]; ok {
+		return baseBuild, nil
 	} else {
 		baseBuild := "0"
-		cacheState.State[jobName] = "0"
+		cacheState.State["latest"] = "0"
 		cacheState.save(cacheLowerRootDir)
-		baseBuildCachePath := getBasePath(jobName, baseBuild, cacheLowerRootDir)
-		if err := os.MkdirAll(baseBuildCachePath, 0755); err != nil {
+		if err := os.MkdirAll(path.Join(cacheLowerRootDir, baseBuild), 0755); err != nil {
 			return "", err
 		}
-		return baseBuildCachePath, nil
+		return baseBuild, nil
 	}
 }
 

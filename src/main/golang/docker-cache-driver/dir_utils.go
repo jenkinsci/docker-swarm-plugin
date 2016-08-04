@@ -25,5 +25,20 @@ func isEmpty(dirPath string) (bool, error) {
 
 func cloneDir(source string, dest string) (err error) {
 	return CopyDir(source, dest)
+}
 
+func mkdirs(dirs ...string) error {
+	for _, dir := range dirs {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func mkdirIfDoesntExist(dir string) error {
+	if _, err := os.Stat(dir); err != nil {
+		return os.MkdirAll(dir, 0755)
+	}
+	return nil
 }

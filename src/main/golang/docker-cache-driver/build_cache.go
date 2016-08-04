@@ -9,6 +9,7 @@ import (
 
 type buildCache struct {
 	mergeDir, upperDir, workDir string
+	jobLowerRootDir             string
 	job, build                  string
 }
 
@@ -16,23 +17,28 @@ func newBuildCache(job, build string, cacheLocations *cacheLocations) (*buildCac
 	mergeDir := getMergedPath(job, build, cacheLocations.cacheMergedRootDir)
 	upperDir := getUpperPath(job, build, cacheLocations.cacheUpperRootDir)
 	workDir := getWorkDirPath(job, build, cacheLocations.cacheWorkRootDir)
-	return &buildCache{job: job, build: build, mergeDir: mergeDir, upperDir: upperDir, workDir: workDir}, nil
+	jobLowerRootDir := getJobLowerRootDir(cacheLocations.cacheLowerRootDir, job)
+	return &buildCache{job: job, build: build, mergeDir: mergeDir, upperDir: upperDir, workDir: workDir, jobLowerRootDir: jobLowerRootDir}, nil
 
 }
 
-func (buildCache *buildCache) initDirs() error {
-	err := os.MkdirAll(buildCache.mergeDir, 0755)
-	if err != nil {
+func (buildCache *buildCache) init() error {
+	if _, err := newCacheState(buildCache.jobLowerRootDir); err != nil {
 		return err
 	}
-	err = os.MkdirAll(buildCache.upperDir, 0755)
-	if err != nil {
-		return err
-	}
-	return os.MkdirAll(buildCache.workDir, 0755)
+	return mkdirs(buildCache.mergeDir, buildCache.upperDir, buildCache.workDir)
 }
 
-func (buildCache *buildCache) mount(baseBuildDir string) error {
+func (buildCache *buildCache) mount() error {
+	cacheState, err := getCacheState(buildCache.jobLowerRootDir)
+	if err != nil {
+		return err
+	}
+	baseBuild, err := cacheState.getBaseBuild(buildCache.jobLowerRootDir)
+	if err != nil {
+		return err
+	}
+	baseBuildDir := path.Join(buildCache.jobLowerRootDir, baseBuild)
 	overlayDirs := fmt.Sprintf("lowerdir=%s,upperdir=%s,workdir=%s", baseBuildDir, buildCache.upperDir, buildCache.workDir)
 	return syscall.Mount("overlay", buildCache.mergeDir, "overlay", 0, overlayDirs)
 }
@@ -99,4 +105,7 @@ func getUpperPath(jobName, buildNumber, cacheUpperRootDir string) string {
 }
 func getWorkDirPath(jobName, buildNumber, cacheWorkRootDir string) string {
 	return path.Join(cacheWorkRootDir, jobName, buildNumber)
+}
+func getJobLowerRootDir(cacheLowerRootDir, jobName string) string {
+	return path.Join(cacheLowerRootDir, jobName)
 }
