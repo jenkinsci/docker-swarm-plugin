@@ -95,7 +95,8 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: The volume name is invalid.", req.Name))
 	}
 
-	if newBuildCache(jobName, buildNumber, driver.cacheLocations).exists() {
+	buildCache := newBuildCache(jobName, buildNumber, driver.cacheLocations)
+	if buildCache.exists() {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: The volume already exists", req.Name))
 	}
 
@@ -104,6 +105,7 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: Failed to create Dirs. %s", req.Name, err))
 	}
 	fmt.Println(fmt.Sprintf("Create-%s: Volume Created!!", req.Name))
+
 	return volume.Response{}
 }
 
