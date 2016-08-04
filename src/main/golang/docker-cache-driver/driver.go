@@ -139,25 +139,13 @@ func (driver cacheDriver) Mount(req volume.Request) volume.Response {
 func (driver cacheDriver) Unmount(req volume.Request) volume.Response {
 	driver.mutex.Lock()
 	defer driver.mutex.Unlock()
-	jobName, buildNumber, err := getNames(req.Name)
-	buildCache, _ := newBuildCache(jobName, buildNumber, driver.cacheLocations)
-
-	err = buildCache.destroy(driver)
-	if err != nil {
-		return volumeErrorResponse(fmt.Sprintf("Unmount-%s: Failed to destory volume : %s", req.Name, err))
-	}
-	fmt.Println(fmt.Sprintf("Unmount-%s: unmounted cache", req.Name))
-
-	err = buildCache.cleanUpVolume()
-	if err != nil {
-		return volumeErrorResponse(fmt.Sprintf("Remove-%s: Failed to destory volume : %s", req.Name, err))
-	}
-	fmt.Println(fmt.Sprintf("Unmount-%s: cache deleted", req.Name))
-	return driver.Path(req)
+	return removeVolume(driver, req)
 }
 
 func (driver cacheDriver) Remove(req volume.Request) volume.Response {
-	return volume.Response{}
+	driver.mutex.Lock()
+	defer driver.mutex.Unlock()
+	return removeVolume(driver, req)
 }
 
 func (driver cacheDriver) Path(req volume.Request) volume.Response {
@@ -174,6 +162,24 @@ func (driver cacheDriver) volume(jobName, name string) *volume.Volume {
 		Name:       jobName + "-" + name,
 		Mountpoint: getMergedPath(jobName, name, driver.cacheLocations.cacheMergedRootDir),
 	}
+}
+
+func removeVolume(driver cacheDriver, req volume.Request) volume.Response {
+	jobName, buildNumber, err := getNames(req.Name)
+	buildCache, _ := newBuildCache(jobName, buildNumber, driver.cacheLocations)
+
+	err = buildCache.destroy(driver)
+	if err != nil {
+		return volumeErrorResponse(fmt.Sprintf("Unmount-%s: Failed to destory volume : %s", req.Name, err))
+	}
+	fmt.Println(fmt.Sprintf("Unmount-%s: unmounted cache", req.Name))
+
+	err = buildCache.cleanUpVolume()
+	if err != nil {
+		return volumeErrorResponse(fmt.Sprintf("Remove-%s: Failed to destory volume : %s", req.Name, err))
+	}
+	fmt.Println(fmt.Sprintf("Unmount-%s: cache deleted", req.Name))
+	return driver.Path(req)
 }
 
 func getNames(volumeName string) (string, string, error) {
