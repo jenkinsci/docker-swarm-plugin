@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/docker/go-plugins-helpers/volume"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -18,12 +17,12 @@ type cacheLocations struct {
 }
 
 func newCacheLocations(cacheLowerRootDir, cacheUpperRootDir, cacheWorkRootDir, cacheMergedRootDir *string) cacheLocations {
-	cacheLocations := cacheLocations{}
-	cacheLocations.cacheLowerRootDir = *cacheLowerRootDir
-	cacheLocations.cacheUpperRootDir = *cacheUpperRootDir
-	cacheLocations.cacheWorkRootDir = *cacheWorkRootDir
-	cacheLocations.cacheMergedRootDir = *cacheMergedRootDir
-	return cacheLocations
+	return cacheLocations{
+		cacheLowerRootDir:  *cacheLowerRootDir,
+		cacheUpperRootDir:  *cacheUpperRootDir,
+		cacheWorkRootDir:   *cacheWorkRootDir,
+		cacheMergedRootDir: *cacheMergedRootDir,
+	}
 }
 
 type cacheDriver struct {
