@@ -13,11 +13,11 @@ type buildCache struct {
 	job, build                  string
 }
 
-func newBuildCache(job, build string, cacheLocations *cacheLocations) *buildCache {
-	mergeDir := getMergedPath(job, build, cacheLocations.cacheMergedRootDir)
-	upperDir := getUpperPath(job, build, cacheLocations.cacheUpperRootDir)
-	workDir := getWorkDirPath(job, build, cacheLocations.cacheWorkRootDir)
-	jobLowerRootDir := getJobLowerRootDir(cacheLocations.cacheLowerRootDir, job)
+func newBuildCache(job, build string, rootDirs *rootDirs) *buildCache {
+	mergeDir := getMergedPath(job, build, rootDirs.merged)
+	upperDir := getUpperPath(job, build, rootDirs.upper)
+	workDir := getWorkDirPath(job, build, rootDirs.work)
+	jobLowerRootDir := getJobLowerRootDir(rootDirs.lower, job)
 	return &buildCache{job: job, build: build, mergeDir: mergeDir, upperDir: upperDir, workDir: workDir, jobLowerRootDir: jobLowerRootDir}
 
 }

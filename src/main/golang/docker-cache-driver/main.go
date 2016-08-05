@@ -16,9 +16,7 @@ func main() {
 	mergedRootDir := flag.String("cacheMergedDir", "/mnt/cache-merged", "root location of merged dir")
 	WithLock("/var/run/cache-driver.pid", func() {
 		flag.Parse()
-		cacheLocations := newCacheLocations(lowerRootDir, upperRootDir, workRootDir, mergedRootDir)
-		driver := newCacheDriverDriver(&cacheLocations)
-
+		driver := newCacheDriver(lowerRootDir, upperRootDir, workRootDir, mergedRootDir)
 		handler := volume.NewHandler(driver)
 		err := handler.ServeUnix("root", driver.name)
 		if err != nil {
