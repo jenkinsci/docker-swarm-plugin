@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/docker/go-plugins-helpers/volume"
+	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -24,6 +25,9 @@ func newRootDirs(lower, upper, work, merged *string) rootDirs {
 		merged: *merged,
 	}
 }
+func (rootDirs rootDirs) mkdirs() error {
+	return mkdirs(rootDirs.lower, rootDirs.upper, rootDirs.work, rootDirs.merged)
+}
 
 type cacheDriver struct {
 	mutex    *sync.Mutex
@@ -39,7 +43,7 @@ func newCacheDriver(lower, upper, work, merged *string) cacheDriver {
 		name:     "cache-driver",
 		rootDirs: &rootDirs,
 	}
-	mkdirs(rootDirs.lower, rootDirs.upper, rootDirs.work, rootDirs.merged)
+	rootDirs.mkdirs()
 	return driver
 }
 
@@ -138,13 +142,13 @@ func (driver cacheDriver) Path(req volume.Request) volume.Response {
 	if err != nil {
 		return volume.Response{Err: fmt.Sprintf("The volume name %s is invalid.", req.Name)}
 	}
-	return volume.Response{Mountpoint: getMergedPath(jobName, buildNumber, driver.rootDirs.merged)}
+	return volume.Response{Mountpoint: path.Join(driver.rootDirs.merged, jobName, buildNumber)}
 }
 
-func (driver cacheDriver) volume(jobName, name string) *volume.Volume {
+func (driver cacheDriver) volume(jobName, buildNumber string) *volume.Volume {
 	return &volume.Volume{
-		Name:       jobName + "-" + name,
-		Mountpoint: getMergedPath(jobName, name, driver.rootDirs.merged),
+		Name:       jobName + "-" + buildNumber,
+		Mountpoint: path.Join(driver.rootDirs.merged, jobName, buildNumber),
 	}
 }
 

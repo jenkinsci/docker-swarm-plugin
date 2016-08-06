@@ -29,9 +29,6 @@ func getCacheState(fileLocationDir string) (*cacheState, error) {
 }
 
 func newCacheState(fileLocationDir string) (*cacheState, error) {
-	if err := mkdirIfDoesntExist(fileLocationDir); err != nil {
-		return &cacheState{}, err
-	}
 	stateFile := getStateFile(fileLocationDir)
 	_, err := os.Stat(stateFile)
 	if err != nil {

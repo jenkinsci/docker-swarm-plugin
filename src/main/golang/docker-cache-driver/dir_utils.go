@@ -35,10 +35,3 @@ func mkdirs(dirs ...string) error {
 	}
 	return nil
 }
-
-func mkdirIfDoesntExist(dir string) error {
-	if _, err := os.Stat(dir); err != nil {
-		return os.MkdirAll(dir, 0755)
-	}
-	return nil
-}
