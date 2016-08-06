@@ -26,11 +26,7 @@ func newBuildVolume(job, build string, cacheRootDirs *rootDirs) *buildVolume {
 }
 
 func (buildVolume *buildVolume) init() error {
-	if err := buildVolume.rootDirs.mkdirs(); err != nil {
-		return err
-	}
-	_, err := newCacheState(buildVolume.rootDirs.lower)
-	return err
+	return buildVolume.rootDirs.mkdirs()
 }
 
 func (volume *buildVolume) mount() error {

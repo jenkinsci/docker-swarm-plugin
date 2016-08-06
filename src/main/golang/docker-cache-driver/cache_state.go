@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -16,30 +17,29 @@ func getStateFile(cacheLowerRootDir string) string {
 }
 func getCacheState(fileLocationDir string) (*cacheState, error) {
 	stateFile := getStateFile(fileLocationDir)
-	fileData, err := ioutil.ReadFile(stateFile)
-	if err != nil {
-		return &cacheState{}, err
-	}
-	var data cacheState
-	e := json.Unmarshal(fileData, &data)
-	if e != nil {
-		return &cacheState{}, err
-	}
-	return &data, nil
-}
-
-func newCacheState(fileLocationDir string) (*cacheState, error) {
-	stateFile := getStateFile(fileLocationDir)
 	_, err := os.Stat(stateFile)
 	if err != nil {
 		volumes := make(map[string]string)
 		data := cacheState{
 			State: volumes,
 		}
-		fileData, _ := json.Marshal(data)
+		fileData, err := json.Marshal(data)
+		if err != nil {
+			return &cacheState{}, err
+		}
 		return &data, ioutil.WriteFile(stateFile, fileData, 0600)
+	} else {
+		fileData, err := ioutil.ReadFile(stateFile)
+		if err != nil {
+			return &cacheState{}, err
+		}
+		var data cacheState
+		e := json.Unmarshal(fileData, &data)
+		if e != nil {
+			return &cacheState{}, err
+		}
+		return &data, nil
 	}
-	return &cacheState{}, nil
 }
 
 func (cacheState *cacheState) updateState(cacheLowerRootDir, newLatest string) error {
