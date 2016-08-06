@@ -49,7 +49,7 @@ func newCacheDriver(lower, upper, work, merged *string) cacheDriver {
 
 func (driver cacheDriver) Get(req volume.Request) volume.Response {
 	jobName, buildNumber, err := getNames(req.Name)
-	buildCache := newBuildCache(jobName, buildNumber, driver.rootDirs)
+	buildCache := newBuildVolume(jobName, buildNumber, driver.rootDirs)
 	if err != nil {
 		return volume.Response{Err: fmt.Sprintf("The volume name %s is invalid.", req.Name)}
 	}
@@ -95,7 +95,7 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: The volume name is invalid.", req.Name))
 	}
 
-	buildCache := newBuildCache(jobName, buildNumber, driver.rootDirs)
+	buildCache := newBuildVolume(jobName, buildNumber, driver.rootDirs)
 	if buildCache.exists() {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: The volume already exists", req.Name))
 	}
@@ -117,7 +117,7 @@ func (driver cacheDriver) Mount(req volume.Request) volume.Response {
 	if err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Mount-%s: The volume name is invalid.", req.Name))
 	}
-	if err := newBuildCache(jobName, buildNumber, driver.rootDirs).mount(); err != nil {
+	if err := newBuildVolume(jobName, buildNumber, driver.rootDirs).mount(); err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Mount-%s : Failed to mount overlay cache due to  %s", req.Name, err))
 	}
 	fmt.Println(fmt.Sprintf("Mount-%s: mounted cache", req.Name))
@@ -154,7 +154,7 @@ func (driver cacheDriver) volume(jobName, buildNumber string) *volume.Volume {
 
 func removeVolume(driver cacheDriver, req volume.Request) volume.Response {
 	jobName, buildNumber, err := getNames(req.Name)
-	buildCache := newBuildCache(jobName, buildNumber, driver.rootDirs)
+	buildCache := newBuildVolume(jobName, buildNumber, driver.rootDirs)
 
 	if err := buildCache.destroy(); err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Unmount-%s: Failed to destory volume : %s", req.Name, err))
