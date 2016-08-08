@@ -92,7 +92,7 @@ public class DockerSlaveInfo implements RunAction2 {
     }
 
     public void setContainerInfo(InspectContainerResponse containerInfo) {
-        this.containerId =  containerInfo.getNode().getName() +containerInfo.getName();
+        this.containerId =  containerInfo.getName();
     }
 
 

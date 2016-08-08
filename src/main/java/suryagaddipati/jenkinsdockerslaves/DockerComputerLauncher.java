@@ -95,7 +95,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
                 final InspectContainerResponse[] containerInfo = {null};
                 DockerApiHelpers.executeWithRetryOnError(() -> containerInfo[0] = dockerClient.inspectContainerCmd(container.getId()).exec());
-                computer.setNodeName(containerInfo[0].getNode().getName());
+                computer.setNodeName(containerInfo[0].toString());
                 dockerSlaveInfo.setContainerInfo(containerInfo[0]);
 
                 dockerClient.startContainerCmd(container.getId()).exec();
