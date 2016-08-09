@@ -133,7 +133,11 @@ func (driver cacheDriver) Unmount(req volume.Request) volume.Response {
 func (driver cacheDriver) Remove(req volume.Request) volume.Response {
 	driver.mutex.Lock()
 	defer driver.mutex.Unlock()
-	return removeVolume(driver, req)
+
+	jobName, buildNumber, _ := getNames(req.Name)
+	buildVolume := newBuildVolume(jobName, buildNumber, driver.rootDirs)
+	buildVolume.cleanUpVolume()
+	return driver.Path(req)
 }
 
 func (driver cacheDriver) Path(req volume.Request) volume.Response {
