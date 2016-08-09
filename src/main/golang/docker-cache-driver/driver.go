@@ -49,11 +49,11 @@ func newCacheDriver(lower, upper, work, merged *string) cacheDriver {
 
 func (driver cacheDriver) Get(req volume.Request) volume.Response {
 	jobName, buildNumber, err := getNames(req.Name)
-	buildCache := newBuildVolume(jobName, buildNumber, driver.rootDirs)
+	buildVolume := newBuildVolume(jobName, buildNumber, driver.rootDirs)
 	if err != nil {
 		return volume.Response{Err: fmt.Sprintf("The volume name %s is invalid.", req.Name)}
 	}
-	if buildCache.exists() {
+	if buildVolume.exists() {
 		return volume.Response{
 			Volume: driver.volume(jobName, buildNumber),
 		}
@@ -95,13 +95,13 @@ func (driver cacheDriver) Create(req volume.Request) volume.Response {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: The volume name is invalid.", req.Name))
 	}
 
-	buildCache := newBuildVolume(jobName, buildNumber, driver.rootDirs)
-	if buildCache.exists() {
+	buildVolume := newBuildVolume(jobName, buildNumber, driver.rootDirs)
+	if buildVolume.exists() {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: The volume already exists", req.Name))
 	}
 
 	fmt.Println(fmt.Sprintf("Create-%s: Creating dirs for the volume.", req.Name))
-	if err := buildCache.init(); err != nil {
+	if err := buildVolume.init(); err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Create-%s: Failed to create Dirs. %s", req.Name, err))
 	}
 	fmt.Println(fmt.Sprintf("Create-%s: Volume Created!!", req.Name))
@@ -154,14 +154,14 @@ func (driver cacheDriver) volume(jobName, buildNumber string) *volume.Volume {
 
 func removeVolume(driver cacheDriver, req volume.Request) volume.Response {
 	jobName, buildNumber, err := getNames(req.Name)
-	buildCache := newBuildVolume(jobName, buildNumber, driver.rootDirs)
+	buildVolume := newBuildVolume(jobName, buildNumber, driver.rootDirs)
 
-	if err := buildCache.destroy(); err != nil {
+	if err := buildVolume.destroy(); err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Unmount-%s: Failed to destory volume : %s", req.Name, err))
 	}
 	fmt.Println(fmt.Sprintf("Unmount-%s: unmounted cache", req.Name))
 
-	err = buildCache.cleanUpVolume()
+	err = buildVolume.cleanUpVolume()
 	if err != nil {
 		return volumeErrorResponse(fmt.Sprintf("Remove-%s: Failed to destory volume : %s", req.Name, err))
 	}
