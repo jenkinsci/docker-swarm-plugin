@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/docker/go-plugins-helpers/volume"
 	"io/ioutil"
 	"os"
@@ -9,13 +10,20 @@ import (
 	"syscall"
 )
 
+var VERSION string
+
 func main() {
+	version := flag.Bool("v", false, "prints current cache-driver version")
 	lowerRootDir := flag.String("cacheLowerDir", "/cache", "root location of lower dir")
 	upperRootDir := flag.String("cacheUpperDir", "/mnt/cache-upper", "root location of upper dir")
 	workRootDir := flag.String("cacheWorkDir", "/mnt/cache-work", "root location of work dir")
 	mergedRootDir := flag.String("cacheMergedDir", "/mnt/cache-merged", "root location of merged dir")
+	flag.Parse()
+	if *version {
+		fmt.Println(VERSION)
+		os.Exit(0)
+	}
 	WithLock("/var/run/cache-driver.pid", func() {
-		flag.Parse()
 		driver := newCacheDriver(lowerRootDir, upperRootDir, workRootDir, mergedRootDir)
 		handler := volume.NewHandler(driver)
 		err := handler.ServeUnix("root", driver.name)
@@ -24,6 +32,7 @@ func main() {
 		}
 	})
 }
+
 func WithLock(pidFileName string, f func()) {
 	pidFile, err := os.Create(pidFileName)
 	if err != nil {
