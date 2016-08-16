@@ -88,9 +88,9 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
                 setCgroupLimits(labelConfiguration, containerCmd,dockerSlaveInfo);
 
-                listener.getLogger().print("Creating Container :" + containerCmd.toString());
+                listener.getLogger().println("Creating Container :" + containerCmd.toString());
                 CreateContainerResponse container = containerCmd.exec();
-                listener.getLogger().print("Created container :" + container.getId());
+                listener.getLogger().println("Created container :" + container.getId());
 
 
                 final InspectContainerResponse[] containerInfo = {null};
@@ -104,7 +104,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 dockerSlaveInfo.setProvisionedTime(new Date());
             }
 
-        } catch (Exception e) {
+        } catch (Throwable e) {
             new ContainerCleanupListener().terminate(computer, listener.getLogger());
             String build = bi + "-" + job.getNextBuildNumber();
             if(noResourcesAvailable(e)){
@@ -152,7 +152,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
         }
     }
 
-    private boolean noResourcesAvailable(Exception e) {
+    private boolean noResourcesAvailable(Throwable e) {
         return e instanceof  InternalServerErrorException && e.getMessage().trim().contains("no resources available to schedule container");
     }
 
