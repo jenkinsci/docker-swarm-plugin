@@ -18,6 +18,7 @@ import hudson.slaves.SlaveComputer;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,6 +71,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
                         .createContainerCmd(labelConfiguration.getImage())
                         .withCmd(command)
                         .withPrivileged(configuration.isPrivileged())
+                        .withHostName(computer.getName())
                         .withName(computer.getName());
 
                 String[] bindOptions = labelConfiguration.getHostBindsConfig();
@@ -100,7 +102,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
                 dockerClient.startContainerCmd(container.getId()).exec();
                 computer.setContainerId(container.getId());
-                computer.connect(false).get();
+                computer.connect(false).get(1, TimeUnit.MINUTES);
                 dockerSlaveInfo.setProvisionedTime(new Date());
             }
 
