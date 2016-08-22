@@ -32,21 +32,20 @@ import hudson.model.Job;
 import hudson.model.Queue;
 import hudson.slaves.AbstractCloudComputer;
 
+import java.util.Date;
+
 public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
     private final Job job;
     private String containerId;
-    private String volumeName;
-
-
     private String swarmNodeName;
+    private Date launchTime;
 
 
     public DockerComputer(DockerSlave dockerSlave, Job job) {
         super(dockerSlave);
         this.job = job;
     }
-
 
     @Override
     public void recordTermination() {
@@ -55,24 +54,18 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         }
     }
 
-
     public AbstractProject getJob() {
         return (AbstractProject) job;
     }
-
-
 
     public void setContainerId(String containerId) {
         this.containerId = containerId;
     }
 
-    public void setVolumeName(String volumeName) {
-        this.volumeName = volumeName;
-    }
-
     public void setNodeName(String nodeName) {
         this.swarmNodeName = nodeName;
     }
+
     public String getSwarmNodeName() {
         return swarmNodeName;
     }
@@ -89,7 +82,10 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         return containerId;
     }
 
-    public String getVolumeName() {
-        return volumeName;
+    public void setLaunchTime(Date launchTime) {
+        this.launchTime = launchTime;
+    }
+    public Date getLaunchTime() {
+        return launchTime;
     }
 }

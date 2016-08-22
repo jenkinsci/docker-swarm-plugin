@@ -1,10 +1,14 @@
 package suryagaddipati.jenkinsdockerslaves;
 
 import hudson.Extension;
+import hudson.model.Computer;
 import hudson.model.PeriodicWork;
 import hudson.model.Queue;
+import hudson.model.labels.LabelAssignmentAction;
 import jenkins.model.Jenkins;
 
+import java.time.Duration;
+import java.util.Date;
 import java.util.logging.Logger;
 
 @Extension
@@ -22,14 +26,39 @@ public class DockerNodeProvisionerQueueWatcher extends PeriodicWork {
         for(int i = items.length-1 ; i >=0 ; i-- ){ //reverse order
             Queue.Item item = items[i];
             DockerSlaveInfo slaveInfo = item.getAction(DockerSlaveInfo.class);
-            if( slaveInfo != null && item instanceof Queue.BuildableItem && !slaveInfo.isProvisioningInProgress()){
-                if (! (slaveInfo.getProvisioningAttempts() >  slaveConfig.getMaxProvisioningAttempts())){
-                    LOGGER.info("Scheduling build: "+ item.task);
-                    BuildScheduler.scheduleBuild(((Queue.BuildableItem)item),true);
+            if( slaveInfo != null && item instanceof Queue.BuildableItem ){
+                if(slaveInfo.isProvisioningInProgress()){
+                    resetIfStuck(slaveInfo,item);
                 }else{
-                    LOGGER.info("Ignoring "+ item.task + " since it exceeded max provisioning attempts. Attempts :" + slaveInfo.getProvisioningAttempts());
+                    processQueueItem(slaveConfig, item, slaveInfo);
                 }
             }
+        }
+    }
+
+    private void resetIfStuck(DockerSlaveInfo slaveInfo, Queue.Item item) {
+        DockerLabelAssignmentAction lblAssignmentAction = item.getAction(DockerLabelAssignmentAction.class);
+        if(lblAssignmentAction != null){
+            String computerName = lblAssignmentAction.getLabel().getName();
+            Computer computer = Jenkins.getInstance().getComputer(computerName);
+            if(computer != null){
+                Date launchTime = ((DockerComputer) computer).getLaunchTime();
+                Duration secondsSpentProvisioning = Duration.ofMillis(new Date().getTime() - launchTime.getTime());
+                if(secondsSpentProvisioning.toMinutes() > 2){
+                    slaveInfo.setProvisioningInProgress(false);
+                    new ContainerCleanupListener().terminate((DockerComputer) computer, System.out);
+                }
+
+            }
+        }
+    }
+
+    private void processQueueItem(DockerSlaveConfiguration slaveConfig, Queue.Item item, DockerSlaveInfo slaveInfo) {
+        if (! (slaveInfo.getProvisioningAttempts() >  slaveConfig.getMaxProvisioningAttempts())){
+            LOGGER.info("Scheduling build: "+ item.task);
+            BuildScheduler.scheduleBuild(((Queue.BuildableItem)item),true);
+        }else{
+            LOGGER.info("Ignoring "+ item.task + " since it exceeded max provisioning attempts. Attempts :" + slaveInfo.getProvisioningAttempts());
         }
     }
 }

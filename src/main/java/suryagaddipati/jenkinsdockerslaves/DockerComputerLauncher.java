@@ -53,6 +53,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
     private void launch(final DockerComputer computer, TaskListener listener) throws IOException, InterruptedException {
         DockerSlaveInfo dockerSlaveInfo = null;
         try {
+            computer.setLaunchTime(new Date());
             setToInProgress(bi);
             dockerSlaveInfo = bi.getAction(DockerSlaveInfo.class);
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
@@ -143,7 +144,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
         if(cacheDirs.length > 0){
             String cacheVolumeName = getJobName() + "-" + computer.getName();
             createContainerCmd.withVolumeDriver("cache-driver");
-            computer.setVolumeName(cacheVolumeName);
             bi.getAction(DockerSlaveInfo.class).setCacheVolumeName(cacheVolumeName);
             for(int i = 0; i < cacheDirs.length ; i++){
                 listener.getLogger().println("Binding Volume" + cacheDirs[i]+ " to " + cacheVolumeName);
