@@ -12,6 +12,25 @@
           <target>1.8</target>
         </configuration>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/vendor/java</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -66,11 +85,11 @@
     </pluginRepository>
   </pluginRepositories>
   <dependencies>
-    <dependency>
-      <groupId>com.github.docker-java</groupId>
-      <artifactId>docker-java</artifactId>
-      <version>3.0.1</version>
-    </dependency>
+    <!-- <dependency> -->
+    <!--   <groupId>com.github.docker-java</groupId> -->
+    <!--   <artifactId>docker-java</artifactId> -->
+    <!--   <version>3.0.1</version> -->
+    <!-- </dependency> -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
