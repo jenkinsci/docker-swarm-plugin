@@ -17,7 +17,6 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -50,7 +49,6 @@ public class CertificateUtils {
         return result;
     }
 
-    @SuppressFBWarnings(value = "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public static KeyStore createKeyStore(final String keypem, final String certpem) throws NoSuchAlgorithmException,
             InvalidKeySpecException, IOException, CertificateException, KeyStoreException {
         PrivateKey privateKey = loadPrivateKey(keypem);
