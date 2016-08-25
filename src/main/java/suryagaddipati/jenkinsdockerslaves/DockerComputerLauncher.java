@@ -30,15 +30,13 @@ public class DockerComputerLauncher extends ComputerLauncher {
     private String jobName;
 
 
-    private AbstractProject job;
     private Queue.BuildableItem bi;
 
 
     public DockerComputerLauncher(Queue.BuildableItem bi) {
         this.bi = bi;
-        this.job = ((AbstractProject)bi.task);
-        this.label = job.getAssignedLabel().getName();
-        this.jobName = job.getFullName();
+        this.label = bi.task.getAssignedLabel().getName();
+        this.jobName = bi.task instanceof AbstractProject?  ((AbstractProject) bi.task).getFullName(): bi.task.getName();
     }
 
     @Override
@@ -57,7 +55,9 @@ public class DockerComputerLauncher extends ComputerLauncher {
             setToInProgress(bi);
             dockerSlaveInfo = bi.getAction(DockerSlaveInfo.class);
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
-            job.setCustomWorkspace(configuration.getBaseWorkspaceLocation());
+            if(bi.task instanceof  AbstractProject){
+                ((AbstractProject)bi.task).setCustomWorkspace(configuration.getBaseWorkspaceLocation());
+            }
             try(DockerClient dockerClient = configuration.newDockerClient()) {
                 LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
 
@@ -107,7 +107,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
         } catch (Throwable e) {
             new ContainerCleanupListener().terminate(computer, listener.getLogger());
-            String build = bi + "-" + job.getNextBuildNumber();
+            String build = bi.task.getFullDisplayName();
             if(noResourcesAvailable(e)){
                 LOGGER.info("Not resources available for :" + build);
             }else {
@@ -126,7 +126,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
         Long memoryAllocation = labelConfiguration.getMaxMemory();
 
         if(labelConfiguration.isDynamicResourceAllocation()){
-            Run lastSuccessfulBuild = job.getLastSuccessfulBuild();
+            Run lastSuccessfulBuild = null; //job.getLastSuccessfulBuild();
             if(lastSuccessfulBuild !=null && lastSuccessfulBuild.getAction(DockerSlaveInfo.class)!=null){
                 DockerSlaveInfo lastSuccessfulSlaveInfo = lastSuccessfulBuild.getAction(DockerSlaveInfo.class);
                 cpuAllocation = Math.min(labelConfiguration.getMaxCpuShares(),  lastSuccessfulSlaveInfo.getNextCpuAllocation());

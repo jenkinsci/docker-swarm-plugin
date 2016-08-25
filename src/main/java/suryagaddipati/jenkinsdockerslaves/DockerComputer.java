@@ -36,15 +36,13 @@ import java.util.Date;
 
 public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
-    private final Job job;
     private String containerId;
     private String swarmNodeName;
     private Date launchTime;
 
 
-    public DockerComputer(DockerSlave dockerSlave, Job job) {
+    public DockerComputer(DockerSlave dockerSlave)  {
         super(dockerSlave);
-        this.job = job;
     }
 
     @Override
@@ -54,8 +52,20 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         }
     }
 
-    public AbstractProject getJob() {
-        return (AbstractProject) job;
+    @Override
+    public void taskCompleted(Executor executor, Queue.Task task, long durationMS) {
+        super.taskCompleted(executor, task, durationMS);
+        if(!(task instanceof AbstractProject)){
+            new ContainerCleanupListener().terminate(this,System.out);
+        }
+    }
+
+    @Override
+    public void taskCompletedWithProblems(Executor executor, Queue.Task task, long durationMS, Throwable problems) {
+        super.taskCompletedWithProblems(executor, task, durationMS, problems);
+        if(!(task instanceof AbstractProject)) {
+            new ContainerCleanupListener().terminate(this, System.out);
+        }
     }
 
     public void setContainerId(String containerId) {

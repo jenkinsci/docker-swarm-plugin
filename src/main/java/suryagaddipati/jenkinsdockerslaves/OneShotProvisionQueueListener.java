@@ -1,7 +1,6 @@
 package suryagaddipati.jenkinsdockerslaves;
 
 import hudson.Extension;
-import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.Queue;
@@ -10,22 +9,17 @@ import jenkins.model.Jenkins;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.logging.Logger;
 
 @Extension
 public class OneShotProvisionQueueListener extends QueueListener {
 
     @Override
     public void onEnterBuildable(final Queue.BuildableItem bi) {
-        if (bi.task instanceof AbstractProject) {
-            AbstractProject job = (AbstractProject) bi.task;
+            Queue.Task job = bi.task;
             List<String> labels = DockerSlaveConfiguration.get().getLabels();
             if(job.getAssignedLabel() != null && labels.contains( job.getAssignedLabel().getName())){
                 BuildScheduler.scheduleBuild(bi,false);
             }
-
-
-        }
     }
 
 

@@ -25,9 +25,7 @@
 
 package suryagaddipati.jenkinsdockerslaves;
 
-import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
-import hudson.model.Job;
 import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.Queue;
@@ -40,23 +38,20 @@ import hudson.slaves.RetentionStrategy;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.logging.Logger;
 
 public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
 
-    private final Job job;
 
     public DockerSlave(Queue.BuildableItem bi, String labelString) throws Descriptor.FormException, IOException {
-        super(labelString, "Container slave for building " + ((AbstractProject)bi.task).getFullName()+((AbstractProject)bi.task).getNextBuildNumber(),
+        super(labelString, "Container slave for building " + bi.task.getFullDisplayName(),
                 "/home/jenkins", 1, Mode.EXCLUSIVE, labelString,
                 new DockerComputerLauncher(bi),
                 RetentionStrategy.NOOP,
                 Collections.<NodeProperty<?>>emptyList());
-        this.job = ((AbstractProject)bi.task);
     }
 
     public DockerComputer createComputer() {
-        return new DockerComputer(this, job);
+        return new DockerComputer(this);
     }
 
     @Override
