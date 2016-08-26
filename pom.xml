@@ -18,7 +18,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.628</version>
+    <version>1.642.1</version>
   </parent>
   <groupId>suryagaddipati</groupId>
   <artifactId>jenkins-docker-slaves</artifactId>
