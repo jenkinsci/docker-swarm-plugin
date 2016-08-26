@@ -25,20 +25,27 @@
 
 package suryagaddipati.jenkinsdockerslaves;
 
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.google.common.collect.Iterables;
 import hudson.model.AbstractProject;
 import hudson.model.Executor;
-import hudson.model.Job;
 import hudson.model.Queue;
+import hudson.model.Run;
 import hudson.slaves.AbstractCloudComputer;
 
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
     private String containerId;
     private String swarmNodeName;
     private Date launchTime;
+    private static final Logger LOGGER = Logger.getLogger(DockerComputer .class.getName());
 
 
     public DockerComputer(DockerSlave dockerSlave)  {
@@ -52,20 +59,27 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         }
     }
 
+
     @Override
     public void taskCompleted(Executor executor, Queue.Task task, long durationMS) {
         super.taskCompleted(executor, task, durationMS);
-        if(!(task instanceof AbstractProject)){
-            new ContainerCleanupListener().terminate(this,System.out);
+        terminateNode(task);
+    }
+
+    private void terminateNode(Queue.Task task)  {
+        if(!(task instanceof Run)){// workflow doesn't use Run so this is needed as a backup incase RunListner doesn't catch it.
+            try {
+                new ContainerCleanupListener().terminate(this,System.out);
+            } catch (IOException|InterruptedException e) {
+               LOGGER.log(Level.INFO,"Failed to Cleanup node "+ getName(),e);
+            }
         }
     }
 
     @Override
     public void taskCompletedWithProblems(Executor executor, Queue.Task task, long durationMS, Throwable problems) {
         super.taskCompletedWithProblems(executor, task, durationMS, problems);
-        if(!(task instanceof AbstractProject)) {
-            new ContainerCleanupListener().terminate(this, System.out);
-        }
+        terminateNode(task);
     }
 
     public void setContainerId(String containerId) {
@@ -97,5 +111,48 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     }
     public Date getLaunchTime() {
         return launchTime;
+    }
+
+    public  void pause() throws IOException {
+        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            dockerClient.pauseContainerCmd(containerId).exec();
+        }
+    }
+    public  void unpause() throws IOException {
+        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+             dockerClient.unpauseContainerCmd(containerId).exec();
+        }
+    }
+
+    public boolean isPausable() throws IOException {
+        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
+            return !container.getState().getPaused();
+        }
+    }
+
+    public boolean isUnPausable() throws IOException {
+        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
+            return container.getState().getPaused();
+        }
+    }
+
+    public void cleanupDockerContainer(PrintStream logger) throws IOException {
+
+        if(isUnPausable()){
+           unpause();
+        }
+        DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
+        try( DockerClient dockerClient = configuration.newDockerClient()){
+            if (containerId != null){
+                DockerApiHelpers.executeSliently(() -> dockerClient.killContainerCmd(containerId).exec());
+                DockerApiHelpers.executeSlientlyWithLogging(()->removeContainer(logger, containerId, dockerClient), LOGGER,"Failed to cleanup container : " +getName());
+            }
+        }
+    }
+    private void removeContainer(PrintStream logger, String containerId, DockerClient dockerClient) {
+        DockerApiHelpers.executeWithRetryOnError(() -> dockerClient.removeContainerCmd(containerId).exec() );
+        logger.println("Removed Container " + containerId);
     }
 }

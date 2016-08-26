@@ -17,8 +17,8 @@ import java.util.logging.Logger;
 
 @Extension
 public class ContainerCleanupListener extends RunListener<Run<?,?>> {
+    private static final Logger LOGGER = Logger.getLogger(DockerComputer .class.getName());
 
-    private static final Logger LOGGER = Logger.getLogger(ContainerCleanupListener.class.getName());
     @Override
     public void onCompleted(Run<?, ?> run, @Nonnull TaskListener listener) {
         if(run.getAction(DockerLabelAssignmentAction.class) !=null){
@@ -26,44 +26,35 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
             final String computerName = labelAssignmentAction.getLabel().getName();
             final PrintStream logger = listener.getLogger();
             DockerComputer computer = (DockerComputer) Jenkins.getInstance().getComputer(computerName);
-            terminate(computer,logger);
+            try {
+                terminate(computer,logger);
+            } catch (IOException|InterruptedException  e) {
+                e.printStackTrace(listener.getLogger());
+
+                LOGGER.log(Level.INFO,"Failed to Cleanup Run "+ run.getFullDisplayName(),e);
+            }
         }
     }
 
-    public void terminate(DockerComputer computer, PrintStream logger) {
+    public void terminate(DockerComputer computer, PrintStream logger) throws IOException, InterruptedException {
         computer.setAcceptingTasks(false);
         gatherStats(computer,logger);
         cleanupNode(computer,logger);
         cleanupDockerVolumeAndContainer(computer,logger);
     }
 
-    private void cleanupNode(DockerComputer computer, PrintStream logger) {
-        try {
+    private void cleanupNode(DockerComputer computer, PrintStream logger) throws IOException, InterruptedException {
             if(computer.getNode() !=null){
                 logger.println("Removing node "+ computer.getNode().getDisplayName());
                 computer.getNode().terminate();
             }
-        } catch (InterruptedException | IOException e) {
-            LOGGER.log(Level.INFO,"Failed to remove node : " +computer.getNode(),e);
-            e.printStackTrace(logger);
-        }
     }
 
-    private void cleanupDockerVolumeAndContainer(DockerComputer computer, PrintStream logger) {
-        String containerId = computer.getContainerId();
-        DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
-        try( DockerClient dockerClient = configuration.newDockerClient()){
-            if (containerId != null){
-                DockerApiHelpers.executeSliently(() -> dockerClient.killContainerCmd(containerId).exec());
-                DockerApiHelpers.executeSlientlyWithLogging(()->removeContainer(logger, containerId, dockerClient), LOGGER,"Failed to cleanup container : " +computer.getName());
-            }
-        } catch (Exception e) {
-            LOGGER.log(Level.INFO,"Failed to cleanup container : " +computer.getName(),e);
-            e.printStackTrace(logger);
-        }
+    private void cleanupDockerVolumeAndContainer(DockerComputer computer, PrintStream logger) throws IOException {
+        computer.cleanupDockerContainer(logger);
     }
 
-    private void gatherStats(DockerComputer computer, PrintStream logger) {
+    private void gatherStats(DockerComputer computer, PrintStream logger) throws IOException {
         DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
         try( DockerClient dockerClient = configuration.newDockerClient()){
             String containerId = computer.getContainerId();
@@ -75,16 +66,9 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
                 slaveInfo.setStats(stats);
                 run.save();
             }
-        }catch (Exception e){
-            LOGGER.log(Level.INFO,"Failed to gather stats : " +computer.getName(),e);
-            e.printStackTrace(logger);
         }
     }
 
 
-    private void removeContainer(PrintStream logger, String containerId, DockerClient dockerClient) {
-        DockerApiHelpers.executeWithRetryOnError(() -> dockerClient.removeContainerCmd(containerId).exec() );
-        logger.println("Removed Container " + containerId);
-    }
 
 }
