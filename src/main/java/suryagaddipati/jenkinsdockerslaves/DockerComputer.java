@@ -114,39 +114,17 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         return launchTime;
     }
 
-    public  void pause() throws IOException {
-        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
-            dockerClient.pauseContainerCmd(containerId).exec();
-        }
-    }
-    public  void unpause() throws IOException {
-        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
-             dockerClient.unpauseContainerCmd(containerId).exec();
-        }
-    }
 
-    public boolean isPausable() throws IOException {
-        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
-            InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
-            return !container.getState().getPaused();
-        }
-    }
-
-    public boolean isUnPausable() throws IOException {
-        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
-            InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
-            return container.getState().getPaused();
-        }
-    }
 
     public void cleanupDockerContainer(PrintStream logger) throws IOException {
 
-        if(isUnPausable()){
-           unpause();
-        }
         DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
         try( DockerClient dockerClient = configuration.newDockerClient()){
             if (containerId != null){
+                InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
+                if( container.getState().getPaused()){
+                    DockerApiHelpers.executeSliently(() ->  dockerClient.unpauseContainerCmd(containerId).exec());
+                }
                 DockerApiHelpers.executeSliently(() -> dockerClient.killContainerCmd(containerId).exec());
                 DockerApiHelpers.executeSlientlyWithLogging(()->removeContainer(logger, containerId, dockerClient), LOGGER,"Failed to cleanup container : " +getName());
             }

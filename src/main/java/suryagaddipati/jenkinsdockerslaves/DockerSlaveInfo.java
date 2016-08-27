@@ -1,10 +1,10 @@
 package suryagaddipati.jenkinsdockerslaves;
 
+import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Statistics;
 import com.google.common.base.Joiner;
 import hudson.model.Run;
-import jenkins.model.Jenkins;
 import jenkins.model.RunAction2;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
@@ -230,19 +230,11 @@ public class DockerSlaveInfo implements RunAction2 {
         return !this.run.isBuilding();
     }
     public boolean isBuildPausable() throws IOException {
-        DockerComputer computer = getComputer();
-        if(computer != null){
-            return computer.isPausable();
-        }
-        return false;
+        return containerId != null && isPausable();
     }
 
     public boolean isBuildUnPausable() throws IOException {
-        DockerComputer computer = getComputer();
-        if(computer != null){
-            return computer.isUnPausable();
-        }
-        return false;
+        return containerId != null && isUnPausable();
     }
 
     public void doUnPauseBuild(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException {
@@ -255,22 +247,37 @@ public class DockerSlaveInfo implements RunAction2 {
     }
 
     private void togglePause(boolean pause) throws IOException {
-        DockerComputer computer = getComputer();
-        if(computer != null){
+        if(containerId != null){
             if(pause){
-                computer.pause();
+                pause();
             }else{
-                computer.unpause();
+                unpause();
             }
         }
     }
 
-    private DockerComputer getComputer() throws IOException {
-        if(run.getAction(DockerLabelAssignmentAction.class) !=null){
-            DockerLabelAssignmentAction labelAssignmentAction = run.getAction(DockerLabelAssignmentAction.class);
-            final String computerName = labelAssignmentAction.getLabel().getName();
-            return (DockerComputer) Jenkins.getInstance().getComputer(computerName);
+    public  void pause() throws IOException {
+        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            dockerClient.pauseContainerCmd(containerId).exec();
         }
-        return null;
+    }
+    public  void unpause() throws IOException {
+        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            dockerClient.unpauseContainerCmd(containerId).exec();
+        }
+    }
+
+    public boolean isPausable() throws IOException {
+        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
+            return !container.getState().getPaused();
+        }
+    }
+
+    public boolean isUnPausable() throws IOException {
+        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
+            return container.getState().getPaused();
+        }
     }
 }
