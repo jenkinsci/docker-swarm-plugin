@@ -10,6 +10,7 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
 import javax.servlet.ServletException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
@@ -259,6 +260,9 @@ public class DockerSlaveInfo implements RunAction2 {
     public  void pause() throws IOException {
         try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
             dockerClient.pauseContainerCmd(containerId).exec();
+
+            FileOutputStream logger = new FileOutputStream(run.getLogFile(),true);
+            logger.write("Build Paused. Resume Docker Slave to resume build. \n".getBytes());
         }
     }
     public  void unpause() throws IOException {
