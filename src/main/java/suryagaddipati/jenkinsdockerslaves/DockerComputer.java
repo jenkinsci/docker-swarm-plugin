@@ -30,6 +30,7 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.google.common.collect.Iterables;
 import hudson.model.AbstractProject;
 import hudson.model.Executor;
+import hudson.model.Job;
 import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.slaves.AbstractCloudComputer;
@@ -67,7 +68,7 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     }
 
     private void terminateNode(Queue.Task task)  {
-        if(!(task instanceof Run)){// workflow doesn't use Run so this is needed as a backup incase RunListner doesn't catch it.
+        if(!(task instanceof Job)){// workflow doesn't use AbstractProject so this is needed as a backup incase RunListner doesn't catch it.
             try {
                 new ContainerCleanupListener().terminate(this,System.out);
             } catch (IOException|InterruptedException e) {
