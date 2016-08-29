@@ -38,6 +38,8 @@ import hudson.slaves.AbstractCloudComputer;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -116,22 +118,10 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
 
 
-    public void cleanupDockerContainer(PrintStream logger) throws IOException {
 
-        DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
-        try( DockerClient dockerClient = configuration.newDockerClient()){
-            if (containerId != null){
-                InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
-                if( container.getState().getPaused()){
-                    DockerApiHelpers.executeSliently(() ->  dockerClient.unpauseContainerCmd(containerId).exec());
-                }
-                DockerApiHelpers.executeSliently(() -> dockerClient.killContainerCmd(containerId).exec());
-                DockerApiHelpers.executeSlientlyWithLogging(()->removeContainer(logger, containerId, dockerClient), LOGGER,"Failed to cleanup container : " +getName());
-            }
-        }
-    }
-    private void removeContainer(PrintStream logger, String containerId, DockerClient dockerClient) {
-        DockerApiHelpers.executeWithRetryOnError(() -> dockerClient.removeContainerCmd(containerId).exec() );
-        logger.println("Removed Container " + containerId);
+
+    @Override
+    public Map<String, Object> getMonitorData() {
+        return new HashMap<>(); //no monitoring needed as this is a shortlived computer.
     }
 }

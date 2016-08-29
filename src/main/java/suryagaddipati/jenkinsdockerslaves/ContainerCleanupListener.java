@@ -1,6 +1,7 @@
 package suryagaddipati.jenkinsdockerslaves;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Statistics;
 import hudson.Extension;
 import hudson.model.Queue;
@@ -12,6 +13,8 @@ import jenkins.model.Jenkins;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,7 +43,7 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
         computer.setAcceptingTasks(false);
         gatherStats(computer,logger);
         cleanupNode(computer,logger);
-        cleanupDockerVolumeAndContainer(computer,logger);
+        cleanupDockerContainer(computer,logger);
     }
 
     private void cleanupNode(DockerComputer computer, PrintStream logger) throws IOException, InterruptedException {
@@ -50,8 +53,15 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
             }
     }
 
-    private void cleanupDockerVolumeAndContainer(DockerComputer computer, PrintStream logger) throws IOException {
-        computer.cleanupDockerContainer(logger);
+    private void cleanupDockerContainer(DockerComputer computer, PrintStream logger) {
+        final ExecutorService threadPool = Executors.newSingleThreadExecutor();
+        threadPool.submit((Runnable) () -> {
+            try {
+                cleanupDockerContainer(computer.getContainerId(), logger);
+            } catch (IOException e) {
+                LOGGER.log(Level.INFO,"couldn't cleanup container ",e);
+            }
+        });
     }
 
     private void gatherStats(DockerComputer computer, PrintStream logger) throws IOException {
@@ -68,7 +78,24 @@ public class ContainerCleanupListener extends RunListener<Run<?,?>> {
             }
         }
     }
+    public void cleanupDockerContainer(String  containerId, PrintStream logger) throws IOException {
 
+        DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
+        try( DockerClient dockerClient = configuration.newDockerClient()){
+            if (containerId != null){
+                InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
+                if( container.getState().getPaused()){
+                    DockerApiHelpers.executeSliently(() ->  dockerClient.unpauseContainerCmd(containerId).exec());
+                }
+                DockerApiHelpers.executeSliently(() -> dockerClient.killContainerCmd(containerId).exec());
+                DockerApiHelpers.executeSlientlyWithLogging(()->removeContainer(logger, containerId, dockerClient), LOGGER,"Failed to cleanup container : " + containerId);
+            }
+        }
+    }
+    private void removeContainer(PrintStream logger, String containerId, DockerClient dockerClient) {
+        DockerApiHelpers.executeWithRetryOnError(() -> dockerClient.removeContainerCmd(containerId).exec() );
+        logger.println("Removed Container " + containerId);
+    }
 
 
 }

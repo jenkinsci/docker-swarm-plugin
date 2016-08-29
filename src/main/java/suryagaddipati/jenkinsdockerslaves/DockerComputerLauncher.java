@@ -101,8 +101,8 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
                 dockerClient.startContainerCmd(container.getId()).exec();
                 computer.setContainerId(container.getId());
-                computer.connect(false).get();
                 dockerSlaveInfo.setProvisionedTime(new Date());
+                computer.connect(false).get();
             }
 
         } catch (Throwable e) {

@@ -42,7 +42,7 @@ public class DockerNodeProvisionerQueueWatcher extends PeriodicWork {
         if(lblAssignmentAction != null){
             String computerName = lblAssignmentAction.getLabel().getName();
             Computer computer = Jenkins.getInstance().getComputer(computerName);
-            if(computer != null){
+            if(computer != null && ((DockerComputer) computer).getLaunchTime() != null){
                 Date launchTime = ((DockerComputer) computer).getLaunchTime();
                 Duration secondsSpentProvisioning = Duration.ofMillis(new Date().getTime() - launchTime.getTime());
                 if(secondsSpentProvisioning.toMinutes() > 2){
