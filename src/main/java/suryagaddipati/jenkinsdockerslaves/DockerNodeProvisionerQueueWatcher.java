@@ -47,7 +47,6 @@ public class DockerNodeProvisionerQueueWatcher extends PeriodicWork {
                     if(computer != null){
                         new ContainerCleanupListener().terminate((DockerComputer) computer, System.out);
                     }
-
             }
         }
     }
