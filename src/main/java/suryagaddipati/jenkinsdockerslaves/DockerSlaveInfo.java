@@ -12,6 +12,7 @@ import org.kohsuke.stapler.StaplerResponse;
 import javax.servlet.ServletException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,9 @@ public class DockerSlaveInfo implements RunAction2 {
 
     private Integer throttledTime;
     private transient Run<?,?> run;
+
+
+    private Date computerLaunchTime;
 
     public int getProvisioningAttempts() {
         return provisioningAttempts;
@@ -283,5 +287,17 @@ public class DockerSlaveInfo implements RunAction2 {
             InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
             return container.getState().getPaused();
         }
+    }
+
+    public void setComputerLaunchTime(Date computerLaunchTime) {
+        this.computerLaunchTime = computerLaunchTime;
+    }
+
+    public boolean isComputerProvisioningStuck(){
+        if(computerLaunchTime != null){
+            Duration secondsSpentProvisioning = Duration.ofMillis(new Date().getTime() - computerLaunchTime.getTime());
+            return secondsSpentProvisioning.toMinutes() > 2;
+        }
+        return false;
     }
 }

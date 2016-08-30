@@ -47,7 +47,7 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
     private String containerId;
     private String swarmNodeName;
-    private Date launchTime;
+   // private Date launchTime;
     private static final Logger LOGGER = Logger.getLogger(DockerComputer .class.getName());
 
 
@@ -109,12 +109,12 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         return containerId;
     }
 
-    public void setLaunchTime(Date launchTime) {
-        this.launchTime = launchTime;
-    }
-    public Date getLaunchTime() {
-        return launchTime;
-    }
+//    public void setLaunchTime(Date launchTime) {
+//        this.launchTime = launchTime;
+//    }
+//    public Date getLaunchTime() {
+//        return launchTime;
+//    }
 
 
 

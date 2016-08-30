@@ -51,9 +51,9 @@ public class DockerComputerLauncher extends ComputerLauncher {
     private void launch(final DockerComputer computer, TaskListener listener) throws IOException, InterruptedException {
         DockerSlaveInfo dockerSlaveInfo = null;
         try {
-            computer.setLaunchTime(new Date());
             setToInProgress(bi);
             dockerSlaveInfo = bi.getAction(DockerSlaveInfo.class);
+            dockerSlaveInfo.setComputerLaunchTime(new Date());
             DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
             if(bi.task instanceof  AbstractProject){
                 ((AbstractProject)bi.task).setCustomWorkspace(configuration.getBaseWorkspaceLocation());
