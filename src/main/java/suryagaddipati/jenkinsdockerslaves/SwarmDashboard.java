@@ -56,12 +56,7 @@ public class SwarmDashboard implements RootAction{
             List<Object> nodeInfo = info.getSystemStatus().subList(getNodeIndex(info), info.getSystemStatus().size());
             List<List<Object>> nodes = Lists.partition(nodeInfo, 9);
             final List<Computer> dockerComputers = filterDockerComputers(Jenkins.getInstance().getComputers());
-
-            return Iterables.transform(nodes, new Function<List<Object>, SwarmNode>() {
-                public SwarmNode apply(List<Object> info) {
-                    return new SwarmNode(info, dockerComputers);
-                }
-            });
+            return Iterables.transform(nodes, nodeInformation -> new SwarmNode(nodeInformation, dockerComputers));
         } catch (IOException e) {
             return new ArrayList<>();
         }

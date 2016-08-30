@@ -36,6 +36,9 @@
                 #side-panel {
                 width: 0px !important;
                 }
+                footer{
+                   visibility: hidden ;
+                }
 
                 .node {
                 margin-left: 10px;
