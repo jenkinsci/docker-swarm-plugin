@@ -2,6 +2,7 @@ package suryagaddipati.jenkinsdockerslaves;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.model.Info;
+import com.github.dockerjava.api.model.InternetProtocol;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -12,10 +13,14 @@ import hudson.model.Queue;
 import hudson.model.RootAction;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONArray;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Extension
 public class SwarmDashboard implements RootAction{
@@ -60,6 +65,45 @@ public class SwarmDashboard implements RootAction{
         } catch (IOException e) {
             return new ArrayList<>();
         }
+    }
+
+    public  String getUsage(){
+
+        ArrayList<Object> usage = new ArrayList<>();
+        usage.add(Arrays.asList("Job","cpu"));
+
+       Map<String,Integer> usagePerJob = new HashMap<>();
+        int totalCpus = 0;
+        int totalReservedCpus = 0;
+        for(SwarmNode node: getNodes()){
+          totalCpus +=node.getTotalCPUs();
+            for(Run build :node.getCurrentBuilds()){
+                String jobName = build.getParent().getFullDisplayName();
+                Integer reservedCpus = getReservedCPUs(build);
+                totalReservedCpus += reservedCpus;
+                if(usagePerJob.containsKey(jobName)){
+                  usagePerJob.put(jobName, usagePerJob.get(jobName)+reservedCpus);
+                }else {
+                    usagePerJob.put(jobName, reservedCpus);
+                }
+            }
+        }
+        usagePerJob.put("Available " , totalCpus - totalReservedCpus);
+
+        for (String jobName: usagePerJob.keySet()){
+            Integer jobUsage = usagePerJob.get(jobName);
+            usage.add(Arrays.asList(jobName + " - "+jobUsage ,jobUsage));
+        }
+
+
+        JSONArray mJSONArray = new JSONArray();
+        mJSONArray.addAll(usage);
+        return mJSONArray.toString();
+    }
+
+    private Integer getReservedCPUs(Run build) {
+        DockerSlaveInfo slaveInfo = build.getAction(DockerSlaveInfo.class);
+        return slaveInfo == null? 0: (slaveInfo.getCpuAllocation()==null?0: slaveInfo.getCpuAllocation());
     }
 
     private List<Computer> filterDockerComputers(Computer[] computers) {
@@ -137,11 +181,7 @@ public class SwarmDashboard implements RootAction{
             });
 
             if(!Iterables.isEmpty(currentComputers)){
-                this.computers = Iterables.transform(currentComputers, new Function<Computer, String>() {
-                    public String apply(Computer computer) {
-                        return computer.getName();
-                    }
-                });
+                this.computers = Iterables.transform(currentComputers, computer -> computer.getName());
             }else{
                 computers = new ArrayList<>();
             }
@@ -161,6 +201,10 @@ public class SwarmDashboard implements RootAction{
             String[] cpus = reservedCPUs.split("/");
             return  cpus.length == 2? cpus[0].trim().equals(cpus[1].trim()): false;
         }
+        public int getTotalCPUs(){
+            String[] cpus = reservedCPUs.split("/");
+            return  cpus.length == 2? Integer.parseInt(cpus[1].trim()): 0;
+        }
 
         public int getComputerCount(){
             return Iterables.size(computers) ;
@@ -172,7 +216,7 @@ public class SwarmDashboard implements RootAction{
             return reservedMemory;
         }
 
-        public List getCurrentBuilds(){
+        public List<Run> getCurrentBuilds(){
             Jenkins jenkins = Jenkins.getInstance();
             List currentBuilds = new ArrayList();
             for(String computer : computers){
