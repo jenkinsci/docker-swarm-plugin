@@ -9,9 +9,11 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import hudson.Extension;
 import hudson.model.Computer;
+import hudson.model.Job;
 import hudson.model.Queue;
 import hudson.model.RootAction;
 import hudson.model.Run;
+import hudson.model.TopLevelItem;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 
@@ -78,7 +80,7 @@ public class SwarmDashboard implements RootAction{
         for(SwarmNode node: getNodes()){
           totalCpus +=node.getTotalCPUs();
             for(Run build :node.getCurrentBuilds()){
-                String jobName = build.getParent().getFullDisplayName();
+                String jobName = getJobName(build);
                 Integer reservedCpus = getReservedCPUs(build);
                 totalReservedCpus += reservedCpus;
                 if(usagePerJob.containsKey(jobName)){
@@ -99,6 +101,15 @@ public class SwarmDashboard implements RootAction{
         JSONArray mJSONArray = new JSONArray();
         mJSONArray.addAll(usage);
         return mJSONArray.toString();
+    }
+
+    private String getJobName(Run build) {
+        Job parent = build.getParent();
+        return getTopLevelItem(parent).getFullDisplayName();
+    }
+
+    private Job getTopLevelItem(Job job) {
+        return job.getParent() instanceof  Job ? (Job) job.getParent() : job;
     }
 
     private Integer getReservedCPUs(Run build) {
