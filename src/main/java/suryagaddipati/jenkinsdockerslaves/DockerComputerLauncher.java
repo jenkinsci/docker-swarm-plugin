@@ -7,7 +7,11 @@ import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.exception.InternalServerErrorException;
 import com.github.dockerjava.api.model.Bind;
+import com.github.dockerjava.api.model.Frame;
 import com.github.dockerjava.api.model.Volume;
+import com.github.dockerjava.api.model.WaitResponse;
+import com.github.dockerjava.core.command.LogContainerResultCallback;
+import com.github.dockerjava.core.command.WaitContainerResultCallback;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Queue;
@@ -16,6 +20,7 @@ import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Level;
@@ -64,7 +69,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
                 final String additionalSlaveOptions = "-noReconnect";
                 final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer, configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
-                final String[] command = new String[]{"sh", "-c", "curl -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
+                final String[] command = new String[]{"sh", "-c", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
 
 
                 CreateContainerCmd containerCmd = dockerClient
@@ -92,6 +97,15 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 listener.getLogger().println("Creating Container :" + containerCmd.toString());
                 CreateContainerResponse container = containerCmd.exec();
                 listener.getLogger().println("Created container :" + container.getId());
+                computer.setContainerId(container.getId());
+
+                WaitContainerResultCallback createResponse = new WaitContainerResultCallback();
+                dockerClient.waitContainerCmd(container.getId()).exec(createResponse );
+                Integer createStatusCode = createResponse.awaitStatusCode();
+                if(createStatusCode != 0){
+                   throw new RuntimeException("Container creation failed with error code: " + createStatusCode);
+                }
+
 
 
                 final InspectContainerResponse[] containerInfo = {null};
@@ -100,13 +114,14 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 dockerSlaveInfo.setContainerInfo(containerInfo[0]);
 
                 dockerClient.startContainerCmd(container.getId()).exec();
-                computer.setContainerId(container.getId());
                 dockerSlaveInfo.setProvisionedTime(new Date());
-                computer.connect(false).get();
+
+                WaitContainerResultCallback startResponse = new WaitContainerResultCallback();
+                dockerClient.waitContainerCmd(container.getId()).exec(startResponse);
+                startResponse.awaitStatusCode();
             }
 
         } catch (Throwable e) {
-            new ContainerCleanupListener().terminate(computer, listener.getLogger());
             String build = bi.task.getFullDisplayName();
             if(noResourcesAvailable(e)){
                 LOGGER.info("Not resources available for :" + build);
@@ -116,8 +131,10 @@ public class DockerComputerLauncher extends ComputerLauncher {
             }
             throw new RuntimeException(e);
         }finally {
-            if(dockerSlaveInfo !=null)
+            if(dockerSlaveInfo !=null){
                 dockerSlaveInfo.setProvisioningInProgress(false);
+            }
+            computer.terminate(listener.getLogger());
         }
     }
 
