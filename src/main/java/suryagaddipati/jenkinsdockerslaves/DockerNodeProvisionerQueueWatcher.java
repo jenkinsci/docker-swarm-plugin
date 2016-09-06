@@ -45,7 +45,7 @@ public class DockerNodeProvisionerQueueWatcher extends PeriodicWork {
                 if(slaveInfo.isComputerProvisioningStuck()){
                     slaveInfo.setProvisioningInProgress(false);
                     if(computer != null){
-                        new ContainerCleanupListener().terminate((DockerComputer) computer, System.out);
+                        ((DockerComputer) computer).terminate(System.out);
                     }
             }
         }
