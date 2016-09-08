@@ -116,9 +116,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 dockerClient.startContainerCmd(container.getId()).exec();
                 dockerSlaveInfo.setProvisionedTime(new Date());
 
-                WaitContainerResultCallback startResponse = new WaitContainerResultCallback();
-                dockerClient.waitContainerCmd(container.getId()).exec(startResponse);
-                startResponse.awaitStatusCode();
+                computer.connect(false).get();
             }
 
         } catch (Throwable e) {
@@ -129,12 +127,12 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 LOGGER.log(Level.INFO,"Failed to schedule: " + build, e);
                 dockerSlaveInfo.incrementProvisioningAttemptCount();
             }
+            computer.terminate(listener.getLogger());
             throw new RuntimeException(e);
         }finally {
             if(dockerSlaveInfo !=null){
                 dockerSlaveInfo.setProvisioningInProgress(false);
             }
-            computer.terminate(listener.getLogger());
         }
     }
 

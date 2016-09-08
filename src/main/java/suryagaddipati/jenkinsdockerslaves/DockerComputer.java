@@ -64,10 +64,22 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         }
     }
 
+    @Override
+    public void taskCompletedWithProblems(Executor executor, Queue.Task task, long durationMS, Throwable problems) {
+        terminate(System.out);
+        super.taskCompletedWithProblems(executor, task, durationMS, problems);
+    }
+
+    @Override
+    public void taskCompleted(Executor executor, Queue.Task task, long durationMS) {
+        terminate(System.out);
+        super.taskCompleted(executor, task, durationMS);
+    }
 
     public void setContainerId(String containerId) {
         this.containerId = containerId;
     }
+
 
     public void setNodeName(String nodeName) {
         this.swarmNodeName = nodeName;
@@ -94,10 +106,19 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         return new HashMap<>(); //no monitoring needed as this is a shortlived computer.
     }
 
-    public void terminate( PrintStream logger) throws IOException, InterruptedException {
+    public void terminate( PrintStream logger) {
         setAcceptingTasks(false);
-        gatherStats(logger);
-        cleanupNode(logger);
+        try {
+            gatherStats(logger);
+        } catch (IOException e) {
+           //Ignore and move on
+            LOGGER.log(Level.INFO,"Failed to Gather Stats", e);
+        }
+        try {
+            cleanupNode(logger);
+        } catch (IOException|InterruptedException e) {
+            LOGGER.log(Level.INFO,"Failed to cleanup cleanup computer " + getName(), e);
+        }
         cleanupDockerContainer(logger);
     }
 
