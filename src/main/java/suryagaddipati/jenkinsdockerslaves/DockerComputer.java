@@ -114,12 +114,12 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
            //Ignore and move on
             LOGGER.log(Level.INFO,"Failed to Gather Stats", e);
         }
+        cleanupDockerContainer(logger);
         try {
             cleanupNode(logger);
         } catch (IOException|InterruptedException e) {
             LOGGER.log(Level.INFO,"Failed to cleanup cleanup computer " + getName(), e);
         }
-        cleanupDockerContainer(logger);
     }
 
     private void cleanupNode(PrintStream logger) throws IOException, InterruptedException {
@@ -130,14 +130,11 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     }
 
     private void cleanupDockerContainer( PrintStream logger) {
-        final ExecutorService threadPool = Executors.newSingleThreadExecutor();
-        threadPool.submit((Runnable) () -> {
-            try {
-                cleanupDockerContainer(getContainerId(), logger);
-            } catch (IOException e) {
-                LOGGER.log(Level.INFO,"couldn't cleanup container ",e);
-            }
-        });
+        try {
+            cleanupDockerContainer(getContainerId(), logger);
+        } catch (IOException e) {
+            LOGGER.log(Level.INFO,"couldn't cleanup container ",e);
+        }
     }
 
     private void gatherStats(PrintStream logger) throws IOException {
