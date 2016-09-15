@@ -122,7 +122,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 LOGGER.log(Level.INFO, "Failed to schedule: " + build, e);
                 dockerSlaveInfo.incrementProvisioningAttemptCount();
             }
-            computer.terminate(listener.getLogger());
+            computer.delete();
             throw new RuntimeException(e);
         } finally {
             if (dockerSlaveInfo != null) {

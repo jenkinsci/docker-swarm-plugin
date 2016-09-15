@@ -27,6 +27,7 @@ package suryagaddipati.jenkinsdockerslaves;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Statistics;
 import com.google.common.collect.Iterables;
 import hudson.model.Executor;
@@ -34,6 +35,7 @@ import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.remoting.Channel;
+import hudson.remoting.SingleLaneExecutorService;
 import hudson.slaves.AbstractCloudComputer;
 import hudson.util.StreamTaskListener;
 
@@ -62,13 +64,13 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
     @Override
     public void taskCompletedWithProblems(final Executor executor, final Queue.Task task, final long durationMS, final Throwable problems) {
-        terminate(this.log);
+        destroyContainer(this.log);
         super.taskCompletedWithProblems(executor, task, durationMS, problems);
     }
 
     @Override
     public void taskCompleted(final Executor executor, final Queue.Task task, final long durationMS) {
-        terminate(this.log);
+        destroyContainer(this.log);
         super.taskCompleted(executor, task, durationMS);
     }
 
@@ -101,14 +103,19 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         return new HashMap<>(); //no monitoring needed as this is a shortlived computer.
     }
 
-    public void terminate(final PrintStream logger) {
+    public void destroyContainer(final PrintStream logger) {
         setAcceptingTasks(false);
-        executeSlientlyWithLogging(() -> gatherStats(), logger);
-        try {
-            cleanupDockerContainer(getContainerId(), logger);
-        } catch (final IOException e) {
-            e.printStackTrace(logger);
-        }
+        new SingleLaneExecutorService().submit(new Runnable() {
+            @Override
+            public void run() {
+
+                try {
+                    collectStatsAndCleanupDockerContainer(getContainerId(), logger);
+                } catch (final IOException e) {
+                    e.printStackTrace(logger);
+                }
+            }
+        });
     }
 
     @Override
@@ -136,32 +143,35 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     }
 
 
-    private void gatherStats() throws IOException {
-        final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
-        try (DockerClient dockerClient = configuration.newDockerClient()) {
-            final String containerId = getContainerId();
-            final Queue.Executable currentExecutable = getExecutors().get(0).getCurrentExecutable();
-            if (currentExecutable instanceof Run && ((Run) currentExecutable).getAction(DockerSlaveInfo.class) != null) {
-                final Run run = ((Run) currentExecutable);
-                final DockerSlaveInfo slaveInfo = ((Run) currentExecutable).getAction(DockerSlaveInfo.class);
-                final Statistics stats = dockerClient.statsCmd(containerId).exec();
-                slaveInfo.setStats(stats);
-                run.save();
-            }
+    private void gatherStats(final DockerClient dockerClient) throws IOException {
+        final String containerId = getContainerId();
+        final Queue.Executable currentExecutable = getExecutors().get(0).getCurrentExecutable();
+        if (currentExecutable instanceof Run && ((Run) currentExecutable).getAction(DockerSlaveInfo.class) != null) {
+            final Run run = ((Run) currentExecutable);
+            final DockerSlaveInfo slaveInfo = ((Run) currentExecutable).getAction(DockerSlaveInfo.class);
+            final Statistics stats = dockerClient.statsCmd(containerId).exec();
+            slaveInfo.setStats(stats);
+            run.save();
         }
     }
 
-    public void cleanupDockerContainer(final String containerId, final PrintStream logger) throws IOException {
+    public void collectStatsAndCleanupDockerContainer(final String containerId, final PrintStream logger) throws IOException {
 
         final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
         try (DockerClient dockerClient = configuration.newDockerClient()) {
             if (containerId != null) {
-                final InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
-                if (container.getState().getPaused()) {
-                    executeSlientlyWithLogging(() -> dockerClient.unpauseContainerCmd(containerId).exec(), logger);
+                try {
+                    final InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
+                    executeSlientlyWithLogging(() -> gatherStats(dockerClient), logger); // No big deal if we can't get stats
+                    if (container.getState().getPaused()) {
+                        executeSlientlyWithLogging(() -> dockerClient.unpauseContainerCmd(containerId).exec(), logger);
+                    }
+                    executeSliently(() -> dockerClient.killContainerCmd(containerId).exec());
+                    executeSlientlyWithLogging(() -> removeContainer(logger, containerId, dockerClient), logger);
+                } catch (final NotFoundException e) {
+                    //Ignore if container is already gone
                 }
-                executeSliently(() -> dockerClient.killContainerCmd(containerId).exec());
-                executeSlientlyWithLogging(() -> removeContainer(logger, containerId, dockerClient), LOGGER, "Failed to cleanup container : " + containerId);
+
             }
         }
     }
@@ -174,5 +184,10 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     @Override
     public void recordTermination() {
         //no need to record termination
+    }
+
+    public void delete() {
+        executeSlientlyWithLogging(() -> collectStatsAndCleanupDockerContainer(getContainerId(), System.out), System.out); // Maybe be container was created, so attempt to delete it
+        executeSlientlyWithLogging(() -> cleanupNode(System.out), System.out);
     }
 }
