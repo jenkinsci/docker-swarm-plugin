@@ -35,7 +35,6 @@ import hudson.model.Queue;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.remoting.Channel;
-import hudson.remoting.SingleLaneExecutorService;
 import hudson.slaves.AbstractCloudComputer;
 import hudson.util.StreamTaskListener;
 
@@ -44,6 +43,9 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static suryagaddipati.jenkinsdockerslaves.ExceptionHandlingHelpers.executeSliently;
@@ -104,18 +106,15 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     }
 
     public void destroyContainer(final PrintStream logger) {
-        setAcceptingTasks(false);
-        new SingleLaneExecutorService().submit(new Runnable() {
-            @Override
-            public void run() {
-
-                try {
-                    collectStatsAndCleanupDockerContainer(getContainerId(), logger);
-                } catch (final IOException e) {
-                    e.printStackTrace(logger);
-                }
+        final ExecutorService threadPool = Executors.newSingleThreadExecutor();
+        threadPool.submit((Runnable) () -> {
+            try {
+                collectStatsAndCleanupDockerContainer(getContainerId(), logger);
+            } catch (final IOException e) {
+                LOGGER.log(Level.INFO, "couldn't cleanup container ", e);
             }
         });
+        setAcceptingTasks(false);
     }
 
     @Override
