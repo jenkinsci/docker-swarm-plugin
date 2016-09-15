@@ -1,11 +1,18 @@
 package suryagaddipati.jenkinsdockerslaves;
 
+import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.Statistics;
 import com.google.common.base.Joiner;
 import hudson.model.Run;
 import jenkins.model.RunAction2;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 
+import javax.servlet.ServletException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +33,10 @@ public class DockerSlaveInfo implements RunAction2 {
 
 
     private Integer throttledTime;
+    private transient Run<?,?> run;
+
+
+    private Date computerLaunchTime;
 
     public int getProvisioningAttempts() {
         return provisioningAttempts;
@@ -46,12 +57,12 @@ public class DockerSlaveInfo implements RunAction2 {
 
     @Override
     public void onAttached(Run<?, ?> r) {
-
+        this.run = r;
     }
 
     @Override
     public void onLoad(Run<?, ?> r) {
-
+        this.run = r;
     }
 
 
@@ -62,7 +73,7 @@ public class DockerSlaveInfo implements RunAction2 {
 
     @Override
     public String getDisplayName() {
-        return "Docker Slave Info";
+        return "Docker Slave";
     }
 
     @Override
@@ -117,19 +128,19 @@ public class DockerSlaveInfo implements RunAction2 {
         return maxMemoryUsage;
     }
     public String getMemoryStats(){
-       return maxMemoryUsage != null? maxMemoryUsage + " bytes (" + Math.floor((maxMemoryUsage/1024)/1024) +" MB )" : "";
+        return maxMemoryUsage != null? maxMemoryUsage + " bytes (" + Math.floor((maxMemoryUsage/1024)/1024) +" MB )" : "";
     }
 
     public String getPerCpuUsage(){
-      return perCpuUsage == null? "": Joiner.on(", ").join(perCpuUsage);
+        return perCpuUsage == null? "": Joiner.on(", ").join(perCpuUsage);
     }
     public String getTotalCpuUsage(){
         if(perCpuUsage == null){
-           return  null;
+            return  null;
         }
         long sum = 0;
         for(Long value : perCpuUsage){
-           sum = sum + value;
+            sum = sum + value;
         }
         long seconds = TimeUnit.SECONDS.convert(sum, TimeUnit.NANOSECONDS);
 
@@ -149,7 +160,7 @@ public class DockerSlaveInfo implements RunAction2 {
         if(maxUsage instanceof Integer){
             this.maxMemoryUsage = ((Integer)maxUsage).longValue();
         }else {
-           this.maxMemoryUsage = (Long) maxUsage;
+            this.maxMemoryUsage = (Long) maxUsage;
         }
     }
 
@@ -202,7 +213,7 @@ public class DockerSlaveInfo implements RunAction2 {
 
     public Integer getNextCpuAllocation() {
         if(allocatedCPUShares != null && allocatedCPUShares != 0) {
-          return wasThrottled()?allocatedCPUShares+1: allocatedCPUShares;
+            return wasThrottled()?allocatedCPUShares+1: allocatedCPUShares;
         }
         return 1;
     }
@@ -217,5 +228,76 @@ public class DockerSlaveInfo implements RunAction2 {
 
     public void setAllocatedMemory(Long allocatedMemory) {
         this.allocatedMemory = allocatedMemory;
+    }
+
+
+    public boolean isBuildFinished() throws IOException {
+        return !this.run.isBuilding();
+    }
+    public boolean isBuildPausable() throws IOException {
+        return containerId != null && isPausable();
+    }
+
+    public boolean isBuildUnPausable() throws IOException {
+        return containerId != null && isUnPausable();
+    }
+
+    public void doUnPauseBuild(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException {
+        togglePause(false);
+        rsp.forwardToPreviousPage(req);
+    }
+    public void doPauseBuild(StaplerRequest req, StaplerResponse rsp) throws ServletException, IOException {
+        togglePause(true);
+        rsp.forwardToPreviousPage(req);
+    }
+
+    private void togglePause(boolean pause) throws IOException {
+        if(containerId != null){
+            if(pause){
+                pause();
+            }else{
+                unpause();
+            }
+        }
+    }
+
+    public  void pause() throws IOException {
+        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            dockerClient.pauseContainerCmd(containerId).exec();
+
+            FileOutputStream logger = new FileOutputStream(run.getLogFile(),true);
+            logger.write("Build Paused. Resume Docker Slave to resume build. \n".getBytes());
+        }
+    }
+    public  void unpause() throws IOException {
+        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            dockerClient.unpauseContainerCmd(containerId).exec();
+        }
+    }
+
+    public boolean isPausable() throws IOException {
+        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
+            return !container.getState().getPaused();
+        }
+    }
+
+    public boolean isUnPausable() throws IOException {
+        try(DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
+            return container.getState().getPaused();
+        }
+    }
+
+    public void setComputerLaunchTime(Date computerLaunchTime) {
+        this.computerLaunchTime = computerLaunchTime;
+    }
+
+    public boolean isComputerProvisioningStuck(){
+        if(computerLaunchTime != null){
+            Duration secondsSpentProvisioning = Duration.ofMillis(new Date().getTime() - computerLaunchTime.getTime());
+            return secondsSpentProvisioning.toMinutes() > 2;
+        }
+        return false;
     }
 }

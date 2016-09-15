@@ -36,6 +36,9 @@
                 #side-panel {
                 width: 0px !important;
                 }
+                footer{
+                   visibility: hidden ;
+                }
 
                 .node {
                 margin-left: 10px;
@@ -46,15 +49,33 @@
                 }
 
             </style>
+            <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+            <script>
+                google.charts.load('current', {'packages':['corechart']});
+                google.charts.setOnLoadCallback(drawChart);
+                function drawChart() {
+
+                var data = google.visualization.arrayToDataTable(${it.usage});
+
+                var options = {
+                title: 'CPU Usage'
+                };
+
+                var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+                chart.draw(data, options);
+                }
+            </script>
         </head>
         <body>
             <l:layout>
                 <l:main-panel>
                         <div class="mdl-grid">
-                            <div id="queue" class="mdl-cell mdl-cell--2-col mdl-color--grey-100 ">
+                            <div id="queue" class="mdl-cell mdl-cell--4-col mdl-color--grey-100 ">
+                                <div id="piechart" style="height: 500px;" ></div>
                                 <st:include page="swarm-queue.jelly" />
                             </div>
-                            <div class="mdl-cell mdl-cell--10-col">
+                            <div class="mdl-cell mdl-cell--8-col">
                                 <st:include page="swarm-status.jelly" />
                             </div>
                         </div>

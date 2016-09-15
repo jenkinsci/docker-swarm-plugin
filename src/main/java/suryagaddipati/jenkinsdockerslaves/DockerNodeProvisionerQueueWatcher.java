@@ -7,6 +7,7 @@ import hudson.model.Queue;
 import hudson.model.labels.LabelAssignmentAction;
 import jenkins.model.Jenkins;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Date;
 import java.util.logging.Logger;
@@ -36,19 +37,16 @@ public class DockerNodeProvisionerQueueWatcher extends PeriodicWork {
         }
     }
 
-    private void resetIfStuck(DockerSlaveInfo slaveInfo, Queue.Item item) {
+    private void resetIfStuck(DockerSlaveInfo slaveInfo, Queue.Item item) throws IOException, InterruptedException {
         DockerLabelAssignmentAction lblAssignmentAction = item.getAction(DockerLabelAssignmentAction.class);
         if(lblAssignmentAction != null){
             String computerName = lblAssignmentAction.getLabel().getName();
             Computer computer = Jenkins.getInstance().getComputer(computerName);
-            if(computer != null){
-                Date launchTime = ((DockerComputer) computer).getLaunchTime();
-                Duration secondsSpentProvisioning = Duration.ofMillis(new Date().getTime() - launchTime.getTime());
-                if(secondsSpentProvisioning.toMinutes() > 2){
+                if(slaveInfo.isComputerProvisioningStuck()){
                     slaveInfo.setProvisioningInProgress(false);
-                    new ContainerCleanupListener().terminate((DockerComputer) computer, System.out);
-                }
-
+                    if(computer != null){
+                        ((DockerComputer) computer).terminate(System.out);
+                    }
             }
         }
     }

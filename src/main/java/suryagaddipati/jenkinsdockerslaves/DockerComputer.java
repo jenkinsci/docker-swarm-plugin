@@ -25,67 +25,154 @@
 
 package suryagaddipati.jenkinsdockerslaves;
 
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.model.Statistics;
 import com.google.common.collect.Iterables;
-import hudson.model.AbstractProject;
 import hudson.model.Executor;
-import hudson.model.Job;
 import hudson.model.Queue;
+import hudson.model.Run;
+import hudson.model.TaskListener;
+import hudson.remoting.Channel;
 import hudson.slaves.AbstractCloudComputer;
+import hudson.util.StreamTaskListener;
 
-import java.util.Date;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
+
+import static suryagaddipati.jenkinsdockerslaves.ExceptionHandlingHelpers.executeSliently;
+import static suryagaddipati.jenkinsdockerslaves.ExceptionHandlingHelpers.executeSlientlyWithLogging;
 
 public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
-    private final Job job;
+    private static final Logger LOGGER = Logger.getLogger(DockerComputer.class.getName());
     private String containerId;
     private String swarmNodeName;
-    private Date launchTime;
+    private PrintStream log;
 
 
-    public DockerComputer(DockerSlave dockerSlave, Job job) {
+    public DockerComputer(final DockerSlave dockerSlave) {
         super(dockerSlave);
-        this.job = job;
+    }
+
+
+    @Override
+    public void taskCompletedWithProblems(final Executor executor, final Queue.Task task, final long durationMS, final Throwable problems) {
+        terminate(this.log);
+        super.taskCompletedWithProblems(executor, task, durationMS, problems);
     }
 
     @Override
-    public void recordTermination() {
-        if (isAcceptingTasks()) {
-            super.recordTermination();
-        }
+    public void taskCompleted(final Executor executor, final Queue.Task task, final long durationMS) {
+        terminate(this.log);
+        super.taskCompleted(executor, task, durationMS);
     }
 
-    public AbstractProject getJob() {
-        return (AbstractProject) job;
-    }
-
-    public void setContainerId(String containerId) {
-        this.containerId = containerId;
-    }
-
-    public void setNodeName(String nodeName) {
+    public void setNodeName(final String nodeName) {
         this.swarmNodeName = nodeName;
     }
 
     public String getSwarmNodeName() {
-        return swarmNodeName;
+        return this.swarmNodeName;
     }
 
-    public Queue.Executable getCurrentBuild(){
-        if (!Iterables.isEmpty(getExecutors())){
-            Executor exec = getExecutors().get(0);
-            return exec.getCurrentExecutable()==null? null: exec.getCurrentExecutable();
+    public Queue.Executable getCurrentBuild() {
+        if (!Iterables.isEmpty(getExecutors())) {
+            final Executor exec = getExecutors().get(0);
+            return exec.getCurrentExecutable() == null ? null : exec.getCurrentExecutable();
         }
         return null;
     }
 
     public String getContainerId() {
-        return containerId;
+        return this.containerId;
     }
 
-    public void setLaunchTime(Date launchTime) {
-        this.launchTime = launchTime;
+    public void setContainerId(final String containerId) {
+        this.containerId = containerId;
     }
-    public Date getLaunchTime() {
-        return launchTime;
+
+    @Override
+    public Map<String, Object> getMonitorData() {
+        return new HashMap<>(); //no monitoring needed as this is a shortlived computer.
+    }
+
+    public void terminate(final PrintStream logger) {
+        setAcceptingTasks(false);
+        executeSlientlyWithLogging(() -> gatherStats(), logger);
+        try {
+            cleanupDockerContainer(getContainerId(), logger);
+        } catch (final IOException e) {
+            e.printStackTrace(logger);
+        }
+    }
+
+    @Override
+    public void setChannel(final Channel channel, final OutputStream launchLog, final Channel.Listener listener) throws IOException, InterruptedException {
+        final TaskListener taskListener = new StreamTaskListener(launchLog);
+        this.log = taskListener.getLogger();
+        channel.addListener(new Channel.Listener() {
+            @Override
+            public void onClosed(final Channel channel, final IOException cause) {
+                try {
+                    cleanupNode(DockerComputer.this.log);
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace(DockerComputer.this.log);
+                }
+            }
+        });
+        super.setChannel(channel, launchLog, listener);
+    }
+
+    private void cleanupNode(final PrintStream logger) throws IOException, InterruptedException {
+        if (getNode() != null) {
+            logger.println("Removing node " + getNode().getDisplayName());
+            getNode().terminate();
+        }
+    }
+
+
+    private void gatherStats() throws IOException {
+        final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
+        try (DockerClient dockerClient = configuration.newDockerClient()) {
+            final String containerId = getContainerId();
+            final Queue.Executable currentExecutable = getExecutors().get(0).getCurrentExecutable();
+            if (currentExecutable instanceof Run && ((Run) currentExecutable).getAction(DockerSlaveInfo.class) != null) {
+                final Run run = ((Run) currentExecutable);
+                final DockerSlaveInfo slaveInfo = ((Run) currentExecutable).getAction(DockerSlaveInfo.class);
+                final Statistics stats = dockerClient.statsCmd(containerId).exec();
+                slaveInfo.setStats(stats);
+                run.save();
+            }
+        }
+    }
+
+    public void cleanupDockerContainer(final String containerId, final PrintStream logger) throws IOException {
+
+        final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
+        try (DockerClient dockerClient = configuration.newDockerClient()) {
+            if (containerId != null) {
+                final InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
+                if (container.getState().getPaused()) {
+                    executeSlientlyWithLogging(() -> dockerClient.unpauseContainerCmd(containerId).exec(), logger);
+                }
+                executeSliently(() -> dockerClient.killContainerCmd(containerId).exec());
+                executeSlientlyWithLogging(() -> removeContainer(logger, containerId, dockerClient), LOGGER, "Failed to cleanup container : " + containerId);
+            }
+        }
+    }
+
+    private void removeContainer(final PrintStream logger, final String containerId, final DockerClient dockerClient) {
+        ExceptionHandlingHelpers.executeWithRetryOnError(() -> dockerClient.removeContainerCmd(containerId).withForce(true).exec());
+        logger.println("Removed Container " + containerId);
+    }
+
+    @Override
+    public void recordTermination() {
+        //no need to record termination
     }
 }
