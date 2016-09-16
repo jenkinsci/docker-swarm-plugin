@@ -64,18 +64,6 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     }
 
 
-    @Override
-    public void taskCompletedWithProblems(final Executor executor, final Queue.Task task, final long durationMS, final Throwable problems) {
-        destroyContainer(this.log);
-        super.taskCompletedWithProblems(executor, task, durationMS, problems);
-    }
-
-    @Override
-    public void taskCompleted(final Executor executor, final Queue.Task task, final long durationMS) {
-        destroyContainer(this.log);
-        super.taskCompleted(executor, task, durationMS);
-    }
-
     public void setNodeName(final String nodeName) {
         this.swarmNodeName = nodeName;
     }
