@@ -175,6 +175,9 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
     public void delete() {
         executeSlientlyWithLogging(() -> collectStatsAndCleanupDockerContainer(getContainerId(), System.out), System.out); // Maybe be container was created, so attempt to delete it
+        executeSlientlyWithLogging(() -> {
+            if (getChannel() != null) getChannel().close();
+        }, System.out);
         executeSlientlyWithLogging(() -> cleanupNode(System.out), System.out);
     }
 }
