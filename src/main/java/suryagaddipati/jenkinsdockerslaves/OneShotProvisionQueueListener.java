@@ -15,21 +15,20 @@ public class OneShotProvisionQueueListener extends QueueListener {
 
     @Override
     public void onEnterBuildable(final Queue.BuildableItem bi) {
-            Queue.Task job = bi.task;
-            List<String> labels = DockerSlaveConfiguration.get().getLabels();
-            if(job.getAssignedLabel() != null && labels.contains( job.getAssignedLabel().getName())){
-                BuildScheduler.scheduleBuild(bi,false);
-            }
+        final Queue.Task job = bi.task;
+        final List<String> labels = DockerSlaveConfiguration.get().getLabels();
+        if (job.getAssignedLabel() != null && labels.contains(job.getAssignedLabel().getName())) {
+            BuildScheduler.scheduleBuild(bi);
+        }
     }
 
 
-
     @Override
-    public void onLeft(Queue.LeftItem li) {
-        if(li.isCancelled()){
-            DockerLabelAssignmentAction labelAssignmentAction = li.getAction(DockerLabelAssignmentAction.class);
-            if (labelAssignmentAction !=null){
-                String computerName = labelAssignmentAction.getLabel().getName();
+    public void onLeft(final Queue.LeftItem li) {
+        if (li.isCancelled()) {
+            final DockerLabelAssignmentAction labelAssignmentAction = li.getAction(DockerLabelAssignmentAction.class);
+            if (labelAssignmentAction != null) {
+                final String computerName = labelAssignmentAction.getLabel().getName();
 
                 final Node node = Jenkins.getInstance().getNode(computerName);
                 Computer.threadPoolForRemoting.submit(new Runnable() {
@@ -37,7 +36,7 @@ public class OneShotProvisionQueueListener extends QueueListener {
                     public void run() {
                         try {
                             Jenkins.getInstance().removeNode(node);
-                        } catch (IOException e) {
+                        } catch (final IOException e) {
 //                            e.printStackTrace();
                         }
                     }

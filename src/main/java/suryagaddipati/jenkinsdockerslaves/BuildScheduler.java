@@ -1,6 +1,5 @@
 package suryagaddipati.jenkinsdockerslaves;
 
-import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.Label;
@@ -11,42 +10,38 @@ import jenkins.model.Jenkins;
 import java.io.IOException;
 
 public class BuildScheduler {
-    public  static void scheduleBuild(Queue.BuildableItem bi, boolean replace) {
+    public static void scheduleBuild(final Queue.BuildableItem bi) {
         try {
-            DockerLabelAssignmentAction action = createLabelAssignmentAction();
-            if(replace){
-               bi.replaceAction(action);
-            }else {
-                bi.addAction(action);
+            if (bi.getAction(DockerLabelAssignmentAction.class) == null) {
+                bi.addAction(createLabelAssignmentAction());
             }
             // Immediately create a slave for this item
             // Real provisioning will happen later
+            final DockerLabelAssignmentAction action = bi.getAction(DockerLabelAssignmentAction.class);
 
             final Node node = new DockerSlave(bi, action.getLabel().toString());
-            Computer.threadPoolForRemoting.submit(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Jenkins.getInstance().addNode(node);
-                    } catch (IOException e) {
+            Computer.threadPoolForRemoting.submit((Runnable) () -> {
+                try {
+                    Jenkins.getInstance().addNode(node);
+                } catch (final IOException e) {
 //                        e.printStackTrace();
-                    }
                 }
             });
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
-        } catch (Descriptor.FormException e) {
+        } catch (final Descriptor.FormException e) {
             e.printStackTrace();
         }
     }
+
     private static DockerLabelAssignmentAction createLabelAssignmentAction() {
         try {
-            Thread.sleep(5,10);
-        } catch (InterruptedException e) {
+            Thread.sleep(5, 10);
+        } catch (final InterruptedException e) {
             e.printStackTrace();
         }
 
-        final String id = System.nanoTime()  + "";
+        final String id = System.nanoTime() + "";
         final Label label = new DockerMachineLabel(id);
         return new DockerLabelAssignmentAction(label);
     }
