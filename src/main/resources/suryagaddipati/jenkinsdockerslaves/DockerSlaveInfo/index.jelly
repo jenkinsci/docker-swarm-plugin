@@ -1,32 +1,44 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:test="/lib/test">
+<j:jelly xmlns:j="jelly:core"
+         xmlns:l="/lib/layout" xmlns:f="/lib/form"
+>
     <l:layout>
         <l:main-panel>
             <div class="main">
-                <p><b>Container Name</b>:  ${it.containerId}</p>
-                <p><b>Cache Volume</b>:  ${it.cacheVolumeName}</p>
+                <p><b>Container Name</b>: ${it.containerId}
+                </p>
+                <p><b>Docker Image Used</b>: ${it.dockerImage}
+                </p>
+                <p><b>Cache Volume</b>: ${it.cacheVolumeName}
+                </p>
 
-                <p><b>Memory Reservation</b>:  ${it.memoryReservationString}</p>
-                <p><b>CPU Reservation</b>:  ${it.allocatedCPUShares}</p>
+                <p><b>Memory Reservation</b>: ${it.memoryReservationString}
+                </p>
+                <p><b>CPU Reservation</b>: ${it.allocatedCPUShares}
+                </p>
 
                 <j:if test="${it.buildFinished}">
-                <br/>
-                <p><b>Max Memory Usage</b>:  ${it.memoryStats}</p>
-                <p><b>Per Cpu Usage</b>:  ${it.perCpuUsage}</p>
-                <p><b>Total Cpu Usage</b>:  ${it.totalCpuUsage}</p>
-                <p><b>Throttled Time </b>:  ${it.throttledTime}</p>
+                    <br/>
+                    <p><b>Max Memory Usage</b>: ${it.memoryStats}
+                    </p>
+                    <p><b>Per Cpu Usage</b>: ${it.perCpuUsage}
+                    </p>
+                    <p><b>Total Cpu Usage</b>: ${it.totalCpuUsage}
+                    </p>
+                    <p><b>Throttled Time</b>: ${it.throttledTime}
+                    </p>
                 </j:if>
-
 
 
                 <j:if test="${it.buildPausable}">
                     <f:form method="post" action="pauseBuild" name="pauseBuild">
-                        <f:submit value="Pause Build" />
+                        <f:submit value="Pause Build"/>
                     </f:form>
                 </j:if>
                 <j:if test="${it.buildUnPausable}">
-                    <f:form method="post" action="unPauseBuild" name="pauseBuild">
-                        <f:submit value="Resume Build" />
+                    <f:form method="post" action="unPauseBuild"
+                            name="pauseBuild">
+                        <f:submit value="Resume Build"/>
                     </f:form>
                 </j:if>
             </div>

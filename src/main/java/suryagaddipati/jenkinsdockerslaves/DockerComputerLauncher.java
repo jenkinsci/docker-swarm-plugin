@@ -19,7 +19,6 @@ import hudson.slaves.SlaveComputer;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -117,6 +116,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
                 dockerClient.startContainerCmd(container.getId()).exec();
                 dockerSlaveInfo.setProvisionedTime(new Date());
+                dockerSlaveInfo.setDockerImage(labelConfiguration.getImage());
 
                 computer.connect(false).get();
             }
