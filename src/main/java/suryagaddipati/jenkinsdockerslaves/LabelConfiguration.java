@@ -6,6 +6,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 public   class LabelConfiguration {
     String image;
     String hostBinds;
+    String envVars;
     private Integer maxCpuShares;
     private Long maxMemory;
 
@@ -13,7 +14,7 @@ public   class LabelConfiguration {
     private boolean dynamicResourceAllocation;
 
     @DataBoundConstructor
-    public LabelConfiguration(String image, String hostBinds, String label, String cacheDir, Integer maxCpuShares, Long maxMemory, boolean dynamicResourceAllocation) {
+    public LabelConfiguration(String image, String hostBinds, String label, String cacheDir, Integer maxCpuShares, Long maxMemory, boolean dynamicResourceAllocation, String envVars) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.label = label;
@@ -21,6 +22,7 @@ public   class LabelConfiguration {
         this.maxCpuShares = maxCpuShares;
         this.maxMemory = maxMemory;
         this.dynamicResourceAllocation = dynamicResourceAllocation;
+        this.envVars = envVars;
     }
 
     private String label;
@@ -87,5 +89,17 @@ public   class LabelConfiguration {
 
     public void setDynamicResourceAllocation(boolean dynamicResourceAllocation) {
         this.dynamicResourceAllocation = dynamicResourceAllocation;
+    }
+
+    public void setEnvVars(String envVars) {
+        this.envVars = envVars;
+    }
+
+    public String getEnvVars() {
+        return envVars;
+    }
+
+    public String[] getEnvVarsConfig() {
+        return StringUtils.isEmpty(this.envVars) ? new String[]{} : this.envVars.split(" ");
     }
 }

@@ -66,7 +66,7 @@ THE SOFTWARE.
                     <f:textbox  value="${labelConfiguration.image}"/>
                 </f:entry>
 
-                <f:entry title="Host Binds( space seperated)" field="hostBinds">
+                <f:entry title="Host Binds (space-separated)" field="hostBinds">
                     <f:textbox  value="${labelConfiguration.hostBinds}"/>
                 </f:entry>
 
@@ -84,7 +84,9 @@ THE SOFTWARE.
                 <f:entry title="Dynamic Resource Allocation" field="dynamicResourceAllocation">
                     <f:checkbox checked="${labelConfiguration.dynamicResourceAllocation}"/>
                 </f:entry>
-
+                <f:entry title="Env (space-separated)" field="envVars">
+                    <f:textbox value="${labelConfiguration.envVars}"/>
+                </f:entry>
                 <f:entry title="">
                     <div align="right">
                         <f:repeatableDeleteButton />

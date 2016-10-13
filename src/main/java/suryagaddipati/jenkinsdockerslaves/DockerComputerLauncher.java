@@ -19,6 +19,7 @@ import hudson.slaves.SlaveComputer;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -62,6 +63,11 @@ public class DockerComputerLauncher extends ComputerLauncher {
             try (DockerClient dockerClient = configuration.newDockerClient()) {
                 final LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
 
+                final String[] envVarOptions = labelConfiguration.getEnvVarsConfig();
+                final String[] envVars = new String[envVarOptions.length];
+                if (envVarOptions.length != 0) {
+                    System.arraycopy(envVarOptions, 0, envVars, 0, envVarOptions.length);
+                }
 
                 final String additionalSlaveOptions = "-noReconnect";
                 final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer, configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
@@ -72,7 +78,8 @@ public class DockerComputerLauncher extends ComputerLauncher {
                         .createContainerCmd(labelConfiguration.getImage())
                         .withCmd(command)
                         .withPrivileged(configuration.isPrivileged())
-                        .withName(computer.getName());
+                        .withName(computer.getName())
+                        .withEnv(envVars);
 
                 final String[] bindOptions = labelConfiguration.getHostBindsConfig();
                 final String[] cacheDirs = labelConfiguration.getCacheDirs();
