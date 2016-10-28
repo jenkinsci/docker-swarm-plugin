@@ -20,7 +20,7 @@ public class ExceptionHandlingHelpers {
     public static void executeSliently(final Runnable runnable) {
         try {
             runnable.run();
-        } catch (final Exception _) {
+        } catch (final Exception e) {
         }
     }
 

@@ -3,8 +3,63 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>2.5</version>
+        <relativePath/>
+    </parent>
+    <groupId>suryagaddipati</groupId>
+    <artifactId>jenkins-docker-slaves</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>hpi</packaging>
+
+    <name>JenkinsDockerSlaves</name>
+    <description>Launches one computer per build on swarm</description>
+    <url>https://wiki.jenkins-ci.org/display/JENKINS/TODO+Plugin</url>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://opensource.org/licenses/MIT</url>
+        </license>
+    </licenses>
+    <properties>
+        <jenkins.version>2.26</jenkins.version>
+        <jersey.version>2.11</jersey.version>
+        <jackson-jaxrs.version>2.6.4</jackson-jaxrs.version>
+        <httpclient.version>4.3.1</httpclient.version>
+        <commons-compress.version>1.5</commons-compress.version>
+        <commons-codec.version>1.8</commons-codec.version>
+        <commons-io.version>2.3</commons-io.version>
+        <commons-lang.version>2.6</commons-lang.version>
+        <slf4j-api.version>1.7.5</slf4j-api.version>
+        <netty.version>4.1.0.CR3</netty.version>
+        <bouncycastle.version>1.51</bouncycastle.version>
+        <unix-socket-factory.version>2015-01-27T15-02-14
+        </unix-socket-factory.version>
+        <guava.version>18.0</guava.version>
+    </properties>
+    <repositories>
+        <repository>
+            <id>repo.jenkins-ci.org</id>
+            <url>http://repo.jenkins-ci.org/public/</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>repo.jenkins-ci.org</id>
+            <url>http://repo.jenkins-ci.org/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -34,76 +89,8 @@
             </plugin>
         </plugins>
     </build>
-
-    <parent>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>plugin</artifactId>
-        <version>1.642.1</version>
-    </parent>
-    <groupId>suryagaddipati</groupId>
-    <artifactId>jenkins-docker-slaves</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <packaging>hpi</packaging>
-
-    <name>JenkinsDockerSlaves</name>
-    <description>Launches one computer per build on swarm</description>
-    <url>https://wiki.jenkins-ci.org/display/JENKINS/TODO+Plugin</url>
-    <licenses>
-        <license>
-            <name>MIT License</name>
-            <url>http://opensource.org/licenses/MIT</url>
-        </license>
-    </licenses>
-    <!-- If you want this to appear on the wiki page:
-    <developers>
-      <developer>
-        <id>bhacker</id>
-        <name>Bob Q. Hacker</name>
-        <email>bhacker@nowhere.net</email>
-      </developer>
-    </developers>
-    -->
-    <!-- Assuming you want to host on @jenkinsci:
-    <scm>
-      <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-      <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-      <url>http://github.com/jenkinsci/${project.artifactId}-plugin</url>
-    </scm>
-     -->
-    <properties>
-        <jenkins.version>2.3</jenkins.version>
-        <jersey.version>2.11</jersey.version>
-        <jackson-jaxrs.version>2.6.4</jackson-jaxrs.version>
-        <httpclient.version>4.3.1</httpclient.version>
-        <commons-compress.version>1.5</commons-compress.version>
-        <commons-codec.version>1.8</commons-codec.version>
-        <commons-io.version>2.3</commons-io.version>
-        <commons-lang.version>2.6</commons-lang.version>
-        <slf4j-api.version>1.7.5</slf4j-api.version>
-        <netty.version>4.1.0.CR3</netty.version>
-        <bouncycastle.version>1.51</bouncycastle.version>
-        <unix-socket-factory.version>2015-01-27T15-02-14
-        </unix-socket-factory.version>
-        <guava.version>18.0</guava.version>
-    </properties>
-    <repositories>
-        <repository>
-            <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
     <dependencies>
-        <!-- <dependency> -->
-        <!--   <groupId>com.github.docker-java</groupId> -->
-        <!--   <artifactId>docker-java</artifactId> -->
-        <!--   <version>3.0.1</version> -->
-        <!-- </dependency> -->
+
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
