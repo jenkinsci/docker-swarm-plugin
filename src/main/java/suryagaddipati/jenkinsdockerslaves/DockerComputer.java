@@ -114,12 +114,23 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
                     if (container.getState().getPaused()) {
                         executeSlientlyWithLogging(() -> dockerClient.unpauseContainerCmd(containerId).exec(), logger);
                     }
+                    closeChannel();
                     executeSliently(() -> dockerClient.killContainerCmd(containerId).exec());
                     executeSlientlyWithLogging(() -> removeContainer(logger, containerId, dockerClient), logger);
                 } catch (final NotFoundException e) {
                     //Ignore if container is already gone
                 }
 
+            }
+        }
+    }
+
+    private void closeChannel() throws IOException {
+        if (getChannel() != null) {
+            try {
+                getChannel().close();
+            } catch (final Exception e) {
+                //computer is going away and container is being killed. So this error doesn't matter.
             }
         }
     }
@@ -136,9 +147,6 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
     public void delete(final Queue.Executable currentExecutable) {
         executeSlientlyWithLogging(() -> collectStatsAndCleanupDockerContainer(getContainerId(), currentExecutable, System.out), System.out); // Maybe be container was created, so attempt to delete it
-        executeSlientlyWithLogging(() -> {
-            if (getChannel() != null) getChannel().close();
-        }, System.out);
         executeSlientlyWithLogging(() -> cleanupNode(System.out), System.out);
     }
 
