@@ -20,7 +20,7 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy implements E
             final long idleMilliseconds = System.currentTimeMillis() - c.getIdleStartMilliseconds();
             if (idleMilliseconds > TimeUnit2.MINUTES.toMillis(1)) {
                 LOGGER.log(Level.FINE, "Disconnecting {0}", c.getName());
-                done(c);
+                done(c, null);
             }
         }
 
@@ -57,10 +57,10 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy implements E
         final DockerComputer c = (DockerComputer) executor.getOwner();
         final Queue.Executable exec = executor.getCurrentExecutable();
         LOGGER.log(Level.FINE, "terminating {0} since {1} seems to be finished", new Object[]{c.getName(), exec});
-        done(c);
+        done(c, exec);
     }
 
-    private void done(final Computer c) {
+    private void done(final Computer c, final Queue.Executable exec) {
         synchronized (this) {
             if (this.terminating) {
                 return;
@@ -71,7 +71,7 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy implements E
             try {
                 final DockerSlave node = (DockerSlave) c.getNode();
                 if (node != null) {
-                    node.getComputer().delete();
+                    node.getComputer().delete(exec);
                 }
             } catch (final Exception e) {
                 LOGGER.log(Level.WARNING, "Failed to terminate " + c.getName(), e);

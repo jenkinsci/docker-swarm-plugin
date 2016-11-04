@@ -33,19 +33,12 @@ import com.google.common.collect.Iterables;
 import hudson.model.Executor;
 import hudson.model.Queue;
 import hudson.model.Run;
-import hudson.model.TaskListener;
-import hudson.remoting.Channel;
 import hudson.slaves.AbstractCloudComputer;
-import hudson.util.StreamTaskListener;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static suryagaddipati.jenkinsdockerslaves.ExceptionHandlingHelpers.executeSliently;
@@ -93,34 +86,6 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         return new HashMap<>(); //no monitoring needed as this is a shortlived computer.
     }
 
-    public void destroyContainer(final PrintStream logger) {
-        final ExecutorService threadPool = Executors.newSingleThreadExecutor();
-        threadPool.submit((Runnable) () -> {
-            try {
-                collectStatsAndCleanupDockerContainer(getContainerId(), logger);
-            } catch (final IOException e) {
-                LOGGER.log(Level.INFO, "couldn't cleanup container ", e);
-            }
-        });
-        setAcceptingTasks(false);
-    }
-
-    @Override
-    public void setChannel(final Channel channel, final OutputStream launchLog, final Channel.Listener listener) throws IOException, InterruptedException {
-        final TaskListener taskListener = new StreamTaskListener(launchLog);
-        this.log = taskListener.getLogger();
-        channel.addListener(new Channel.Listener() {
-            @Override
-            public void onClosed(final Channel channel, final IOException cause) {
-                try {
-                    cleanupNode(DockerComputer.this.log);
-                } catch (IOException | InterruptedException e) {
-                    e.printStackTrace(DockerComputer.this.log);
-                }
-            }
-        });
-        super.setChannel(channel, launchLog, listener);
-    }
 
     private void cleanupNode(final PrintStream logger) throws IOException, InterruptedException {
         if (getNode() != null) {
@@ -130,9 +95,8 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     }
 
 
-    private void gatherStats(final DockerClient dockerClient) throws IOException {
+    private void gatherStats(final DockerClient dockerClient, final Queue.Executable currentExecutable) throws IOException {
         final String containerId = getContainerId();
-        final Queue.Executable currentExecutable = getExecutors().get(0).getCurrentExecutable();
         if (currentExecutable instanceof Run && ((Run) currentExecutable).getAction(DockerSlaveInfo.class) != null) {
             final Run run = ((Run) currentExecutable);
             final DockerSlaveInfo slaveInfo = ((Run) currentExecutable).getAction(DockerSlaveInfo.class);
@@ -142,14 +106,14 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         }
     }
 
-    public void collectStatsAndCleanupDockerContainer(final String containerId, final PrintStream logger) throws IOException {
+    public void collectStatsAndCleanupDockerContainer(final String containerId, final Queue.Executable currentExecutable, final PrintStream logger) throws IOException {
 
         final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
         try (DockerClient dockerClient = configuration.newDockerClient()) {
             if (containerId != null) {
                 try {
                     final InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
-                    executeSlientlyWithLogging(() -> gatherStats(dockerClient), logger); // No big deal if we can't get stats
+                    executeSlientlyWithLogging(() -> gatherStats(dockerClient, currentExecutable), logger); // No big deal if we can't get stats
                     if (container.getState().getPaused()) {
                         executeSlientlyWithLogging(() -> dockerClient.unpauseContainerCmd(containerId).exec(), logger);
                     }
@@ -173,11 +137,15 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         //no need to record termination
     }
 
-    public void delete() {
-        executeSlientlyWithLogging(() -> collectStatsAndCleanupDockerContainer(getContainerId(), System.out), System.out); // Maybe be container was created, so attempt to delete it
+    public void delete(final Queue.Executable currentExecutable) {
+        executeSlientlyWithLogging(() -> collectStatsAndCleanupDockerContainer(getContainerId(), currentExecutable, System.out), System.out); // Maybe be container was created, so attempt to delete it
         executeSlientlyWithLogging(() -> {
             if (getChannel() != null) getChannel().close();
         }, System.out);
         executeSlientlyWithLogging(() -> cleanupNode(System.out), System.out);
+    }
+
+    public void delete() {
+        this.delete(null);
     }
 }

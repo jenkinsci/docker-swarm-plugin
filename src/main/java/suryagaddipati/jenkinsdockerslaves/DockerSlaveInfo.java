@@ -2,6 +2,7 @@ package suryagaddipati.jenkinsdockerslaves;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Statistics;
 import com.google.common.base.Joiner;
 import hudson.model.Run;
@@ -280,8 +281,12 @@ public class DockerSlaveInfo implements RunAction2 {
 
     public boolean isUnPausable() throws IOException {
         try (DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
-            final InspectContainerResponse container = dockerClient.inspectContainerCmd(this.containerId).exec();
-            return container.getState().getPaused();
+            try {
+                final InspectContainerResponse container = dockerClient.inspectContainerCmd(this.containerId).exec();
+                return container.getState().getPaused();
+            } catch (final NotFoundException e) {
+                return false;
+            }
         }
     }
 
