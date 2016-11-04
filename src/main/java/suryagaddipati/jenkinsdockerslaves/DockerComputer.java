@@ -39,17 +39,14 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import static suryagaddipati.jenkinsdockerslaves.ExceptionHandlingHelpers.executeSliently;
 import static suryagaddipati.jenkinsdockerslaves.ExceptionHandlingHelpers.executeSlientlyWithLogging;
 
 public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
-    private static final Logger LOGGER = Logger.getLogger(DockerComputer.class.getName());
     private String containerId;
     private String swarmNodeName;
-    private PrintStream log;
 
 
     public DockerComputer(final DockerSlave dockerSlave) {
