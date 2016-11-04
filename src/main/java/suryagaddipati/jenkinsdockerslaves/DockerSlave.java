@@ -34,7 +34,6 @@ import hudson.model.queue.CauseOfBlockage;
 import hudson.slaves.AbstractCloudSlave;
 import hudson.slaves.EphemeralNode;
 import hudson.slaves.NodeProperty;
-import hudson.slaves.RetentionStrategy;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -42,11 +41,11 @@ import java.util.Collections;
 public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
 
 
-    public DockerSlave(Queue.BuildableItem bi, String labelString) throws Descriptor.FormException, IOException {
+    public DockerSlave(final Queue.BuildableItem bi, final String labelString) throws Descriptor.FormException, IOException {
         super(labelString, "Container slave for building " + bi.task.getFullDisplayName(),
                 "/home/jenkins", 1, Mode.EXCLUSIVE, labelString,
                 new DockerComputerLauncher(bi),
-                RetentionStrategy.NOOP,
+                new DockerSlaveRetentionStrategy(),
                 Collections.<NodeProperty<?>>emptyList());
     }
 
@@ -55,7 +54,7 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
     }
 
     @Override
-    protected void _terminate(TaskListener listener) throws IOException, InterruptedException {
+    protected void _terminate(final TaskListener listener) throws IOException, InterruptedException {
     }
 
 
@@ -69,10 +68,11 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
         return (DockerComputer) super.getComputer();
     }
 
+
     @Override
-    public CauseOfBlockage canTake(Queue.BuildableItem item) {
-        Label l = item.getAssignedLabel();
-        if(l != null && this.name.equals(l.getName())){
+    public CauseOfBlockage canTake(final Queue.BuildableItem item) {
+        final Label l = item.getAssignedLabel();
+        if (l != null && this.name.equals(l.getName())) {
             return null;
         }
         return super.canTake(item);
