@@ -25,6 +25,8 @@
     </licenses>
     <properties>
         <jenkins.version>2.26</jenkins.version>
+        <java.level>8</java.level>
+        <jenkins-test-harness.version>2.13</jenkins-test-harness.version>
         <jersey.version>2.11</jersey.version>
         <jackson-jaxrs.version>2.6.4</jackson-jaxrs.version>
         <httpclient.version>4.3.1</httpclient.version>
@@ -52,6 +54,17 @@
         </pluginRepository>
     </pluginRepositories>
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>animal-sniffer-maven-plugin</artifactId>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
