@@ -118,7 +118,8 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 dockerSlaveInfo.setProvisionedTime(new Date());
                 dockerSlaveInfo.setDockerImage(labelConfiguration.getImage());
 
-                computer.connect(false).get();
+//                computer.connect(false).get();
+                computer.connect(false);
             }
 
         } catch (final Throwable e) {
