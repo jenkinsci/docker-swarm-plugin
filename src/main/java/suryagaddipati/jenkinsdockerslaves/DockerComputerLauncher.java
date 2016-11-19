@@ -16,6 +16,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.Date;
@@ -96,6 +97,9 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
                 setCgroupLimits(labelConfiguration, containerCmd, dockerSlaveInfo);
 
+                if (StringUtils.isNotEmpty(labelConfiguration.getNetwork())) {
+                    containerCmd.withNetworkMode(labelConfiguration.getNetwork());
+                }
                 listener.getLogger().println("Creating Container :" + containerCmd.toString());
                 final CreateContainerResponse container = containerCmd.exec();
                 listener.getLogger().println("Created container :" + container.getId());

@@ -22,78 +22,86 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 -->
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
-         xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core"
+         xmlns:f="/lib/form">
     <f:section title="Docker Slaves Configuration">
         <f:entry title="Base WorkspaceLocation" field="baseWorkspaceLocation">
-            <f:textbox />
+            <f:textbox/>
         </f:entry>
 
         <f:entry title="Docker http(s) uri" field="uri">
-            <f:textbox />
+            <f:textbox/>
         </f:entry>
         <f:entry title="Api Version" field="apiVersion">
-            <f:textbox />
+            <f:textbox/>
         </f:entry>
         <f:entry title="use TLS?" field="useTLS">
-            <f:checkbox />
+            <f:checkbox/>
         </f:entry>
         <f:entry title="Certificates Path" field="certificatesPath">
-            <f:textbox />
+            <f:textbox/>
         </f:entry>
         <f:entry title="Jenkins Url " field="jenkinsUrl">
-            <f:textbox />
+            <f:textbox/>
         </f:entry>
         <f:entry title="Privileged" field="privileged">
             <f:checkbox/>
         </f:entry>
 
-        <f:entry title="Maximum Provisioning Attempts" field="maxProvisioningAttempts">
+        <f:entry title="Maximum Provisioning Attempts"
+                 field="maxProvisioningAttempts">
             <f:number/>
         </f:entry>
 
 
-
         <f:entry title="Image Labels">
-        <f:repeatable var="labelConfiguration" items="${instance.labelConfigurations}" name="labelConfigurations">
-            <table width="100%">
+            <f:repeatable var="labelConfiguration"
+                          items="${instance.labelConfigurations}"
+                          name="labelConfigurations">
+                <table width="100%">
 
-                <f:entry title="Label" field="label">
-                    <f:textbox  value="${labelConfiguration.label}"/>
-                </f:entry>
+                    <f:entry title="Label" field="label">
+                        <f:textbox value="${labelConfiguration.label}"/>
+                    </f:entry>
 
-                <f:entry title="Image" field="image">
-                    <f:textbox  value="${labelConfiguration.image}"/>
-                </f:entry>
+                    <f:entry title="Image" field="image">
+                        <f:textbox value="${labelConfiguration.image}"/>
+                    </f:entry>
 
-                <f:entry title="Host Binds (space-separated)" field="hostBinds">
-                    <f:textbox  value="${labelConfiguration.hostBinds}"/>
-                </f:entry>
+                    <f:entry title="Host Binds (space-separated)"
+                             field="hostBinds">
+                        <f:textbox value="${labelConfiguration.hostBinds}"/>
+                    </f:entry>
 
-                <f:entry title="Max CPU shares" field="maxCpuShares">
-                    <f:number  value="${labelConfiguration.maxCpuShares}"/>
-                </f:entry>
+                    <f:entry title="Max CPU shares" field="maxCpuShares">
+                        <f:number value="${labelConfiguration.maxCpuShares}"/>
+                    </f:entry>
 
-                <f:entry title="Max Memory(bytes)" field="maxMemory">
-                    <f:number  value="${labelConfiguration.maxMemory}"/>
-                </f:entry>
+                    <f:entry title="Max Memory(bytes)" field="maxMemory">
+                        <f:number value="${labelConfiguration.maxMemory}"/>
+                    </f:entry>
 
-                <f:entry title="Cache Dir" field="cacheDir">
-                    <f:textbox  value="${labelConfiguration.cacheDir}"/>
-                </f:entry>
-                <f:entry title="Dynamic Resource Allocation" field="dynamicResourceAllocation">
-                    <f:checkbox checked="${labelConfiguration.dynamicResourceAllocation}"/>
-                </f:entry>
-                <f:entry title="Env (space-separated)" field="envVars">
-                    <f:textbox value="${labelConfiguration.envVars}"/>
-                </f:entry>
-                <f:entry title="">
-                    <div align="right">
-                        <f:repeatableDeleteButton />
-                    </div>
-                </f:entry>
-            </table>
-        </f:repeatable>
-    </f:entry>
-   </f:section>
+                    <f:entry title="Cache Dir" field="cacheDir">
+                        <f:textbox value="${labelConfiguration.cacheDir}"/>
+                    </f:entry>
+                    <f:entry title="Dynamic Resource Allocation"
+                             field="dynamicResourceAllocation">
+                        <f:checkbox
+                                checked="${labelConfiguration.dynamicResourceAllocation}"/>
+                    </f:entry>
+                    <f:entry title="Env (space-separated)" field="envVars">
+                        <f:textbox value="${labelConfiguration.envVars}"/>
+                    </f:entry>
+                    <f:entry title="Network" field="network">
+                        <f:textbox value="${labelConfiguration.network}"/>
+                    </f:entry>
+                    <f:entry title="">
+                        <div align="right">
+                            <f:repeatableDeleteButton/>
+                        </div>
+                    </f:entry>
+                </table>
+            </f:repeatable>
+        </f:entry>
+    </f:section>
 </j:jelly>
