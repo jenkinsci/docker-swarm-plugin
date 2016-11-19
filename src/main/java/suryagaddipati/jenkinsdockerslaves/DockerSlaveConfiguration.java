@@ -46,7 +46,6 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
     String certificatesPath;
 
 
-
     String apiVersion;
     private boolean privileged;
     private String jenkinsUrl;
@@ -54,6 +53,18 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
 
 
     private int maxProvisioningAttempts;
+    private List<LabelConfiguration> labelConfigurations;
+
+    public DockerSlaveConfiguration() {
+        load();
+        if (labelConfigurations == null) {
+            labelConfigurations = new ArrayList<LabelConfiguration>();
+        }
+    }
+
+    public static DockerSlaveConfiguration get() {
+        return GlobalConfiguration.all().get(DockerSlaveConfiguration.class);
+    }
 
     public List<LabelConfiguration> getLabelConfigurations() {
         return labelConfigurations;
@@ -63,16 +74,6 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
         this.labelConfigurations = labelConfigurations;
     }
 
-    private List<LabelConfiguration> labelConfigurations;
-
-
-    public DockerSlaveConfiguration() {
-        load();
-        if(labelConfigurations == null){
-            labelConfigurations = new ArrayList<LabelConfiguration>();
-        }
-    }
-
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
         req.bindJSON(this, json);
@@ -80,7 +81,7 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
         return true;
     }
 
-    public DockerClient newDockerClient(){
+    public DockerClient newDockerClient() {
         if (Boolean.TRUE.equals(useTLS)) {
             DockerClientConfig config = new DefaultDockerClientConfig.Builder()
                     .withDockerHost(uri)
@@ -88,47 +89,41 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
                     .withDockerCertPath(certificatesPath)
                     .withApiVersion(apiVersion)
                     .build();
-            return  DockerClientBuilder.getInstance(config).build();
+            return DockerClientBuilder.getInstance(config).build();
         } else {
             DockerClientConfig config = new DefaultDockerClientConfig.Builder().withDockerTlsVerify(false).withApiVersion(apiVersion).withDockerHost(uri).build();
-            return  DockerClientBuilder.getInstance(config).build();
+            return DockerClientBuilder.getInstance(config).build();
         }
     }
 
-
     public String getUri() {
         return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 
     public Boolean getUseTLS() {
         return useTLS;
     }
 
-
-
-    public String getCertificatesPath() {
-        return certificatesPath;
-    }
-    public void setUri(String uri) {
-        this.uri = uri;
-    }
-
     public void setUseTLS(Boolean useTLS) {
         this.useTLS = useTLS;
     }
 
-
+    public String getCertificatesPath() {
+        return certificatesPath;
+    }
 
     public void setCertificatesPath(String certificatesPath) {
         this.certificatesPath = certificatesPath;
-    }
-    public static DockerSlaveConfiguration get() {
-        return GlobalConfiguration.all().get(DockerSlaveConfiguration.class);
     }
 
     public boolean isPrivileged() {
         return privileged;
     }
+
     public void setPrivileged(boolean privileged) {
         this.privileged = privileged;
     }
@@ -140,7 +135,6 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
     public void setJenkinsUrl(String jenkinsUrl) {
         this.jenkinsUrl = jenkinsUrl;
     }
-
 
 
     public String getBaseWorkspaceLocation() {
@@ -169,8 +163,8 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
     }
 
     public LabelConfiguration getLabelConfiguration(String label) {
-        for(LabelConfiguration labelConfiguration : labelConfigurations){
-            if (label.equals(labelConfiguration.getLabel())){
+        for (LabelConfiguration labelConfiguration : labelConfigurations) {
+            if (label.equals(labelConfiguration.getLabel())) {
                 return labelConfiguration;
             }
         }
