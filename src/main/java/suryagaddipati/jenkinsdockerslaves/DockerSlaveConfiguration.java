@@ -57,8 +57,8 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
 
     public DockerSlaveConfiguration() {
         load();
-        if (labelConfigurations == null) {
-            labelConfigurations = new ArrayList<LabelConfiguration>();
+        if (this.labelConfigurations == null) {
+            this.labelConfigurations = new ArrayList<>();
         }
     }
 
@@ -67,103 +67,103 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
     }
 
     public List<LabelConfiguration> getLabelConfigurations() {
-        return labelConfigurations;
+        return this.labelConfigurations;
     }
 
-    public void setLabelConfigurations(List<LabelConfiguration> labelConfigurations) {
+    public void setLabelConfigurations(final List<LabelConfiguration> labelConfigurations) {
         this.labelConfigurations = labelConfigurations;
     }
 
     @Override
-    public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+    public boolean configure(final StaplerRequest req, final JSONObject json) throws FormException {
         req.bindJSON(this, json);
         save();
         return true;
     }
 
     public DockerClient newDockerClient() {
-        if (Boolean.TRUE.equals(useTLS)) {
-            DockerClientConfig config = new DefaultDockerClientConfig.Builder()
-                    .withDockerHost(uri)
+        if (Boolean.TRUE.equals(this.useTLS)) {
+            final DockerClientConfig config = new DefaultDockerClientConfig.Builder()
+                    .withDockerHost(this.uri)
                     .withDockerTlsVerify(true)
-                    .withDockerCertPath(certificatesPath)
-                    .withApiVersion(apiVersion)
+                    .withDockerCertPath(this.certificatesPath)
+                    .withApiVersion(this.apiVersion)
                     .build();
             return DockerClientBuilder.getInstance(config).build();
         } else {
-            DockerClientConfig config = new DefaultDockerClientConfig.Builder().withDockerTlsVerify(false).withApiVersion(apiVersion).withDockerHost(uri).build();
+            final DockerClientConfig config = new DefaultDockerClientConfig.Builder().withDockerTlsVerify(false).withApiVersion(this.apiVersion).withDockerHost(this.uri).build();
             return DockerClientBuilder.getInstance(config).build();
         }
     }
 
     public String getUri() {
-        return uri;
+        return this.uri;
     }
 
-    public void setUri(String uri) {
+    public void setUri(final String uri) {
         this.uri = uri;
     }
 
     public Boolean getUseTLS() {
-        return useTLS;
+        return this.useTLS;
     }
 
-    public void setUseTLS(Boolean useTLS) {
+    public void setUseTLS(final Boolean useTLS) {
         this.useTLS = useTLS;
     }
 
     public String getCertificatesPath() {
-        return certificatesPath;
+        return this.certificatesPath;
     }
 
-    public void setCertificatesPath(String certificatesPath) {
+    public void setCertificatesPath(final String certificatesPath) {
         this.certificatesPath = certificatesPath;
     }
 
     public boolean isPrivileged() {
-        return privileged;
+        return this.privileged;
     }
 
-    public void setPrivileged(boolean privileged) {
+    public void setPrivileged(final boolean privileged) {
         this.privileged = privileged;
     }
 
     public String getJenkinsUrl() {
-        return jenkinsUrl;
+        return this.jenkinsUrl;
     }
 
-    public void setJenkinsUrl(String jenkinsUrl) {
+    public void setJenkinsUrl(final String jenkinsUrl) {
         this.jenkinsUrl = jenkinsUrl;
     }
 
 
     public String getBaseWorkspaceLocation() {
-        return baseWorkspaceLocation;
+        return this.baseWorkspaceLocation;
     }
 
-    public void setBaseWorkspaceLocation(String baseWorkspaceLocation) {
+    public void setBaseWorkspaceLocation(final String baseWorkspaceLocation) {
         this.baseWorkspaceLocation = baseWorkspaceLocation;
     }
 
     public String getApiVersion() {
-        return apiVersion;
+        return this.apiVersion;
     }
 
-    public void setApiVersion(String apiVersion) {
+    public void setApiVersion(final String apiVersion) {
         this.apiVersion = apiVersion;
     }
 
     public List<String> getLabels() {
-        Iterable<String> labels = Iterables.transform(getLabelConfigurations(), new Function<LabelConfiguration, String>() {
-            public String apply(LabelConfiguration labelConfiguration) {
+        final Iterable<String> labels = Iterables.transform(getLabelConfigurations(), new Function<LabelConfiguration, String>() {
+            public String apply(final LabelConfiguration labelConfiguration) {
                 return labelConfiguration.getLabel();
             }
         });
         return Lists.newArrayList(labels);
     }
 
-    public LabelConfiguration getLabelConfiguration(String label) {
-        for (LabelConfiguration labelConfiguration : labelConfigurations) {
+    public LabelConfiguration getLabelConfiguration(final String label) {
+        for (final LabelConfiguration labelConfiguration : this.labelConfigurations) {
             if (label.equals(labelConfiguration.getLabel())) {
                 return labelConfiguration;
             }
@@ -173,15 +173,15 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
 
     }
 
-    public boolean canProvision(Label label) {
+    public boolean canProvision(final Label label) {
         return getLabelConfiguration(label.getName()) != null;
     }
 
     public int getMaxProvisioningAttempts() {
-        return maxProvisioningAttempts;
+        return this.maxProvisioningAttempts;
     }
 
-    public void setMaxProvisioningAttempts(int maxProvisioningAttempts) {
+    public void setMaxProvisioningAttempts(final int maxProvisioningAttempts) {
         this.maxProvisioningAttempts = maxProvisioningAttempts;
     }
 }

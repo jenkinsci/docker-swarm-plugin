@@ -17,13 +17,13 @@ public class FakeCloudForLabels extends Cloud {
     }
 
     @Override
-    public Collection<NodeProvisioner.PlannedNode> provision(Label label, int excessWorkload) {
-        return new ArrayList<NodeProvisioner.PlannedNode>();
+    public Collection<NodeProvisioner.PlannedNode> provision(final Label label, final int excessWorkload) {
+        return new ArrayList<>();
     }
 
     @Override
-    public boolean canProvision(Label label) {
-        DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
+    public boolean canProvision(final Label label) {
+        final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
         if (configuration != null) {
             return configuration.canProvision(label);
         }
