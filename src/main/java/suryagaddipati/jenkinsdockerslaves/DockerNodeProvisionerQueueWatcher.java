@@ -52,7 +52,7 @@ public class DockerNodeProvisionerQueueWatcher extends PeriodicWork {
     private void processQueueItem(final DockerSlaveConfiguration slaveConfig, final Queue.Item item, final DockerSlaveInfo slaveInfo) {
         if (!(slaveInfo.getProvisioningAttempts() > slaveConfig.getMaxProvisioningAttempts())) {
             LOGGER.info("Scheduling build: " + item.task);
-            BuildScheduler.scheduleBuild(((Queue.BuildableItem) item));
+            BuildScheduler.scheduleBuild(((Queue.BuildableItem) item), true);
         } else {
             LOGGER.info("Ignoring " + item.task + " since it exceeded max provisioning attempts. Attempts :" + slaveInfo.getProvisioningAttempts());
         }

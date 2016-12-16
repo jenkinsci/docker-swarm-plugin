@@ -10,14 +10,14 @@ import jenkins.model.Jenkins;
 import java.io.IOException;
 
 public class BuildScheduler {
-    public static void scheduleBuild(final Queue.BuildableItem bi) {
+    public static void scheduleBuild(final Queue.BuildableItem bi, final boolean replace) {
         try {
-            if (bi.getAction(DockerLabelAssignmentAction.class) == null) {
-                bi.addAction(createLabelAssignmentAction());
+            final DockerLabelAssignmentAction action = createLabelAssignmentAction();
+            if (replace) {
+                bi.replaceAction(action);
+            } else {
+                bi.addAction(action);
             }
-            // Immediately create a slave for this item
-            // Real provisioning will happen later
-            final DockerLabelAssignmentAction action = bi.getAction(DockerLabelAssignmentAction.class);
 
             final Node node = new DockerSlave(bi, action.getLabel().toString());
             Computer.threadPoolForRemoting.submit((Runnable) () -> {
