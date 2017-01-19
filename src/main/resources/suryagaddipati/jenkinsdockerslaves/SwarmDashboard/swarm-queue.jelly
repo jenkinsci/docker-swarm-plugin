@@ -8,7 +8,8 @@
                 <span class="mdl-list__item-primary-content">
                     <span>${item.name}</span>
                     <span class="mdl-list__item-sub-title">
-                        ${item.inQueueSince}
+                        ${item.inQueueSince} - Provisioning:
+                        ${item.slaveInfo.provisioningInProgress}
                     </span>
                 </span>
                 <span class="mdl-list__item-secondary-content">

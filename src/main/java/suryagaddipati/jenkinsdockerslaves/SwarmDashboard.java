@@ -45,7 +45,7 @@ public class SwarmDashboard implements RootAction {
         for (int i = items.length - 1; i >= 0; i--) { //reverse order
             final Queue.Item item = items[i];
             final DockerSlaveInfo slaveInfo = item.getAction(DockerSlaveInfo.class);
-            if (slaveInfo != null && item instanceof Queue.BuildableItem && !slaveInfo.isProvisioningInProgress()) {
+            if (slaveInfo != null && item instanceof Queue.BuildableItem) {
                 queue.add(new SwarmQueueItem((Queue.BuildableItem) item));
             }
         }
@@ -140,12 +140,18 @@ public class SwarmDashboard implements RootAction {
         private final String label;
         private final LabelConfiguration labelConfig;
         private final String inQueueSince;
+        private final DockerSlaveInfo slaveInfo;
 
         public SwarmQueueItem(final Queue.BuildableItem item) {
             this.name = item.task.getFullDisplayName();
             this.label = item.task.getAssignedLabel().getName();
             this.labelConfig = DockerSlaveConfiguration.get().getLabelConfiguration(this.label);
             this.inQueueSince = item.getInQueueForString();
+            this.slaveInfo = item.getAction(DockerSlaveInfo.class); //this should never be null
+        }
+
+        public DockerSlaveInfo getSlaveInfo() {
+            return this.slaveInfo;
         }
 
         public String getName() {
