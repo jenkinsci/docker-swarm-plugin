@@ -11,23 +11,27 @@ import java.io.IOException;
 
 public class BuildScheduler {
     public static void scheduleBuild(final Queue.BuildableItem bi, final boolean replace) {
-        Computer.threadPoolForRemoting.submit((Runnable) () -> {
-            try {
-                final DockerLabelAssignmentAction action = createLabelAssignmentAction();
-                if (replace) {
-                    bi.replaceAction(action);
-                } else {
-                    bi.addAction(action);
-                }
-
-                final Node node = new DockerSlave(bi, action.getLabel().toString());
-                Jenkins.getInstance().addNode(node);
-            } catch (final IOException e) {
-                e.printStackTrace();
-            } catch (final Descriptor.FormException e) {
-                e.printStackTrace();
+        try {
+            final DockerLabelAssignmentAction action = createLabelAssignmentAction();
+            if (replace) {
+                bi.replaceAction(action);
+            } else {
+                bi.addAction(action);
             }
-        });
+
+            final Node node = new DockerSlave(bi, action.getLabel().toString());
+            Computer.threadPoolForRemoting.submit((Runnable) () -> {
+                try {
+                    Jenkins.getInstance().addNode(node);
+                } catch (final IOException e) {
+//                        e.printStackTrace();
+                }
+            });
+        } catch (final IOException e) {
+            e.printStackTrace();
+        } catch (final Descriptor.FormException e) {
+            e.printStackTrace();
+        }
     }
 
     private static DockerLabelAssignmentAction createLabelAssignmentAction() {
