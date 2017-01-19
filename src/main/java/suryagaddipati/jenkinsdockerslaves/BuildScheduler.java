@@ -1,6 +1,5 @@
 package suryagaddipati.jenkinsdockerslaves;
 
-import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.Label;
 import hudson.model.Node;
@@ -10,24 +9,14 @@ import jenkins.model.Jenkins;
 import java.io.IOException;
 
 public class BuildScheduler {
-    public static void scheduleBuild(final Queue.BuildableItem bi, final boolean replace) {
+    public static void scheduleBuild(final Queue.BuildableItem bi) {
         try {
             final DockerLabelAssignmentAction action = createLabelAssignmentAction();
-            if (replace) {
-                bi.replaceAction(action);
-            } else {
-                bi.addAction(action);
-            }
-
             final Node node = new DockerSlave(bi, action.getLabel().toString());
-            Computer.threadPoolForRemoting.submit((Runnable) () -> {
-                try {
-                    Jenkins.getInstance().addNode(node);
-                } catch (final IOException e) {
-//                        e.printStackTrace();
-                }
-            });
-        } catch (final IOException e) {
+            setToInProgress(bi);
+            Jenkins.getInstance().addNode(node); //locks queue
+            bi.replaceAction(action);
+        } catch (IOException e) {
             e.printStackTrace();
         } catch (final Descriptor.FormException e) {
             e.printStackTrace();
@@ -44,6 +33,15 @@ public class BuildScheduler {
         final String id = System.nanoTime() + "";
         final Label label = new DockerMachineLabel(id);
         return new DockerLabelAssignmentAction(label);
+    }
+
+    private static void setToInProgress(final Queue.BuildableItem bi) {
+        final DockerSlaveInfo slaveInfoAction = bi.getAction(DockerSlaveInfo.class);
+        if (slaveInfoAction != null) {
+            slaveInfoAction.setProvisioningInProgress(true);
+        } else {
+            bi.replaceAction(new DockerSlaveInfo(true));
+        }
     }
 
 }

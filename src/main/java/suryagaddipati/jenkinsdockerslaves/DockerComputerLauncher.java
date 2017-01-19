@@ -53,7 +53,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
     private void launch(final DockerComputer computer, final TaskListener listener) throws IOException, InterruptedException {
         DockerSlaveInfo dockerSlaveInfo = null;
         try {
-            setToInProgress(this.bi);
             dockerSlaveInfo = this.bi.getAction(DockerSlaveInfo.class);
             dockerSlaveInfo.setComputerLaunchTime(new Date());
             final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
@@ -176,15 +175,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
     private boolean noResourcesAvailable(final Throwable e) {
         return e instanceof InternalServerErrorException && e.getMessage().trim().contains("no resources available to schedule container");
-    }
-
-    private void setToInProgress(final Queue.BuildableItem bi) {
-        final DockerSlaveInfo slaveInfoAction = bi.getAction(DockerSlaveInfo.class);
-        if (slaveInfoAction != null) {
-            slaveInfoAction.setProvisioningInProgress(true);
-        } else {
-            bi.replaceAction(new DockerSlaveInfo(true));
-        }
     }
 
 

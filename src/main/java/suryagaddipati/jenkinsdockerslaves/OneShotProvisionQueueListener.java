@@ -18,7 +18,7 @@ public class OneShotProvisionQueueListener extends QueueListener {
         final Queue.Task job = bi.task;
         final List<String> labels = DockerSlaveConfiguration.get().getLabels();
         if (job.getAssignedLabel() != null && labels.contains(job.getAssignedLabel().getName())) {
-            BuildScheduler.scheduleBuild(bi, false);
+            BuildScheduler.scheduleBuild(bi);
         }
     }
 

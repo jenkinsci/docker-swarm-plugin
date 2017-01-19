@@ -24,7 +24,7 @@ public class DockerNodeProvisionerQueueWatcher extends PeriodicWork {
         final DockerSlaveConfiguration slaveConfig = DockerSlaveConfiguration.get();
         for (int i = items.length - 1; i >= 0; i--) { //reverse order
             final Queue.Item item = items[i];
-            final DockerSlaveInfo slaveInfo = item.getAction(DockerSlaveInfo.class);
+            final DockerSlaveInfo slaveInfo = item.getAction(DockerSlaveInfo.class); // This can be null here if computer was never provisioned. Build will sit in queue forever
             if (slaveInfo != null && item instanceof Queue.BuildableItem) {
                 if (slaveInfo.isProvisioningInProgress()) {
                     resetIfStuck(slaveInfo, item);
@@ -52,7 +52,7 @@ public class DockerNodeProvisionerQueueWatcher extends PeriodicWork {
     private void processQueueItem(final DockerSlaveConfiguration slaveConfig, final Queue.Item item, final DockerSlaveInfo slaveInfo) {
         if (!(slaveInfo.getProvisioningAttempts() > slaveConfig.getMaxProvisioningAttempts())) {
             LOGGER.info("Scheduling build: " + item.task);
-            BuildScheduler.scheduleBuild(((Queue.BuildableItem) item), true);
+            BuildScheduler.scheduleBuild(((Queue.BuildableItem) item));
         } else {
             LOGGER.info("Ignoring " + item.task + " since it exceeded max provisioning attempts. Attempts :" + slaveInfo.getProvisioningAttempts());
         }
