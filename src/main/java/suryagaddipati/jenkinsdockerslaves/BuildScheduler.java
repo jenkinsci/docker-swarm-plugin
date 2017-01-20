@@ -1,5 +1,6 @@
 package suryagaddipati.jenkinsdockerslaves;
 
+import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.Label;
 import hudson.model.Node;
@@ -14,9 +15,16 @@ public class BuildScheduler {
             final DockerLabelAssignmentAction action = createLabelAssignmentAction();
             final Node node = new DockerSlave(bi, action.getLabel().toString());
             setToInProgress(bi);
-            Jenkins.getInstance().addNode(node); //locks queue
+            bi.replaceAction(new DockerSlaveInfo(true));
             bi.replaceAction(action);
-        } catch (IOException e) {
+            Computer.threadPoolForRemoting.submit((Runnable) () -> {
+                try {
+                    Jenkins.getInstance().addNode(node); //locks queue
+                } catch (final IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (final IOException e) {
             e.printStackTrace();
         } catch (final Descriptor.FormException e) {
             e.printStackTrace();
