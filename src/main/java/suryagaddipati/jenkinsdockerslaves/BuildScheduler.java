@@ -5,13 +5,15 @@ import hudson.model.Descriptor;
 import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.Queue;
+import hudson.security.ACL;
+import hudson.security.ACLContext;
 import jenkins.model.Jenkins;
 
 import java.io.IOException;
 
 public class BuildScheduler {
     public static void scheduleBuild(final Queue.BuildableItem bi) {
-        try {
+        try (ACLContext _ = ACL.as(ACL.SYSTEM)) {
             final DockerLabelAssignmentAction action = createLabelAssignmentAction();
             final Node node = new DockerSlave(bi, action.getLabel().toString());
             setToInProgress(bi);
