@@ -141,6 +141,7 @@ public class SwarmDashboard implements RootAction {
         private final LabelConfiguration labelConfig;
         private final String inQueueSince;
         private final DockerSlaveInfo slaveInfo;
+        private Computer provisionedComputer;
 
         public SwarmQueueItem(final Queue.BuildableItem item) {
             this.name = item.task.getFullDisplayName();
@@ -148,6 +149,16 @@ public class SwarmDashboard implements RootAction {
             this.labelConfig = DockerSlaveConfiguration.get().getLabelConfiguration(this.label);
             this.inQueueSince = item.getInQueueForString();
             this.slaveInfo = item.getAction(DockerSlaveInfo.class); //this should never be null
+
+            final DockerLabelAssignmentAction lblAssignmentAction = item.getAction(DockerLabelAssignmentAction.class);
+            if (lblAssignmentAction != null) {
+                final String computerName = lblAssignmentAction.getLabel().getName();
+                this.provisionedComputer = Jenkins.getInstance().getComputer(computerName);
+            }
+        }
+
+        public Computer getProvisionedComputer() {
+            return this.provisionedComputer;
         }
 
         public DockerSlaveInfo getSlaveInfo() {

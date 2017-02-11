@@ -42,6 +42,7 @@ public class DockerNodeProvisionerQueueWatcher extends PeriodicWork {
             final Computer computer = Jenkins.getInstance().getComputer(computerName);
             if (slaveInfo.isComputerProvisioningStuck()) {
                 slaveInfo.setProvisioningInProgress(false);
+                slaveInfo.incrementProvisioningAttemptCount();
                 if (computer != null) {
                     ((DockerComputer) computer).delete();
                 }
