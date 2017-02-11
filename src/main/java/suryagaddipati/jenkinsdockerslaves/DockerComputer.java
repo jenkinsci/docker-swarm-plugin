@@ -153,4 +153,14 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     public void delete() {
         this.delete(null);
     }
+
+    @Override
+    public boolean isLaunchSupported() {
+        return false;
+    }
+
+    @Override
+    public boolean isManualLaunchAllowed() {
+        return false;
+    }
 }

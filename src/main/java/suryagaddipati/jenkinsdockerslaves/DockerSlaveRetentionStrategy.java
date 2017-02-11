@@ -1,5 +1,6 @@
 package suryagaddipati.jenkinsdockerslaves;
 
+import hudson.model.AbstractDescribableImpl;
 import hudson.model.Computer;
 import hudson.model.Executor;
 import hudson.model.ExecutorListener;
@@ -16,7 +17,7 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy implements E
 
     @Override
     public long check(final Computer c) {
-        if (c.isIdle()) {
+        if (c.isIdle() && !c.isConnecting()) {
             final long idleMilliseconds = System.currentTimeMillis() - c.getIdleStartMilliseconds();
             if (idleMilliseconds > TimeUnit2.MINUTES.toMillis(1)) {
                 LOGGER.log(Level.FINE, "Disconnecting {0}", c.getName());
@@ -80,6 +81,12 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy implements E
                 }
             }
         });
+    }
+
+    public static final class DescriptorImpl extends AbstractDescribableImpl {
+        public String getDisplayName() {
+            return "Disconnect after 1 min";
+        }
     }
 
 }
