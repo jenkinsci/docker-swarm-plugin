@@ -30,6 +30,7 @@ import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.Queue;
 import hudson.model.TaskListener;
+import hudson.model.labels.LabelAtom;
 import hudson.model.queue.CauseOfBlockage;
 import hudson.slaves.AbstractCloudSlave;
 import hudson.slaves.EphemeralNode;
@@ -37,6 +38,8 @@ import hudson.slaves.NodeProperty;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
 
@@ -76,6 +79,13 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
             return null;
         }
         return super.canTake(item);
+    }
+
+    @Override
+    public Set<LabelAtom> getAssignedLabels() {
+        final TreeSet<LabelAtom> labels = new TreeSet<>();
+        labels.add(new LabelAtom(getLabelString()));
+        return labels;
     }
 }
 
