@@ -25,71 +25,142 @@
 
 package suryagaddipati.jenkinsdockerslaves;
 
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.exception.NotFoundException;
+import com.github.dockerjava.api.model.Statistics;
 import com.google.common.collect.Iterables;
-import hudson.model.AbstractProject;
 import hudson.model.Executor;
-import hudson.model.Job;
 import hudson.model.Queue;
+import hudson.model.Run;
 import hudson.slaves.AbstractCloudComputer;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import static suryagaddipati.jenkinsdockerslaves.ExceptionHandlingHelpers.executeSliently;
+import static suryagaddipati.jenkinsdockerslaves.ExceptionHandlingHelpers.executeSlientlyWithLogging;
 
 public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
-    private final Job job;
     private String containerId;
-    private String volumeName;
-
-
     private String swarmNodeName;
 
 
-    public DockerComputer(DockerSlave dockerSlave, Job job) {
+    public DockerComputer(final DockerSlave dockerSlave) {
         super(dockerSlave);
-        this.job = job;
     }
 
 
-    @Override
-    public void recordTermination() {
-        if (isAcceptingTasks()) {
-            super.recordTermination();
-        }
-    }
-
-
-    public AbstractProject getJob() {
-        return (AbstractProject) job;
-    }
-
-
-
-    public void setContainerId(String containerId) {
-        this.containerId = containerId;
-    }
-
-    public void setVolumeName(String volumeName) {
-        this.volumeName = volumeName;
-    }
-
-    public void setNodeName(String nodeName) {
+    public void setNodeName(final String nodeName) {
         this.swarmNodeName = nodeName;
     }
+
     public String getSwarmNodeName() {
-        return swarmNodeName;
+        return this.swarmNodeName;
     }
 
-    public Queue.Executable getCurrentBuild(){
-        if (!Iterables.isEmpty(getExecutors())){
-            Executor exec = getExecutors().get(0);
-            return exec.getCurrentExecutable()==null? null: exec.getCurrentExecutable();
+    public Queue.Executable getCurrentBuild() {
+        if (!Iterables.isEmpty(getExecutors())) {
+            final Executor exec = getExecutors().get(0);
+            return exec.getCurrentExecutable() == null ? null : exec.getCurrentExecutable();
         }
         return null;
     }
 
     public String getContainerId() {
-        return containerId;
+        return this.containerId;
     }
 
-    public String getVolumeName() {
-        return volumeName;
+    public void setContainerId(final String containerId) {
+        this.containerId = containerId;
+    }
+
+    @Override
+    public Map<String, Object> getMonitorData() {
+        return new HashMap<>(); //no monitoring needed as this is a shortlived computer.
+    }
+
+
+    private void cleanupNode(final PrintStream logger) throws IOException, InterruptedException {
+        if (getNode() != null) {
+            logger.println("Removing node " + getNode().getDisplayName());
+            getNode().terminate();
+        }
+    }
+
+
+    private void gatherStats(final DockerClient dockerClient, final Queue.Executable currentExecutable) throws IOException {
+        final String containerId = getContainerId();
+        if (currentExecutable instanceof Run && ((Run) currentExecutable).getAction(DockerSlaveInfo.class) != null) {
+            final Run run = ((Run) currentExecutable);
+            final DockerSlaveInfo slaveInfo = ((Run) currentExecutable).getAction(DockerSlaveInfo.class);
+            final Statistics stats = dockerClient.statsCmd(containerId).exec();
+            slaveInfo.setStats(stats);
+            run.save();
+        }
+    }
+
+    public void collectStatsAndCleanupDockerContainer(final String containerId, final Queue.Executable currentExecutable, final PrintStream logger) throws IOException {
+
+        final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
+        try (DockerClient dockerClient = configuration.newDockerClient()) {
+            if (containerId != null) {
+                try {
+                    final InspectContainerResponse container = dockerClient.inspectContainerCmd(containerId).exec();
+                    executeSlientlyWithLogging(() -> gatherStats(dockerClient, currentExecutable), logger); // No big deal if we can't get stats
+                    if (container.getState().getPaused()) {
+                        executeSlientlyWithLogging(() -> dockerClient.unpauseContainerCmd(containerId).exec(), logger);
+                    }
+                    closeChannel();
+                    executeSliently(() -> dockerClient.killContainerCmd(containerId).exec());
+                    executeSlientlyWithLogging(() -> removeContainer(logger, containerId, dockerClient), logger);
+                } catch (final NotFoundException e) {
+                    //Ignore if container is already gone
+                }
+
+            }
+        }
+    }
+
+    private void closeChannel() throws IOException {
+        if (getChannel() != null) {
+            try {
+                getChannel().close();
+            } catch (final Exception e) {
+                //computer is going away and container is being killed. So this error doesn't matter.
+            }
+        }
+    }
+
+    private void removeContainer(final PrintStream logger, final String containerId, final DockerClient dockerClient) {
+        ExceptionHandlingHelpers.executeWithRetryOnError(() -> dockerClient.removeContainerCmd(containerId).withForce(true).exec());
+        logger.println("Removed Container " + containerId);
+    }
+
+    @Override
+    public void recordTermination() {
+        //no need to record termination
+    }
+
+    public void delete(final Queue.Executable currentExecutable) {
+        executeSlientlyWithLogging(() -> collectStatsAndCleanupDockerContainer(getContainerId(), currentExecutable, System.out), System.out); // Maybe be container was created, so attempt to delete it
+        executeSlientlyWithLogging(() -> cleanupNode(System.out), System.out);
+    }
+
+    public void delete() {
+        this.delete(null);
+    }
+
+    @Override
+    public boolean isLaunchSupported() {
+        return false;
+    }
+
+    @Override
+    public boolean isManualLaunchAllowed() {
+        return false;
     }
 }

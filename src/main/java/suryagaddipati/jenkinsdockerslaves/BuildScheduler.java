@@ -1,54 +1,57 @@
 package suryagaddipati.jenkinsdockerslaves;
 
-import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.Queue;
+import hudson.security.ACL;
+import hudson.security.ACLContext;
 import jenkins.model.Jenkins;
 
 import java.io.IOException;
 
 public class BuildScheduler {
-    public  static void scheduleBuild(Queue.BuildableItem bi, boolean replace) {
-        try {
-            DockerLabelAssignmentAction action = createLabelAssignmentAction();
-            if(replace){
-               bi.replaceAction(action);
-            }else {
-                bi.addAction(action);
-            }
-            // Immediately create a slave for this item
-            // Real provisioning will happen later
-
+    public static void scheduleBuild(final Queue.BuildableItem bi) {
+        try (ACLContext _ = ACL.as(ACL.SYSTEM)) {
+            final DockerLabelAssignmentAction action = createLabelAssignmentAction();
             final Node node = new DockerSlave(bi, action.getLabel().toString());
-            Computer.threadPoolForRemoting.submit(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Jenkins.getInstance().addNode(node);
-                    } catch (IOException e) {
-//                        e.printStackTrace();
-                    }
+            setToInProgress(bi);
+            bi.replaceAction(new DockerSlaveInfo(true));
+            bi.replaceAction(action);
+            Computer.threadPoolForRemoting.submit((Runnable) () -> {
+                try {
+                    Jenkins.getInstance().addNode(node); //locks queue
+                } catch (final IOException e) {
+                    e.printStackTrace();
                 }
             });
-        } catch (IOException e) {
+        } catch (final IOException e) {
             e.printStackTrace();
-        } catch (Descriptor.FormException e) {
+        } catch (final Descriptor.FormException e) {
             e.printStackTrace();
         }
     }
+
     private static DockerLabelAssignmentAction createLabelAssignmentAction() {
         try {
-            Thread.sleep(5,10);
-        } catch (InterruptedException e) {
+            Thread.sleep(5, 10);
+        } catch (final InterruptedException e) {
             e.printStackTrace();
         }
 
-        final String id = System.nanoTime()  + "";
+        final String id = System.nanoTime() + "";
         final Label label = new DockerMachineLabel(id);
         return new DockerLabelAssignmentAction(label);
+    }
+
+    private static void setToInProgress(final Queue.BuildableItem bi) {
+        final DockerSlaveInfo slaveInfoAction = bi.getAction(DockerSlaveInfo.class);
+        if (slaveInfoAction != null) {
+            slaveInfoAction.setProvisioningInProgress(true);
+        } else {
+            bi.replaceAction(new DockerSlaveInfo(true));
+        }
     }
 
 }

@@ -25,42 +25,39 @@
 
 package suryagaddipati.jenkinsdockerslaves;
 
-import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
-import hudson.model.Job;
 import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.Queue;
 import hudson.model.TaskListener;
+import hudson.model.labels.LabelAtom;
 import hudson.model.queue.CauseOfBlockage;
 import hudson.slaves.AbstractCloudSlave;
 import hudson.slaves.EphemeralNode;
 import hudson.slaves.NodeProperty;
-import hudson.slaves.RetentionStrategy;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.logging.Logger;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
 
-    private final Job job;
 
-    public DockerSlave(Queue.BuildableItem bi, String labelString) throws Descriptor.FormException, IOException {
-        super(labelString, "Container slave for building " + ((AbstractProject)bi.task).getFullName()+((AbstractProject)bi.task).getNextBuildNumber(),
+    public DockerSlave(final Queue.BuildableItem bi, final String labelString) throws Descriptor.FormException, IOException {
+        super(labelString, "Container slave for building " + bi.task.getFullDisplayName(),
                 "/home/jenkins", 1, Mode.EXCLUSIVE, labelString,
                 new DockerComputerLauncher(bi),
-                RetentionStrategy.NOOP,
+                new DockerSlaveRetentionStrategy(),
                 Collections.<NodeProperty<?>>emptyList());
-        this.job = ((AbstractProject)bi.task);
     }
 
     public DockerComputer createComputer() {
-        return new DockerComputer(this, job);
+        return new DockerComputer(this);
     }
 
     @Override
-    protected void _terminate(TaskListener listener) throws IOException, InterruptedException {
+    protected void _terminate(final TaskListener listener) throws IOException, InterruptedException {
     }
 
 
@@ -74,13 +71,21 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
         return (DockerComputer) super.getComputer();
     }
 
+
     @Override
-    public CauseOfBlockage canTake(Queue.BuildableItem item) {
-        Label l = item.getAssignedLabel();
-        if(l != null && this.name.equals(l.getName())){
+    public CauseOfBlockage canTake(final Queue.BuildableItem item) {
+        final Label l = item.getAssignedLabel();
+        if (l != null && this.name.equals(l.getName())) {
             return null;
         }
         return super.canTake(item);
+    }
+
+    @Override
+    public Set<LabelAtom> getAssignedLabels() {
+        final TreeSet<LabelAtom> labels = new TreeSet<>();
+        labels.add(new LabelAtom(getLabelString()));
+        return labels;
     }
 }
 

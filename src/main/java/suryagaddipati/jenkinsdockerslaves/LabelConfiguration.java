@@ -3,17 +3,19 @@ package suryagaddipati.jenkinsdockerslaves;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-public   class LabelConfiguration {
+public class LabelConfiguration {
+    private final String network;
     String image;
     String hostBinds;
+    String envVars;
     private Integer maxCpuShares;
     private Long maxMemory;
-
-
     private boolean dynamicResourceAllocation;
+    private String label;
+    private String cacheDir;
 
     @DataBoundConstructor
-    public LabelConfiguration(String image, String hostBinds, String label, String cacheDir, Integer maxCpuShares, Long maxMemory, boolean dynamicResourceAllocation) {
+    public LabelConfiguration(final String image, final String hostBinds, final String label, final String cacheDir, final Integer maxCpuShares, final Long maxMemory, final boolean dynamicResourceAllocation, final String envVars, final String network) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.label = label;
@@ -21,71 +23,88 @@ public   class LabelConfiguration {
         this.maxCpuShares = maxCpuShares;
         this.maxMemory = maxMemory;
         this.dynamicResourceAllocation = dynamicResourceAllocation;
+        this.envVars = envVars;
+        this.network = network;
     }
 
-    private String label;
+    public String getNetwork() {
+        return this.network;
+    }
 
     public String getCacheDir() {
-        return cacheDir;
-    }
-    public String[] getCacheDirs() {
-        return  StringUtils.isEmpty(cacheDir)? new String[]{}: cacheDir.split(" ");
+        return this.cacheDir;
     }
 
-    public void setCacheDir(String cacheDir) {
+    public void setCacheDir(final String cacheDir) {
         this.cacheDir = cacheDir;
     }
 
-    private String cacheDir;
-
+    public String[] getCacheDirs() {
+        return StringUtils.isEmpty(this.cacheDir) ? new String[]{} : this.cacheDir.split(" ");
+    }
 
     public String getLabel() {
-        return label;
+        return this.label;
     }
 
-    public void setLabel(String label) {
+    public void setLabel(final String label) {
         this.label = label;
     }
-    public void setHostBinds(String hostBinds) {
+
+    public String getHostBinds() {
+        return this.hostBinds;
+    }
+
+    public void setHostBinds(final String hostBinds) {
         this.hostBinds = hostBinds;
     }
 
-    public void setImage(String image) {
-        this.image = image;
-    }
-    public String getHostBinds() {
-        return hostBinds;
+    public String getImage() {
+        return this.image;
     }
 
-    public String getImage() {
-        return image;
+    public void setImage(final String image) {
+        this.image = image;
     }
+
     public String[] getHostBindsConfig() {
-        return StringUtils.isEmpty( this.hostBinds)? new String[]{}: this.hostBinds.split(" ");
+        return StringUtils.isEmpty(this.hostBinds) ? new String[]{} : this.hostBinds.split(" ");
     }
 
 
     public Integer getMaxCpuShares() {
-        return maxCpuShares == null ? 1: maxCpuShares;
+        return this.maxCpuShares == null ? 1 : this.maxCpuShares;
     }
 
-    public void setMaxCpuShares(Integer maxCpuShares) {
+    public void setMaxCpuShares(final Integer maxCpuShares) {
         this.maxCpuShares = maxCpuShares;
     }
 
     public Long getMaxMemory() {
-        return maxMemory == null? 0l: maxMemory;
+        return this.maxMemory == null ? 0l : this.maxMemory;
     }
 
-    public void setMaxMemory(Long maxMemory) {
+    public void setMaxMemory(final Long maxMemory) {
         this.maxMemory = maxMemory;
     }
 
     public boolean isDynamicResourceAllocation() {
-        return dynamicResourceAllocation;
+        return this.dynamicResourceAllocation;
     }
 
-    public void setDynamicResourceAllocation(boolean dynamicResourceAllocation) {
+    public void setDynamicResourceAllocation(final boolean dynamicResourceAllocation) {
         this.dynamicResourceAllocation = dynamicResourceAllocation;
+    }
+
+    public String getEnvVars() {
+        return this.envVars;
+    }
+
+    public void setEnvVars(final String envVars) {
+        this.envVars = envVars;
+    }
+
+    public String[] getEnvVarsConfig() {
+        return StringUtils.isEmpty(this.envVars) ? new String[]{} : this.envVars.split(" ");
     }
 }

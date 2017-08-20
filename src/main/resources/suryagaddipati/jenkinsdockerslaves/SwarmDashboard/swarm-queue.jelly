@@ -1,20 +1,29 @@
 <?jelly escape-by-default='false'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+<j:jelly xmlns:j="jelly:core">
+    <j:new var="h" className="hudson.Functions"/>
+    ${h.initPageVariables(context)}
     <h4>Queue</h4>
     <ul class="mdl-list">
         <j:forEach items="${it.queue}" var="item">
-        <li class="mdl-list__item mdl-list__item--two-line">
-            <span class="mdl-list__item-primary-content">
-                <span>${item.name}</span>
-                <span class="mdl-list__item-sub-title">${item.inQueueSince}</span>
-            </span>
-            <span class="mdl-list__item-secondary-content">
-                <span class="mdl-list__item-secondary-info">
-                    ${item.label}<br></br>
-                    ${item.labelConfig.cpus} CPU
+            <li class="mdl-list__item mdl-list__item--three-line">
+                <span class="mdl-list__item-primary-content">
+                    <span>${item.name}</span>
+                    <span class="mdl-list__item-text-body">
+                        ${item.inQueueSince} - Provisioning:
+                        ${item.slaveInfo.provisioningInProgress}
+                        <j:if test='${item.provisionedComputer != null}'>
+                            <a href="${rootURL}/${item.provisionedComputer.url}">
+                                ${item.provisionedComputer.displayName}
+                            </a>
+                        </j:if>
+                    </span>
                 </span>
-            </span>
-        </li>
+                <span class="mdl-list__item-secondary-content">
+                    <span class="mdl-list__item-secondary-info">
+                        ${item.slaveInfo.provisioningAttempts}
+                    </span>
+                </span>
+            </li>
         </j:forEach>
     </ul>
 

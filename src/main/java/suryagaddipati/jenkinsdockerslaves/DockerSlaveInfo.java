@@ -1,11 +1,19 @@
 package suryagaddipati.jenkinsdockerslaves;
 
+import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
+import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Statistics;
 import com.google.common.base.Joiner;
 import hudson.model.Run;
 import jenkins.model.RunAction2;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerResponse;
 
+import javax.servlet.ServletException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -13,45 +21,40 @@ import java.util.concurrent.TimeUnit;
 
 public class DockerSlaveInfo implements RunAction2 {
 
+    private final Date firstProvisioningAttempt;
     private String cacheVolumeName;
     private String cacheVolumeNameMountPoint;
-
-
-
     private Integer allocatedCPUShares;
     private Long allocatedMemory;
-
     private Long maxMemoryUsage;
     private List<Long> perCpuUsage;
-
-
     private Integer throttledTime;
-
-    public int getProvisioningAttempts() {
-        return provisioningAttempts;
-    }
-
-    private  int provisioningAttempts;
-    private  String containerId;
+    private transient Run<?, ?> run;
+    private Date computerLaunchTime;
+    private int provisioningAttempts;
+    private String containerId;
+    private String dockerImage;
     private boolean provisioningInProgress;
-    private Date  firstProvisioningAttempt;
     private Date provisionedTime;
 
-    public DockerSlaveInfo(boolean provisioningInProgress) {
+    public DockerSlaveInfo(final boolean provisioningInProgress) {
         this.provisioningInProgress = provisioningInProgress;
-        firstProvisioningAttempt = new Date();
-        provisioningAttempts = 1;
+        this.firstProvisioningAttempt = new Date();
+        this.provisioningAttempts = 1;
     }
 
-
-    @Override
-    public void onAttached(Run<?, ?> r) {
-
+    public int getProvisioningAttempts() {
+        return this.provisioningAttempts;
     }
 
     @Override
-    public void onLoad(Run<?, ?> r) {
+    public void onAttached(final Run<?, ?> r) {
+        this.run = r;
+    }
 
+    @Override
+    public void onLoad(final Run<?, ?> r) {
+        this.run = r;
     }
 
 
@@ -62,7 +65,7 @@ public class DockerSlaveInfo implements RunAction2 {
 
     @Override
     public String getDisplayName() {
-        return "Docker Slave Info";
+        return "Docker Slave";
     }
 
     @Override
@@ -71,151 +74,240 @@ public class DockerSlaveInfo implements RunAction2 {
     }
 
     public String getContainerId() {
-        return containerId;
+        return this.containerId;
     }
 
 
     public boolean isProvisioningInProgress() {
-        return provisioningInProgress;
+        return this.provisioningInProgress;
     }
 
-    public void setProvisioningInProgress(boolean provisioningInProgress) {
+    public void setProvisioningInProgress(final boolean provisioningInProgress) {
         this.provisioningInProgress = provisioningInProgress;
     }
 
-    public void setProvisionedTime(Date provisionedTime) {
+    public void setProvisionedTime(final Date provisionedTime) {
         this.provisionedTime = provisionedTime;
     }
 
     public void incrementProvisioningAttemptCount() {
-        provisioningAttempts++;
+        this.provisioningAttempts++;
     }
 
     public void setContainerInfo(InspectContainerResponse containerInfo) {
         this.containerId =  containerInfo.getName();
     }
 
-
-    public void setCacheVolumeName(String name) {
-        this.cacheVolumeName = name;
-    }
-
-    public void setCacheVolumeMountpoint(String mountpoint) {
+    public void setCacheVolumeMountpoint(final String mountpoint) {
         this.cacheVolumeNameMountPoint = mountpoint;
     }
 
     public String getCacheVolumeName() {
-        return cacheVolumeName;
+        return this.cacheVolumeName;
+    }
+
+    public void setCacheVolumeName(final String name) {
+        this.cacheVolumeName = name;
     }
 
     public String getCacheVolumeNameMountPoint() {
-        return cacheVolumeNameMountPoint;
+        return this.cacheVolumeNameMountPoint;
     }
 
 
     public Long getMaxMemoryUsage() {
-        return maxMemoryUsage;
-    }
-    public String getMemoryStats(){
-       return maxMemoryUsage != null? maxMemoryUsage + " bytes (" + Math.floor((maxMemoryUsage/1024)/1024) +" MB )" : "";
+        return this.maxMemoryUsage;
     }
 
-    public String getPerCpuUsage(){
-      return perCpuUsage == null? "": Joiner.on(", ").join(perCpuUsage);
+    public String getMemoryStats() {
+        return this.maxMemoryUsage != null ? this.maxMemoryUsage + " bytes (" + Math.floor((this.maxMemoryUsage / 1024) / 1024) + " MB )" : "";
     }
-    public String getTotalCpuUsage(){
-        if(perCpuUsage == null){
-           return  null;
+
+    private void setMemoryStats(final Map<String, Object> memoryStats) {
+        final Object maxUsage = memoryStats.get("max_usage");
+        if (maxUsage instanceof Integer) {
+            this.maxMemoryUsage = ((Integer) maxUsage).longValue();
+        } else {
+            this.maxMemoryUsage = (Long) maxUsage;
+        }
+    }
+
+    public String getPerCpuUsage() {
+        return this.perCpuUsage == null ? "" : Joiner.on(", ").join(this.perCpuUsage);
+    }
+
+    public String getTotalCpuUsage() {
+        if (this.perCpuUsage == null) {
+            return null;
         }
         long sum = 0;
-        for(Long value : perCpuUsage){
-           sum = sum + value;
+        for (final Long value : this.perCpuUsage) {
+            sum = sum + value;
         }
-        long seconds = TimeUnit.SECONDS.convert(sum, TimeUnit.NANOSECONDS);
+        final long seconds = TimeUnit.SECONDS.convert(sum, TimeUnit.NANOSECONDS);
 
-        long mins = TimeUnit.MINUTES.convert(sum, TimeUnit.NANOSECONDS);
-        return mins +" mins, " + (seconds - mins*60) + " secs.";
+        final long mins = TimeUnit.MINUTES.convert(sum, TimeUnit.NANOSECONDS);
+        return mins + " mins, " + (seconds - mins * 60) + " secs.";
 
     }
 
-    public void setStats(Statistics stats) {
-        Map<String, Object> memoryStats = stats.getMemoryStats();
+    public void setStats(final Statistics stats) {
+        final Map<String, Object> memoryStats = stats.getMemoryStats();
         setMemoryStats(memoryStats);
         setCpuStats(stats);
     }
 
-    private void setMemoryStats(Map<String, Object> memoryStats) {
-        Object maxUsage =  memoryStats.get("max_usage");
-        if(maxUsage instanceof Integer){
-            this.maxMemoryUsage = ((Integer)maxUsage).longValue();
-        }else {
-           this.maxMemoryUsage = (Long) maxUsage;
-        }
-    }
-
-    private void setCpuStats(Statistics stats) {
-        Map<String, Object> cpuStats = stats.getCpuStats();
-        if(cpuStats != null ){
-            Map<String, Object>  cpuUsage= (Map<String, Object>) cpuStats.get("cpu_usage");
-            if(cpuUsage != null ){
-                List<Long> perCpuUsage= (List<Long>) cpuUsage.get("percpu_usage");
-                if(perCpuUsage != null){
+    private void setCpuStats(final Statistics stats) {
+        final Map<String, Object> cpuStats = stats.getCpuStats();
+        if (cpuStats != null) {
+            final Map<String, Object> cpuUsage = (Map<String, Object>) cpuStats.get("cpu_usage");
+            if (cpuUsage != null) {
+                final List<Long> perCpuUsage = (List<Long>) cpuUsage.get("percpu_usage");
+                if (perCpuUsage != null) {
                     this.perCpuUsage = perCpuUsage;
                 }
 
             }
 
-            Map<String, Object>  throttlingData= (Map<String, Object>) cpuStats.get("throttling_data");
-            if(throttlingData != null){
-                this.throttledTime = (Integer)throttlingData.get("throttled_time");
+            final Map<String, Object> throttlingData = (Map<String, Object>) cpuStats.get("throttling_data");
+            if (throttlingData != null) {
+                this.throttledTime = (Integer) throttlingData.get("throttled_time");
             }
 
         }
     }
 
     public boolean wasThrottled() {
-        return throttledTime != null && throttledTime >0;
+        return this.throttledTime != null && this.throttledTime > 0;
     }
 
     public Integer getCpuAllocation() {
-        return allocatedCPUShares;
+        return this.allocatedCPUShares;
     }
 
-    public String getMemoryReservationString(){
-        return  allocatedMemory !=null ? allocatedMemory + " bytes (" + Math.floor((allocatedMemory/1024)/1024) +" MB )": "N/A";
+    public String getMemoryReservationString() {
+        return this.allocatedMemory != null ? this.allocatedMemory + " bytes (" + Math.floor((this.allocatedMemory / 1024) / 1024) + " MB )" : "N/A";
     }
 
     public Integer getAllocatedCPUShares() {
-        return allocatedCPUShares;
+        return this.allocatedCPUShares;
+    }
+
+    public void setAllocatedCPUShares(final Integer allocatedCPUShares) {
+        this.allocatedCPUShares = allocatedCPUShares;
     }
 
     public boolean wereCpusAllocated() {
-        return allocatedCPUShares != null && allocatedCPUShares != 0;
+        return this.allocatedCPUShares != null && this.allocatedCPUShares != 0;
     }
+
     public Integer getThrottledTime() {
-        return throttledTime;
+        return this.throttledTime;
     }
 
     public Long getMemoryReservation() {
-        return allocatedMemory;
+        return this.allocatedMemory;
     }
 
     public Integer getNextCpuAllocation() {
-        if(allocatedCPUShares != null && allocatedCPUShares != 0) {
-          return wasThrottled()?allocatedCPUShares+1: allocatedCPUShares;
+        if (this.allocatedCPUShares != null && this.allocatedCPUShares != 0) {
+            return wasThrottled() ? this.allocatedCPUShares + 1 : this.allocatedCPUShares;
         }
         return 1;
     }
 
     public Long getNextMemoryAllocation() {
-        return maxMemoryUsage ==null? 0l : maxMemoryUsage+ Bytes.MB(500);
+        return this.maxMemoryUsage == null ? 0l : this.maxMemoryUsage + Bytes.MB(500);
     }
 
-    public void setAllocatedCPUShares(Integer allocatedCPUShares) {
-        this.allocatedCPUShares = allocatedCPUShares;
-    }
-
-    public void setAllocatedMemory(Long allocatedMemory) {
+    public void setAllocatedMemory(final Long allocatedMemory) {
         this.allocatedMemory = allocatedMemory;
     }
+
+
+    public boolean isBuildFinished() throws IOException {
+        return !this.run.isBuilding();
+    }
+
+    public boolean isBuildPausable() throws IOException {
+        return this.containerId != null && isPausable();
+    }
+
+    public boolean isBuildUnPausable() throws IOException {
+        return this.containerId != null && isUnPausable();
+    }
+
+    public void doUnPauseBuild(final StaplerRequest req, final StaplerResponse rsp) throws ServletException, IOException {
+        togglePause(false);
+        rsp.forwardToPreviousPage(req);
+    }
+
+    public void doPauseBuild(final StaplerRequest req, final StaplerResponse rsp) throws ServletException, IOException {
+        togglePause(true);
+        rsp.forwardToPreviousPage(req);
+    }
+
+    private void togglePause(final boolean pause) throws IOException {
+        if (this.containerId != null) {
+            if (pause) {
+                pause();
+            } else {
+                unpause();
+            }
+        }
+    }
+
+    public void pause() throws IOException {
+        try (DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            dockerClient.pauseContainerCmd(this.containerId).exec();
+
+            final FileOutputStream logger = new FileOutputStream(this.run.getLogFile(), true);
+            logger.write("Build Paused. Resume Docker Slave to resume build. \n".getBytes());
+        }
+    }
+
+    public void unpause() throws IOException {
+        try (DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            dockerClient.unpauseContainerCmd(this.containerId).exec();
+        }
+    }
+
+    public boolean isPausable() throws IOException {
+        try (DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            final InspectContainerResponse container = dockerClient.inspectContainerCmd(this.containerId).exec();
+            return !container.getState().getPaused();
+        }
+    }
+
+    public boolean isUnPausable() throws IOException {
+        try (DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
+            try {
+                final InspectContainerResponse container = dockerClient.inspectContainerCmd(this.containerId).exec();
+                return container.getState().getPaused();
+            } catch (final NotFoundException e) {
+                return false;
+            }
+        }
+    }
+
+    public void setComputerLaunchTime(final Date computerLaunchTime) {
+        this.computerLaunchTime = computerLaunchTime;
+    }
+
+    public boolean isComputerProvisioningStuck() {
+        if (this.computerLaunchTime != null) {
+            final Duration secondsSpentProvisioning = Duration.ofMillis(new Date().getTime() - this.computerLaunchTime.getTime());
+            return secondsSpentProvisioning.toMinutes() > 2;
+        }
+        return false;
+    }
+
+    public String getDockerImage() {
+        return this.dockerImage;
+    }
+
+    public void setDockerImage(final String dockerImage) {
+        this.dockerImage = dockerImage;
+    }
+
 }

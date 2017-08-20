@@ -5,7 +5,6 @@ import hudson.model.Descriptor;
 import hudson.model.Label;
 import hudson.slaves.Cloud;
 import hudson.slaves.NodeProvisioner;
-import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.util.ArrayList;
@@ -18,18 +17,19 @@ public class FakeCloudForLabels extends Cloud {
     }
 
     @Override
-    public Collection<NodeProvisioner.PlannedNode> provision(Label label, int excessWorkload) {
-        return new ArrayList<NodeProvisioner.PlannedNode>();
+    public Collection<NodeProvisioner.PlannedNode> provision(final Label label, final int excessWorkload) {
+        return new ArrayList<>();
     }
 
     @Override
-    public boolean canProvision(Label label) {
-        DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
-        if( configuration !=null){
-           return configuration.canProvision(label);
+    public boolean canProvision(final Label label) {
+        final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
+        if (configuration != null) {
+            return configuration.canProvision(label);
         }
         return false;
     }
+
     @Extension
     public static class DescriptorImpl extends Descriptor<Cloud> {
 
