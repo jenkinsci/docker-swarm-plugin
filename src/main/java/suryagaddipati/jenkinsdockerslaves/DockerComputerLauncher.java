@@ -104,6 +104,8 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 listener.getLogger().println("Created container :" + container.getId());
                 computer.setContainerId(container.getId());
 
+                setNetwork(configuration, dockerClient, container);
+
                 final WaitContainerResultCallback createResponse = new WaitContainerResultCallback();
                 dockerClient.waitContainerCmd(container.getId()).exec(createResponse);
                 final Integer createStatusCode = createResponse.awaitStatusCode();
@@ -139,6 +141,12 @@ public class DockerComputerLauncher extends ComputerLauncher {
             if (dockerSlaveInfo != null) {
                 dockerSlaveInfo.setProvisioningInProgress(false);
             }
+        }
+    }
+
+    private void setNetwork(DockerSlaveConfiguration configuration, DockerClient dockerClient, CreateContainerResponse container) {
+        if(StringUtils.isNotEmpty(configuration.getSwarmNetwork())){
+            dockerClient.connectToNetworkCmd().withContainerId(container.getId()).withNetworkId(configuration.getSwarmNetwork()).exec();
         }
     }
 

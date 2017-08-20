@@ -44,6 +44,9 @@ THE SOFTWARE.
         <f:entry title="Jenkins Url " field="jenkinsUrl">
             <f:textbox/>
         </f:entry>
+        <f:entry title="Swarm Network" field="swarmNetwork">
+            <f:textbox/>
+        </f:entry>
         <f:entry title="Privileged" field="privileged">
             <f:checkbox/>
         </f:entry>

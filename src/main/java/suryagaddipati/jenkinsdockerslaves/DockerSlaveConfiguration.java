@@ -52,6 +52,9 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
     private String baseWorkspaceLocation;
 
 
+    private String swarmNetwork;
+
+
     private int maxProvisioningAttempts;
     private List<LabelConfiguration> labelConfigurations;
 
@@ -183,5 +186,13 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
 
     public void setMaxProvisioningAttempts(final int maxProvisioningAttempts) {
         this.maxProvisioningAttempts = maxProvisioningAttempts;
+    }
+
+    public String getSwarmNetwork() {
+        return swarmNetwork;
+    }
+
+    public void setSwarmNetwork(String swarmNetwork) {
+        this.swarmNetwork = swarmNetwork;
     }
 }
