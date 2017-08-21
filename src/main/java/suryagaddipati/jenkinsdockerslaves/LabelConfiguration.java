@@ -4,7 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 public class LabelConfiguration {
-    private final String network;
+    private String network;
     String image;
     String hostBinds;
     String envVars;
@@ -13,6 +13,10 @@ public class LabelConfiguration {
     private boolean dynamicResourceAllocation;
     private String label;
     private String cacheDir;
+
+    public  LabelConfiguration(){
+        //For Yaml Load
+    }
 
     @DataBoundConstructor
     public LabelConfiguration(final String image, final String hostBinds, final String label, final String cacheDir, final Integer maxCpuShares, final Long maxMemory, final boolean dynamicResourceAllocation, final String envVars, final String network) {

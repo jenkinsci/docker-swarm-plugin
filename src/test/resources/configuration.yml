@@ -1,0 +1,4 @@
+certificatesPath: "/meow"
+useTLS: true
+labelConfigurations:
+  - image: meow.com

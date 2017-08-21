@@ -56,13 +56,10 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
 
 
     private int maxProvisioningAttempts;
-    private List<LabelConfiguration> labelConfigurations;
+    private List<LabelConfiguration> labelConfigurations= new ArrayList<>();
 
     public DockerSlaveConfiguration() {
         load();
-        if (this.labelConfigurations == null) {
-            this.labelConfigurations = new ArrayList<>();
-        }
     }
 
     public static DockerSlaveConfiguration get() {
