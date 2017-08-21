@@ -39,7 +39,7 @@ import java.util.logging.Logger;
 public class DockerSwarmPlugin extends Plugin {
     private static final Logger LOGGER = Logger.getLogger(DockerSwarmPlugin.class.getName());
     @Override
-    public void postInitialize() throws Exception {
+    public void start() throws Exception {
 
         File configsDir = new File(Jenkins.getInstance().getRootDir(), "pluginConfigs");
         File swarmConfigYaml = new File(configsDir,"swarm.yml");
