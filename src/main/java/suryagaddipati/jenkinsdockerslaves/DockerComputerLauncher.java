@@ -16,6 +16,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
@@ -59,73 +60,22 @@ public class DockerComputerLauncher extends ComputerLauncher {
             if (this.bi.task instanceof AbstractProject) {
                 ((AbstractProject) this.bi.task).setCustomWorkspace(configuration.getBaseWorkspaceLocation());
             }
-            try (DockerClient dockerClient = configuration.newDockerClient()) {
-                final LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
 
-                final String[] envVarOptions = labelConfiguration.getEnvVarsConfig();
-                final String[] envVars = new String[envVarOptions.length];
-                if (envVarOptions.length != 0) {
-                    System.arraycopy(envVarOptions, 0, envVars, 0, envVarOptions.length);
-                }
+            final LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
 
-                final String additionalSlaveOptions = "-noReconnect";
-                final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer, configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
-                final String[] command = new String[]{"sh", "-c", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
-
-
-                final CreateContainerCmd containerCmd = dockerClient
-                        .createContainerCmd(labelConfiguration.getImage())
-                        .withCmd(command)
-                        .withPrivileged(configuration.isPrivileged())
-                        .withName(computer.getName())
-                        .withEnv(envVars);
-
-                final String[] bindOptions = labelConfiguration.getHostBindsConfig();
-                final String[] cacheDirs = labelConfiguration.getCacheDirs();
-                final Bind[] binds = new Bind[bindOptions.length + cacheDirs.length];
-                if (bindOptions.length != 0) {
-                    for (int i = 0; i < bindOptions.length; i++) {
-                        final String[] bindConfig = bindOptions[i].split(":");
-                        binds[i] = new Bind(bindConfig[0], new Volume(bindConfig[1]));
-                    }
-                }
-
-                createCacheBindings(listener, containerCmd, computer, cacheDirs, binds);
-                containerCmd.withBinds(binds);
-
-
-                setCgroupLimits(labelConfiguration, containerCmd, dockerSlaveInfo);
-
-                if (StringUtils.isNotEmpty(labelConfiguration.getNetwork())) {
-                    containerCmd.withNetworkMode(labelConfiguration.getNetwork());
-                }
-                listener.getLogger().println("Creating Container :" + containerCmd.toString());
-                final CreateContainerResponse container = containerCmd.exec();
-                listener.getLogger().println("Created container :" + container.getId());
-                computer.setContainerId(container.getId());
-
-                setNetwork(configuration, dockerClient, container);
-
-                final WaitContainerResultCallback createResponse = new WaitContainerResultCallback();
-                dockerClient.waitContainerCmd(container.getId()).exec(createResponse);
-                final Integer createStatusCode = createResponse.awaitStatusCode();
-                if (createStatusCode != 0) {
-                    throw new RuntimeException("Container creation failed with error code: " + createStatusCode);
-                }
-
-
-                final InspectContainerResponse[] containerInfo = {null};
-                ExceptionHandlingHelpers.executeWithRetryOnError(() -> containerInfo[0] = dockerClient.inspectContainerCmd(container.getId()).exec());
-                computer.setNodeName(containerInfo[0].toString());
-                dockerSlaveInfo.setContainerInfo(containerInfo[0]);
-
-                dockerClient.startContainerCmd(container.getId()).exec();
-                dockerSlaveInfo.setProvisionedTime(new Date());
-                dockerSlaveInfo.setDockerImage(labelConfiguration.getImage());
-
-//                computer.connect(false).get();
-                computer.connect(false);
+            final String[] envVarOptions = labelConfiguration.getEnvVarsConfig();
+            final String[] envVars = new String[envVarOptions.length];
+            if (envVarOptions.length != 0) {
+                System.arraycopy(envVarOptions, 0, envVars, 0, envVarOptions.length);
             }
+
+            final String additionalSlaveOptions = "-noReconnect";
+            final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer, configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
+            final String[] command = new String[]{"sh", "-c", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
+            DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
+            swarmPlugin.launchContainer(command,computer.getName(), envVars, labelConfiguration, listener);
+
+//            lauchDocker(computer, listener, dockerSlaveInfo, configuration, labelConfiguration, envVars, command);
 
         } catch (final Throwable e) {
             final String build = this.bi.task.getFullDisplayName();
@@ -142,6 +92,69 @@ public class DockerComputerLauncher extends ComputerLauncher {
                 dockerSlaveInfo.setProvisioningInProgress(false);
             }
         }
+    }
+
+    private void lauchDocker(DockerComputer computer, TaskListener listener, DockerSlaveInfo dockerSlaveInfo, DockerSlaveConfiguration configuration, LabelConfiguration labelConfiguration, String[] envVars, String[] command) throws IOException {
+        try (DockerClient dockerClient = configuration.newDockerClient()) {
+
+
+            launchAndConnect(computer, listener, dockerSlaveInfo, configuration, labelConfiguration, envVars, command, dockerClient);
+        }
+    }
+
+    private void launchAndConnect(DockerComputer computer, TaskListener listener, DockerSlaveInfo dockerSlaveInfo, DockerSlaveConfiguration configuration, LabelConfiguration labelConfiguration, String[] envVars, String[] command, DockerClient dockerClient) {
+        final CreateContainerCmd containerCmd = dockerClient
+                .createContainerCmd(labelConfiguration.getImage())
+                .withCmd(command)
+                .withPrivileged(configuration.isPrivileged())
+                .withName(computer.getName())
+                .withEnv(envVars);
+
+        final String[] bindOptions = labelConfiguration.getHostBindsConfig();
+        final String[] cacheDirs = labelConfiguration.getCacheDirs();
+        final Bind[] binds = new Bind[bindOptions.length + cacheDirs.length];
+        if (bindOptions.length != 0) {
+            for (int i = 0; i < bindOptions.length; i++) {
+                final String[] bindConfig = bindOptions[i].split(":");
+                binds[i] = new Bind(bindConfig[0], new Volume(bindConfig[1]));
+            }
+        }
+
+        createCacheBindings(listener, containerCmd, computer, cacheDirs, binds);
+        containerCmd.withBinds(binds);
+
+
+        setCgroupLimits(labelConfiguration, containerCmd, dockerSlaveInfo);
+
+        if (StringUtils.isNotEmpty(labelConfiguration.getNetwork())) {
+            containerCmd.withNetworkMode(labelConfiguration.getNetwork());
+        }
+        listener.getLogger().println("Creating Container :" + containerCmd.toString());
+        final CreateContainerResponse container = containerCmd.exec();
+        listener.getLogger().println("Created container :" + container.getId());
+        computer.setContainerId(container.getId());
+
+        setNetwork(configuration, dockerClient, container);
+
+        final WaitContainerResultCallback createResponse = new WaitContainerResultCallback();
+        dockerClient.waitContainerCmd(container.getId()).exec(createResponse);
+        final Integer createStatusCode = createResponse.awaitStatusCode();
+        if (createStatusCode != 0) {
+            throw new RuntimeException("Container creation failed with error code: " + createStatusCode);
+        }
+
+
+        final InspectContainerResponse[] containerInfo = {null};
+        ExceptionHandlingHelpers.executeWithRetryOnError(() -> containerInfo[0] = dockerClient.inspectContainerCmd(container.getId()).exec());
+        computer.setNodeName(containerInfo[0].toString());
+        dockerSlaveInfo.setContainerInfo(containerInfo[0]);
+
+        dockerClient.startContainerCmd(container.getId()).exec();
+        dockerSlaveInfo.setProvisionedTime(new Date());
+        dockerSlaveInfo.setDockerImage(labelConfiguration.getImage());
+
+//                computer.connect(false).get();
+        computer.connect(false);
     }
 
     private void setNetwork(DockerSlaveConfiguration configuration, DockerClient dockerClient, CreateContainerResponse container) {
@@ -194,7 +207,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
         return getJenkinsUrl(configuration) + computer.getUrl() + "slave-agent.jnlp";
 
     }
-
 
     private String getSlaveSecret(final Computer computer) {
         return ((DockerComputer) computer).getJnlpMac();

@@ -23,21 +23,45 @@ THE SOFTWARE.
  */
 package suryagaddipati.jenkinsdockerslaves;
 
+import akka.actor.ActorSystem;
+import akka.http.javadsl.Http;
+import akka.http.javadsl.marshalling.Marshaller;
+import akka.http.javadsl.model.HttpEntity;
+import akka.http.javadsl.model.HttpRequest;
+import akka.http.javadsl.model.HttpResponse;
+import akka.http.javadsl.model.RequestEntity;
+import akka.http.javadsl.unmarshalling.Unmarshaller;
+import akka.http.scaladsl.marshalling.Marshal;
+import akka.stream.ActorMaterializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import hudson.Extension;
 import hudson.Plugin;
+import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
+import scala.Function1;
+import scala.concurrent.ExecutionContext;
+import scala.concurrent.Future;
+import scala.concurrent.impl.ExecutionContextImpl;
+import scala.runtime.BoxedUnit;
+import suryagaddipati.jenkinsdockerslaves.docker.CreateContainerRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.CreateContainerResponse;
+import suryagaddipati.jenkinsdockerslaves.docker.Jackson;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 @Extension
 public class DockerSwarmPlugin extends Plugin {
     private static final Logger LOGGER = Logger.getLogger(DockerSwarmPlugin.class.getName());
+    private ActorSystem system;
+    private ActorMaterializer materializer;
+
     @Override
     public void start() throws Exception {
 
@@ -53,5 +77,38 @@ public class DockerSwarmPlugin extends Plugin {
         }else {
             LOGGER.info(swarmConfigYaml.getAbsolutePath() + " file not found.");
         }
+
+        this.system = ActorSystem.create();
+        this.materializer = ActorMaterializer.create(system);
+    }
+
+    @Override
+    public void stop() throws Exception {
+        this.system.shutdown();
+    }
+
+    public void launchContainer(String[] command, String name, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener) {
+        CreateContainerRequest crReq = new CreateContainerRequest(labelConfiguration.getImage(), command, envVars);
+        Marshaller<CreateContainerRequest, RequestEntity> marshller = Jackson.<CreateContainerRequest>marshaller();
+        Unmarshaller<HttpEntity, CreateContainerResponse> unmarshaller = Jackson.unmarshaller(CreateContainerResponse.class);
+        Function1<Throwable, BoxedUnit> excp = v1 -> BoxedUnit.UNIT ;
+        final ExecutionContext global = ExecutionContextImpl.fromExecutorService(Executors.newFixedThreadPool(10), excp);
+        Future resEntitry = new Marshal(crReq).to(marshller.asScala(), global);
+        Function1 func = v1 -> {
+            System.out.print(v1);
+            HttpRequest req = HttpRequest.POST("http://localhost:2376/containers/create").withEntity((RequestEntity) v1);
+            CompletionStage<HttpResponse> rsp = Http.get(system).singleRequest(req, materializer);
+            rsp.thenApply(v ->  {
+                unmarshaller.unmarshal(v.entity(),materializer).thenApply( ccr -> {
+
+                    HttpRequest start = HttpRequest.POST("http://localhost:2376/containers/"+ccr.getId()+"/start");
+                    CompletionStage<HttpResponse> startRsp = Http.get(system).singleRequest(start, materializer);
+                  return ccr;
+                });
+                return v;
+            });
+            return v1;
+        };
+        resEntitry.map(func,global);
     }
 }
