@@ -16,7 +16,6 @@ public class BuildScheduler {
         try (ACLContext _ = ACL.as(ACL.SYSTEM)) {
             final DockerLabelAssignmentAction action = createLabelAssignmentAction();
             final Node node = new DockerSlave(bi, action.getLabel().toString());
-            setToInProgress(bi);
             bi.replaceAction(new DockerSlaveInfo(true));
             bi.replaceAction(action);
             Computer.threadPoolForRemoting.submit((Runnable) () -> {
@@ -43,15 +42,6 @@ public class BuildScheduler {
         final String id = System.nanoTime() + "";
         final Label label = new DockerMachineLabel(id);
         return new DockerLabelAssignmentAction(label);
-    }
-
-    private static void setToInProgress(final Queue.BuildableItem bi) {
-        final DockerSlaveInfo slaveInfoAction = bi.getAction(DockerSlaveInfo.class);
-        if (slaveInfoAction != null) {
-            slaveInfoAction.setProvisioningInProgress(true);
-        } else {
-            bi.replaceAction(new DockerSlaveInfo(true));
-        }
     }
 
 }

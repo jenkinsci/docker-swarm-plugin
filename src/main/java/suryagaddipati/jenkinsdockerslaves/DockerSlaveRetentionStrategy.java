@@ -72,7 +72,7 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy implements E
             try {
                 final DockerSlave node = (DockerSlave) c.getNode();
                 if (node != null) {
-                    node.getComputer().delete(exec);
+                    node.terminate();
                 }
             } catch (final Exception e) {
                 LOGGER.log(Level.WARNING, "Failed to terminate " + c.getName(), e);

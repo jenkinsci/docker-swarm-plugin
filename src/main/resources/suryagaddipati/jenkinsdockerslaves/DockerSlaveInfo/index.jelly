@@ -28,19 +28,6 @@
                     <p><b>Throttled Time</b>: ${it.throttledTime}
                     </p>
                 </j:if>
-
-
-                <j:if test="${it.buildPausable}">
-                    <f:form method="post" action="pauseBuild" name="pauseBuild">
-                        <f:submit value="Pause Build"/>
-                    </f:form>
-                </j:if>
-                <j:if test="${it.buildUnPausable}">
-                    <f:form method="post" action="unPauseBuild"
-                            name="pauseBuild">
-                        <f:submit value="Resume Build"/>
-                    </f:form>
-                </j:if>
             </div>
         </l:main-panel>
     </l:layout>

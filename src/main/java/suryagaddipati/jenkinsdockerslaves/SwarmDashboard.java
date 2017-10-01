@@ -56,7 +56,7 @@ public class SwarmDashboard implements RootAction {
     public Iterable<SwarmNode> getNodes() {
 
         final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
-        try (DockerClient dockerClient = configuration.newDockerClient()) {
+        try (DockerClient dockerClient = null) {
             final Info info = dockerClient.infoCmd().exec();
             final List<Object> nodeInfo = info.getSystemStatus().subList(getNodeIndex(info), info.getSystemStatus().size());
             final List<List<Object>> nodes = Lists.partition(nodeInfo, 9);

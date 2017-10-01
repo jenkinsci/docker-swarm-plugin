@@ -1,19 +1,12 @@
 package suryagaddipati.jenkinsdockerslaves;
 
-import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.InspectContainerResponse;
-import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Statistics;
 import com.google.common.base.Joiner;
 import hudson.model.Run;
 import jenkins.model.RunAction2;
-import org.kohsuke.stapler.StaplerRequest;
-import org.kohsuke.stapler.StaplerResponse;
 
-import javax.servlet.ServletException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -78,21 +71,12 @@ public class DockerSlaveInfo implements RunAction2 {
     }
 
 
-    public boolean isProvisioningInProgress() {
-        return this.provisioningInProgress;
-    }
 
-    public void setProvisioningInProgress(final boolean provisioningInProgress) {
-        this.provisioningInProgress = provisioningInProgress;
-    }
 
     public void setProvisionedTime(final Date provisionedTime) {
         this.provisionedTime = provisionedTime;
     }
 
-    public void incrementProvisioningAttemptCount() {
-        this.provisioningAttempts++;
-    }
 
     public void setContainerInfo(InspectContainerResponse containerInfo) {
         this.containerId =  containerInfo.getName();
@@ -229,78 +213,15 @@ public class DockerSlaveInfo implements RunAction2 {
         return !this.run.isBuilding();
     }
 
-    public boolean isBuildPausable() throws IOException {
-        return this.containerId != null && isPausable();
-    }
 
-    public boolean isBuildUnPausable() throws IOException {
-        return this.containerId != null && isUnPausable();
-    }
 
-    public void doUnPauseBuild(final StaplerRequest req, final StaplerResponse rsp) throws ServletException, IOException {
-        togglePause(false);
-        rsp.forwardToPreviousPage(req);
-    }
 
-    public void doPauseBuild(final StaplerRequest req, final StaplerResponse rsp) throws ServletException, IOException {
-        togglePause(true);
-        rsp.forwardToPreviousPage(req);
-    }
-
-    private void togglePause(final boolean pause) throws IOException {
-        if (this.containerId != null) {
-            if (pause) {
-                pause();
-            } else {
-                unpause();
-            }
-        }
-    }
-
-    public void pause() throws IOException {
-        try (DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
-            dockerClient.pauseContainerCmd(this.containerId).exec();
-
-            final FileOutputStream logger = new FileOutputStream(this.run.getLogFile(), true);
-            logger.write("Build Paused. Resume Docker Slave to resume build. \n".getBytes());
-        }
-    }
-
-    public void unpause() throws IOException {
-        try (DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
-            dockerClient.unpauseContainerCmd(this.containerId).exec();
-        }
-    }
-
-    public boolean isPausable() throws IOException {
-        try (DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
-            final InspectContainerResponse container = dockerClient.inspectContainerCmd(this.containerId).exec();
-            return !container.getState().getPaused();
-        }
-    }
-
-    public boolean isUnPausable() throws IOException {
-        try (DockerClient dockerClient = DockerSlaveConfiguration.get().newDockerClient()) {
-            try {
-                final InspectContainerResponse container = dockerClient.inspectContainerCmd(this.containerId).exec();
-                return container.getState().getPaused();
-            } catch (final NotFoundException e) {
-                return false;
-            }
-        }
-    }
 
     public void setComputerLaunchTime(final Date computerLaunchTime) {
         this.computerLaunchTime = computerLaunchTime;
     }
 
-    public boolean isComputerProvisioningStuck() {
-        if (this.computerLaunchTime != null) {
-            final Duration secondsSpentProvisioning = Duration.ofMillis(new Date().getTime() - this.computerLaunchTime.getTime());
-            return secondsSpentProvisioning.toMinutes() > 2;
-        }
-        return false;
-    }
+
 
     public String getDockerImage() {
         return this.dockerImage;

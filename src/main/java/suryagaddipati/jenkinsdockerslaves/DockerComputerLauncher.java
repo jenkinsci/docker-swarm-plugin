@@ -21,7 +21,6 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.Date;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DockerComputerLauncher extends ComputerLauncher {
@@ -53,7 +52,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
     private void launch(final DockerComputer computer, final TaskListener listener) throws IOException, InterruptedException {
         DockerSlaveInfo dockerSlaveInfo = null;
-        try {
             dockerSlaveInfo = this.bi.getAction(DockerSlaveInfo.class);
             dockerSlaveInfo.setComputerLaunchTime(new Date());
             final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
@@ -77,30 +75,8 @@ public class DockerComputerLauncher extends ComputerLauncher {
 
 //            lauchDocker(computer, listener, dockerSlaveInfo, configuration, labelConfiguration, envVars, command);
 
-        } catch (final Throwable e) {
-            final String build = this.bi.task.getFullDisplayName();
-            if (noResourcesAvailable(e)) {
-                LOGGER.info("Not resources available for :" + build);
-            } else {
-                LOGGER.log(Level.INFO, "Failed to schedule: " + build, e);
-                dockerSlaveInfo.incrementProvisioningAttemptCount();
-            }
-            computer.delete();
-            throw new RuntimeException(e);
-        } finally {
-            if (dockerSlaveInfo != null) {
-                dockerSlaveInfo.setProvisioningInProgress(false);
-            }
-        }
     }
 
-    private void lauchDocker(DockerComputer computer, TaskListener listener, DockerSlaveInfo dockerSlaveInfo, DockerSlaveConfiguration configuration, LabelConfiguration labelConfiguration, String[] envVars, String[] command) throws IOException {
-        try (DockerClient dockerClient = configuration.newDockerClient()) {
-
-
-            launchAndConnect(computer, listener, dockerSlaveInfo, configuration, labelConfiguration, envVars, command, dockerClient);
-        }
-    }
 
     private void launchAndConnect(DockerComputer computer, TaskListener listener, DockerSlaveInfo dockerSlaveInfo, DockerSlaveConfiguration configuration, LabelConfiguration labelConfiguration, String[] envVars, String[] command, DockerClient dockerClient) {
         final CreateContainerCmd containerCmd = dockerClient
