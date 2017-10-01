@@ -25,7 +25,6 @@ package suryagaddipati.jenkinsdockerslaves;
 
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
-import akka.stream.ActorMaterializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import hudson.Extension;
@@ -45,7 +44,6 @@ import java.util.logging.Logger;
 public class DockerSwarmPlugin extends Plugin {
     private static final Logger LOGGER = Logger.getLogger(DockerSwarmPlugin.class.getName());
     private ActorSystem system;
-    private ActorMaterializer materializer;
 
     @Override
     public void start() throws Exception {
@@ -64,7 +62,6 @@ public class DockerSwarmPlugin extends Plugin {
         }
 
         this.system = ActorSystem.create();
-        this.materializer = ActorMaterializer.create(system);
     }
 
     @Override
@@ -73,12 +70,8 @@ public class DockerSwarmPlugin extends Plugin {
     }
 
     public void launchContainer(String[] command, String name, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener) {
-
-        final ActorRef agentLauncher = system.actorOf(DockerAgentLauncher.props(system,materializer), name);
-
+        final ActorRef agentLauncher = system.actorOf(DockerAgentLauncher.props(listener.getLogger()), name);
         CreateContainerRequest crReq = new CreateContainerRequest(labelConfiguration.getImage(), command, envVars);
-        agentLauncher.tell(new DockerAgentLauncher.AgentConfig(crReq,name),ActorRef.noSender());
-
-
+        agentLauncher.tell(crReq,ActorRef.noSender());
     }
 }
