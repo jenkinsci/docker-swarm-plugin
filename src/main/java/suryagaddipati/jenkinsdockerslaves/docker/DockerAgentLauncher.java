@@ -1,6 +1,7 @@
 package suryagaddipati.jenkinsdockerslaves.docker;
 
 import akka.actor.AbstractActor;
+import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.http.javadsl.Http;
@@ -14,12 +15,15 @@ import akka.http.scaladsl.marshalling.Marshal;
 import akka.stream.ActorMaterializer;
 import scala.concurrent.ExecutionContextExecutor;
 import scala.concurrent.Future;
+import scala.concurrent.duration.Duration;
 
 import java.io.PrintStream;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.TimeUnit;
 
 public class DockerAgentLauncher extends AbstractActor {
   private PrintStream logger;
+  private CreateContainerRequest createRequest;
 
   public DockerAgentLauncher(PrintStream logger) {
     this.logger = logger;
@@ -32,11 +36,12 @@ public class DockerAgentLauncher extends AbstractActor {
   @Override
   public Receive createReceive() {
     return receiveBuilder()
-            .match(CreateContainerRequest.class, agentConfig -> launchContainer(agentConfig))
+            .match(CreateContainerRequest.class, createContainerRequest -> launchContainer(createContainerRequest))
             .build();
   }
 
   private void launchContainer(CreateContainerRequest createRequest) {
+      this.createRequest = createRequest;
     ExecutionContextExecutor ec = getContext().dispatcher();
     Marshaller<Object, RequestEntity> marshaller = Jackson.marshaller();
     Future resEntitry = new Marshal(createRequest).to(marshaller.asScala(), ec);
@@ -59,6 +64,7 @@ public class DockerAgentLauncher extends AbstractActor {
     ActorMaterializer materializer = ActorMaterializer.create(getContext());
     if(throwable != null){
         throwable.printStackTrace(logger);
+        system.scheduler().scheduleOnce(Duration.apply(12, TimeUnit.SECONDS),getSelf(),createRequest, getContext().dispatcher(), ActorRef.noSender());
     }else{
       Unmarshaller<HttpEntity, CreateContainerResponse> unmarshaller = Jackson.unmarshaller(CreateContainerResponse.class);
       unmarshaller.unmarshal(httpResponse.entity(),materializer).thenApply( ccr -> {
