@@ -27,6 +27,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.typesafe.config.ConfigFactory;
 import hudson.Extension;
 import hudson.Plugin;
 import hudson.model.TaskListener;
@@ -61,7 +62,7 @@ public class DockerSwarmPlugin extends Plugin {
             LOGGER.info(swarmConfigYaml.getAbsolutePath() + " file not found.");
         }
 
-        this.system = ActorSystem.create();
+        this.system = ActorSystem.create("swarm-plugin", ConfigFactory.load());
     }
 
     @Override
