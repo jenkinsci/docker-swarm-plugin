@@ -23,28 +23,18 @@ THE SOFTWARE.
  */
 package suryagaddipati.jenkinsdockerslaves.docker;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 public class CreateContainerRequest {
-    private String Image;
-    private String[] cmd;
+    public String Image;
+    public String[] Cmd;
+    public boolean AutoRemove = true;
 
-    public CreateContainerRequest(String Image, String[] cmd, String[] envVars) {
+    public CreateContainerRequest(String Image, String[] Cmd, String[] envVars) {
         this.Image = Image;
-        this.cmd = cmd;
-    }
-
-    public String getImage() {
-        return Image;
-    }
-
-    public void setImage(String image) {
-        Image = image;
-    }
-
-    public String[] getCmd() {
-        return cmd;
-    }
-
-    public void setCmd(String[] cmd) {
-        this.cmd = cmd;
+        this.Cmd = Cmd;
     }
 }

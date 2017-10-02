@@ -23,17 +23,13 @@ THE SOFTWARE.
  */
 package suryagaddipati.jenkinsdockerslaves;
 
-import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.typesafe.config.ConfigFactory;
 import hudson.Extension;
 import hudson.Plugin;
-import hudson.model.TaskListener;
 import jenkins.model.Jenkins;
-import suryagaddipati.jenkinsdockerslaves.docker.CreateContainerRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.DockerAgentLauncher;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -44,7 +40,9 @@ import java.util.logging.Logger;
 @Extension
 public class DockerSwarmPlugin extends Plugin {
     private static final Logger LOGGER = Logger.getLogger(DockerSwarmPlugin.class.getName());
-    private ActorSystem system;
+
+
+    private ActorSystem actorSystem;
 
     @Override
     public void start() throws Exception {
@@ -62,17 +60,16 @@ public class DockerSwarmPlugin extends Plugin {
             LOGGER.info(swarmConfigYaml.getAbsolutePath() + " file not found.");
         }
 
-        this.system = ActorSystem.create("swarm-plugin", ConfigFactory.load());
+        this.actorSystem = ActorSystem.create("swarm-plugin", ConfigFactory.load());
     }
 
     @Override
     public void stop() throws Exception {
-        this.system.terminate();
+        this.actorSystem.terminate();
     }
 
-    public void launchContainer(String[] command, String name, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener) {
-        final ActorRef agentLauncher = system.actorOf(DockerAgentLauncher.props(listener.getLogger()), name);
-        CreateContainerRequest crReq = new CreateContainerRequest(labelConfiguration.getImage(), command, envVars);
-        agentLauncher.tell(crReq,ActorRef.noSender());
+    public ActorSystem getActorSystem() {
+        return actorSystem;
     }
+
 }

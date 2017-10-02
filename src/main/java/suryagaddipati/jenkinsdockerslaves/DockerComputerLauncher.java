@@ -1,6 +1,7 @@
 package suryagaddipati.jenkinsdockerslaves;
 
 
+import akka.actor.ActorRef;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
@@ -18,6 +19,8 @@ import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
+import suryagaddipati.jenkinsdockerslaves.docker.CreateContainerRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.DockerAgentLauncher;
 
 import java.io.IOException;
 import java.util.Date;
@@ -70,13 +73,18 @@ public class DockerComputerLauncher extends ComputerLauncher {
             final String additionalSlaveOptions = "-noReconnect";
             final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer, configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
             final String[] command = new String[]{"sh", "-c", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
-            DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-            swarmPlugin.launchContainer(command,computer.getName(), envVars, labelConfiguration, listener);
+            launchContainer(command,computer.getName(), envVars, labelConfiguration, listener);
 
 //            lauchDocker(computer, listener, dockerSlaveInfo, configuration, labelConfiguration, envVars, command);
 
     }
+    public void launchContainer(String[] command, String name, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener) {
+        DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
+        CreateContainerRequest crReq = new CreateContainerRequest(labelConfiguration.getImage(), command, envVars);
 
+        final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerAgentLauncher.props(listener.getLogger()), name);
+        agentLauncher.tell(crReq,ActorRef.noSender());
+    }
 
     private void launchAndConnect(DockerComputer computer, TaskListener listener, DockerSlaveInfo dockerSlaveInfo, DockerSlaveConfiguration configuration, LabelConfiguration labelConfiguration, String[] envVars, String[] command, DockerClient dockerClient) {
         final CreateContainerCmd containerCmd = dockerClient

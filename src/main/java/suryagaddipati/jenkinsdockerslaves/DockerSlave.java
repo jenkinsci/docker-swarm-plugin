@@ -34,7 +34,6 @@ import hudson.model.labels.LabelAtom;
 import hudson.model.queue.CauseOfBlockage;
 import hudson.slaves.AbstractCloudSlave;
 import hudson.slaves.EphemeralNode;
-import hudson.slaves.NodeProperty;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -49,7 +48,7 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
                 "/home/jenkins", 1, Mode.EXCLUSIVE, labelString,
                 new DockerComputerLauncher(bi),
                 new DockerSlaveRetentionStrategy(),
-                Collections.<NodeProperty<?>>emptyList());
+                Collections.emptyList());
     }
 
     public DockerComputer createComputer() {
@@ -64,11 +63,6 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
     @Override
     public Node asNode() {
         return this;
-    }
-
-    @Override
-    public DockerComputer getComputer() {
-        return (DockerComputer) super.getComputer();
     }
 
 
