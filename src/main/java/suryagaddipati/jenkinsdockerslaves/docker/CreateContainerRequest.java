@@ -29,12 +29,24 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 public class CreateContainerRequest {
+    private final String[] Env;
     public String Image;
     public String[] Cmd;
-    public boolean AutoRemove = true;
+    public HostConfig  HostConfig = new HostConfig();
 
-    public CreateContainerRequest(String Image, String[] Cmd, String[] envVars) {
+    public CreateContainerRequest(String Image, String[] Cmd, String[] Env) {
         this.Image = Image;
         this.Cmd = Cmd;
+        this.Env= Env;
+    }
+
+
+
+    public static  class  HostConfig{
+        public boolean AutoRemove = true;
+        public String[] Binds = new String[]{};
+    }
+    private static class Mount{
+
     }
 }

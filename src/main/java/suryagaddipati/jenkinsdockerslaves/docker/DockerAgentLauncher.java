@@ -16,21 +16,24 @@ import akka.stream.ActorMaterializer;
 import scala.concurrent.ExecutionContextExecutor;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
+import suryagaddipati.jenkinsdockerslaves.DockerComputer;
 
 import java.io.PrintStream;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 
 public class DockerAgentLauncher extends AbstractActor {
+  private DockerComputer computer;
   private PrintStream logger;
   private CreateContainerRequest createRequest;
 
-  public DockerAgentLauncher(PrintStream logger) {
+  public DockerAgentLauncher(DockerComputer computer, PrintStream logger) {
+    this.computer = computer;
     this.logger = logger;
   }
 
-  public static Props props(PrintStream logger) {
-    return Props.create(DockerAgentLauncher.class, () -> new DockerAgentLauncher(logger));
+  public static Props props(DockerComputer computer, PrintStream logger) {
+    return Props.create(DockerAgentLauncher.class, () -> new DockerAgentLauncher(computer,logger));
   }
 
   @Override
@@ -70,8 +73,32 @@ public class DockerAgentLauncher extends AbstractActor {
       unmarshaller.unmarshal(httpResponse.entity(),materializer).thenApply( ccr -> {
         HttpRequest start = HttpRequest.POST("http://localhost:2376/containers/"+ccr.getId()+"/start");
         CompletionStage<HttpResponse> startRsp = Http.get(system).singleRequest(start, materializer);
+        startRsp.whenCompleteAsync(this::handleContainerStart);
         return ccr;
       });
     }
   }
+
+  private void handleContainerStart(HttpResponse httpResponse, Throwable throwable) {
+    restartOnException(throwable);
+    if(httpResponse.status().isFailure()){
+      logger.println(httpResponse.entity().toString());
+      resechedule();
+    }else {
+      computer.setConnecting(false);
+    }
+  }
+
+  private void restartOnException(Throwable throwable) {
+    if(throwable != null){
+      throwable.printStackTrace(logger);
+      resechedule();
+    }
+  }
+
+  private void resechedule() {
+    ActorSystem system = getContext().getSystem();
+    system.scheduler().scheduleOnce(Duration.apply(12, TimeUnit.SECONDS),getSelf(),createRequest, getContext().dispatcher(), ActorRef.noSender());
+  }
+
 }

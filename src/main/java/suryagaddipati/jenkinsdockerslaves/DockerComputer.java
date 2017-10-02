@@ -37,6 +37,7 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
     private String containerId;
     private String swarmNodeName;
+    private boolean isConnecting;
 
 
     public DockerComputer(final DockerSlave dockerSlave) {
@@ -86,5 +87,14 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
     @Override
     public boolean isManualLaunchAllowed() {
         return false;
+    }
+
+    @Override
+    public boolean isConnecting() {
+        return this.isConnecting;
+    }
+
+    public void setConnecting(boolean connecting) {
+        isConnecting = connecting;
     }
 }

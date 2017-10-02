@@ -73,16 +73,18 @@ public class DockerComputerLauncher extends ComputerLauncher {
             final String additionalSlaveOptions = "-noReconnect";
             final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer, configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
             final String[] command = new String[]{"sh", "-c", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
-            launchContainer(command,computer.getName(), envVars, labelConfiguration, listener);
+            launchContainer(command,computer.getName(), envVars, labelConfiguration, listener, computer);
 
 //            lauchDocker(computer, listener, dockerSlaveInfo, configuration, labelConfiguration, envVars, command);
 
     }
-    public void launchContainer(String[] command, String name, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener) {
+    public void launchContainer(String[] command, String name, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
         CreateContainerRequest crReq = new CreateContainerRequest(labelConfiguration.getImage(), command, envVars);
+        crReq.HostConfig.Binds = labelConfiguration.getHostBindsConfig();
 
-        final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerAgentLauncher.props(listener.getLogger()), name);
+        computer.setConnecting(true);
+        final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerAgentLauncher.props(computer,listener.getLogger()), name);
         agentLauncher.tell(crReq,ActorRef.noSender());
     }
 
@@ -137,7 +139,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
         dockerSlaveInfo.setProvisionedTime(new Date());
         dockerSlaveInfo.setDockerImage(labelConfiguration.getImage());
 
-//                computer.connect(false).get();
         computer.connect(false);
     }
 
