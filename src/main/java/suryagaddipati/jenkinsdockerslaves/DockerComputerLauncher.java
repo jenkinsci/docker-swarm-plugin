@@ -83,6 +83,16 @@ public class DockerComputerLauncher extends ComputerLauncher {
         CreateContainerRequest crReq = new CreateContainerRequest(labelConfiguration.getImage(), command, envVars);
         crReq.HostConfig.Binds = labelConfiguration.getHostBindsConfig();
 
+        final String[] cacheDirs = labelConfiguration.getCacheDirs();
+        if (cacheDirs.length > 0) {
+            final String cacheVolumeName = getJobName() + "-" + computer.getName();
+            this.bi.getAction(DockerSlaveInfo.class).setCacheVolumeName(cacheVolumeName);
+            for (int i = 0; i < cacheDirs.length; i++) {
+                listener.getLogger().println("Binding Volume" + cacheDirs[i] + " to " + cacheVolumeName);
+                crReq.HostConfig.addCacheMount(cacheVolumeName, cacheDirs[i]);
+            }
+        }
+
         computer.setConnecting(true);
         final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerAgentLauncher.props(computer,listener.getLogger()), name);
         agentLauncher.tell(crReq,ActorRef.noSender());
