@@ -82,6 +82,9 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
     public String getUri() {
         return this.uri;
     }
+    public String getDockerUri(){
+        return getUri();
+    }
 
     public void setUri(final String uri) {
         this.uri = uri;

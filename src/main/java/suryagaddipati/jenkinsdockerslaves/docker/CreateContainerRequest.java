@@ -47,6 +47,7 @@ public class CreateContainerRequest {
 
     public static  class  HostConfig{
         public boolean AutoRemove = true;
+        public String NetworkMode;
         public String[] Binds = new String[]{};
         public List<Mount> Mounts = new ArrayList<>();
         public void addCacheMount(String Source, String Target){

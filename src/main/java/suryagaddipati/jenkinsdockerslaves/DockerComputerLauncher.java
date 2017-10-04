@@ -73,15 +73,18 @@ public class DockerComputerLauncher extends ComputerLauncher {
             final String additionalSlaveOptions = "-noReconnect";
             final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer, configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
             final String[] command = new String[]{"sh", "-c", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
-            launchContainer(command,computer.getName(), envVars, labelConfiguration, listener, computer);
+            launchContainer(command,configuration, envVars, labelConfiguration, listener, computer);
 
 //            lauchDocker(computer, listener, dockerSlaveInfo, configuration, labelConfiguration, envVars, command);
 
     }
-    public void launchContainer(String[] command, String name, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {
+    public void launchContainer(String[] command, DockerSlaveConfiguration configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
         CreateContainerRequest crReq = new CreateContainerRequest(labelConfiguration.getImage(), command, envVars);
         crReq.HostConfig.Binds = labelConfiguration.getHostBindsConfig();
+        if(StringUtils.isNotEmpty(configuration.getSwarmNetwork())){
+            crReq.HostConfig.NetworkMode = configuration.getSwarmNetwork();
+        }
 
         final String[] cacheDirs = labelConfiguration.getCacheDirs();
         if (cacheDirs.length > 0) {
@@ -94,7 +97,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
         }
 
         computer.setConnecting(true);
-        final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerAgentLauncher.props(computer,listener.getLogger()), name);
+        final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerAgentLauncher.props(computer,listener.getLogger(),configuration.getDockerUri()), computer.getName());
         agentLauncher.tell(crReq,ActorRef.noSender());
     }
 
