@@ -23,10 +23,6 @@ public class FakeCloudForLabels extends Cloud {
 
     @Override
     public boolean canProvision(final Label label) {
-        final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
-        if (configuration != null) {
-            return configuration.canProvision(label);
-        }
         return false;
     }
 
