@@ -111,7 +111,7 @@ public class SwarmDashboard implements RootAction {
         return dockerComputers;
     }
 
-    
+
 
     public static class SwarmQueueItem {
 
