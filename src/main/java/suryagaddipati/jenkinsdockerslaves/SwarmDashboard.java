@@ -1,10 +1,7 @@
 package suryagaddipati.jenkinsdockerslaves;
 
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.model.Info;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import hudson.Extension;
 import hudson.model.Computer;
 import hudson.model.Job;
@@ -14,7 +11,6 @@ import hudson.model.Run;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -55,16 +51,7 @@ public class SwarmDashboard implements RootAction {
 
     public Iterable<SwarmNode> getNodes() {
 
-        final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
-        try (DockerClient dockerClient = null) {
-            final Info info = dockerClient.infoCmd().exec();
-            final List<Object> nodeInfo = info.getSystemStatus().subList(getNodeIndex(info), info.getSystemStatus().size());
-            final List<List<Object>> nodes = Lists.partition(nodeInfo, 9);
-            final List<Computer> dockerComputers = filterDockerComputers(Jenkins.getInstance().getComputers());
-            return Iterables.transform(nodes, nodeInformation -> new SwarmNode(nodeInformation, dockerComputers));
-        } catch (final IOException e) {
-            return new ArrayList<>();
-        }
+      return null;
     }
 
     public String getUsage() {
@@ -124,15 +111,7 @@ public class SwarmDashboard implements RootAction {
         return dockerComputers;
     }
 
-    private int getNodeIndex(final Info info) {
-        final List<Object> systemStatus = info.getSystemStatus();
-        for (int i = 0; i < systemStatus.size(); i++) {
-            final List<String> stat = (List<String>) systemStatus.get(i);
-            if (stat.get(0).equals("Nodes")) return i + 1;
-        }
-        return 0;
-    }
-
+    
 
     public static class SwarmQueueItem {
 

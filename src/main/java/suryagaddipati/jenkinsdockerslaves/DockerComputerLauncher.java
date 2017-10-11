@@ -2,23 +2,13 @@ package suryagaddipati.jenkinsdockerslaves;
 
 
 import akka.actor.ActorRef;
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.command.CreateContainerCmd;
-import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.command.InspectContainerResponse;
-import com.github.dockerjava.api.exception.InternalServerErrorException;
-import com.github.dockerjava.api.model.Bind;
-import com.github.dockerjava.api.model.Volume;
-import com.github.dockerjava.core.command.WaitContainerResultCallback;
 import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Queue;
-import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
 import suryagaddipati.jenkinsdockerslaves.docker.CreateServiceRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.DockerAgentLauncher;
 
@@ -106,100 +96,8 @@ public class DockerComputerLauncher extends ComputerLauncher {
         agentLauncher.tell(crReq,ActorRef.noSender());
     }
 
-    private void launchAndConnect(DockerComputer computer, TaskListener listener, DockerSlaveInfo dockerSlaveInfo, DockerSlaveConfiguration configuration, LabelConfiguration labelConfiguration, String[] envVars, String[] command, DockerClient dockerClient) {
-        final CreateContainerCmd containerCmd = dockerClient
-                .createContainerCmd(labelConfiguration.getImage())
-                .withCmd(command)
-                .withPrivileged(configuration.isPrivileged())
-                .withName(computer.getName())
-                .withEnv(envVars);
-
-        final String[] bindOptions = labelConfiguration.getHostBindsConfig();
-        final String[] cacheDirs = labelConfiguration.getCacheDirs();
-        final Bind[] binds = new Bind[bindOptions.length + cacheDirs.length];
-        if (bindOptions.length != 0) {
-            for (int i = 0; i < bindOptions.length; i++) {
-                final String[] bindConfig = bindOptions[i].split(":");
-                binds[i] = new Bind(bindConfig[0], new Volume(bindConfig[1]));
-            }
-        }
-
-        createCacheBindings(listener, containerCmd, computer, cacheDirs, binds);
-        containerCmd.withBinds(binds);
 
 
-        setCgroupLimits(labelConfiguration, containerCmd, dockerSlaveInfo);
-
-        if (StringUtils.isNotEmpty(labelConfiguration.getNetwork())) {
-            containerCmd.withNetworkMode(labelConfiguration.getNetwork());
-        }
-        listener.getLogger().println("Creating Container :" + containerCmd.toString());
-        final CreateContainerResponse container = containerCmd.exec();
-        listener.getLogger().println("Created container :" + container.getId());
-        computer.setContainerId(container.getId());
-
-        setNetwork(configuration, dockerClient, container);
-
-        final WaitContainerResultCallback createResponse = new WaitContainerResultCallback();
-        dockerClient.waitContainerCmd(container.getId()).exec(createResponse);
-        final Integer createStatusCode = createResponse.awaitStatusCode();
-        if (createStatusCode != 0) {
-            throw new RuntimeException("Container creation failed with error code: " + createStatusCode);
-        }
-
-
-        final InspectContainerResponse[] containerInfo = {null};
-        ExceptionHandlingHelpers.executeWithRetryOnError(() -> containerInfo[0] = dockerClient.inspectContainerCmd(container.getId()).exec());
-        computer.setNodeName(containerInfo[0].toString());
-        dockerSlaveInfo.setContainerInfo(containerInfo[0]);
-
-        dockerClient.startContainerCmd(container.getId()).exec();
-        dockerSlaveInfo.setProvisionedTime(new Date());
-        dockerSlaveInfo.setDockerImage(labelConfiguration.getImage());
-
-        computer.connect(false);
-    }
-
-    private void setNetwork(DockerSlaveConfiguration configuration, DockerClient dockerClient, CreateContainerResponse container) {
-        if(StringUtils.isNotEmpty(configuration.getSwarmNetwork())){
-            dockerClient.connectToNetworkCmd().withContainerId(container.getId()).withNetworkId(configuration.getSwarmNetwork()).exec();
-        }
-    }
-
-    private void setCgroupLimits(final LabelConfiguration labelConfiguration, final CreateContainerCmd containerCmd, final DockerSlaveInfo dockerSlaveInfo) {
-        Integer cpuAllocation = labelConfiguration.getMaxCpuShares();
-        Long memoryAllocation = labelConfiguration.getMaxMemory();
-
-        if (labelConfiguration.isDynamicResourceAllocation()) {
-            final Run lastSuccessfulBuild = null; //job.getLastSuccessfulBuild();
-            if (lastSuccessfulBuild != null && lastSuccessfulBuild.getAction(DockerSlaveInfo.class) != null) {
-                final DockerSlaveInfo lastSuccessfulSlaveInfo = lastSuccessfulBuild.getAction(DockerSlaveInfo.class);
-                cpuAllocation = Math.min(labelConfiguration.getMaxCpuShares(), lastSuccessfulSlaveInfo.getNextCpuAllocation());
-                memoryAllocation = Math.min(labelConfiguration.getMaxMemory(), lastSuccessfulSlaveInfo.getNextMemoryAllocation());
-            }
-        }
-        containerCmd.withCpuShares(cpuAllocation);
-        containerCmd.withMemory(memoryAllocation);
-        dockerSlaveInfo.setAllocatedCPUShares(cpuAllocation);
-        dockerSlaveInfo.setAllocatedMemory(memoryAllocation);
-
-    }
-
-    private void createCacheBindings(final TaskListener listener, final CreateContainerCmd createContainerCmd, final DockerComputer computer, final String[] cacheDirs, final Bind[] binds) {
-        if (cacheDirs.length > 0) {
-            final String cacheVolumeName = getJobName() + "-" + computer.getName();
-            createContainerCmd.withVolumeDriver("cache-driver");
-            this.bi.getAction(DockerSlaveInfo.class).setCacheVolumeName(cacheVolumeName);
-            for (int i = 0; i < cacheDirs.length; i++) {
-                listener.getLogger().println("Binding Volume" + cacheDirs[i] + " to " + cacheVolumeName);
-                binds[binds.length - 1] = new Bind(cacheVolumeName, new Volume(cacheDirs[i]));
-            }
-        }
-    }
-
-    private boolean noResourcesAvailable(final Throwable e) {
-        return e instanceof InternalServerErrorException && e.getMessage().trim().contains("no resources available to schedule container");
-    }
 
 
     private String getSlaveJarUrl(final DockerSlaveConfiguration configuration) {
