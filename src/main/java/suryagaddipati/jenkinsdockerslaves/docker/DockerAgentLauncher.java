@@ -13,9 +13,13 @@ import akka.http.javadsl.model.RequestEntity;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
 import akka.http.scaladsl.marshalling.Marshal;
 import akka.stream.ActorMaterializer;
+import org.apache.commons.lang.StringUtils;
+import scala.PartialFunction;
 import scala.concurrent.ExecutionContextExecutor;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
+import scala.util.Failure;
+import scala.util.Success;
 import suryagaddipati.jenkinsdockerslaves.DockerComputer;
 
 import java.io.PrintStream;
@@ -26,7 +30,7 @@ public class DockerAgentLauncher extends AbstractActor {
     private DockerComputer computer;
     private PrintStream logger;
     private String dockerUri;
-    private CreateContainerRequest createRequest;
+    private CreateServiceRequest createRequest;
 
     public DockerAgentLauncher(DockerComputer computer, PrintStream logger, String dockerUri) {
         this.computer = computer;
@@ -41,16 +45,33 @@ public class DockerAgentLauncher extends AbstractActor {
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(CreateContainerRequest.class, createContainerRequest -> launchContainer(createContainerRequest))
+                .match(CreateServiceRequest.class, createServiceRequest -> launchContainer(createServiceRequest))
                 .build();
     }
 
-    private void launchContainer(CreateContainerRequest createRequest) {
+    private void launchContainer(CreateServiceRequest createRequest) {
         this.createRequest = createRequest;
         ExecutionContextExecutor ec = getContext().dispatcher();
         Marshaller<Object, RequestEntity> marshaller = Jackson.marshaller();
         Future resEntitry = new Marshal(createRequest).to(marshaller.asScala(), ec);
-        resEntitry.map(this::launchContainer, ec);
+        DockerAgentLauncher that = this;
+        PartialFunction launchContainer = new PartialFunction() {
+            @Override
+            public boolean isDefinedAt(Object x) {
+                return true;
+            }
+            @Override
+            public Object apply(Object result) {
+                if(result instanceof Failure){
+                    Failure failure = (Failure) result;
+                    failure.exception().printStackTrace(logger);
+                    return null;
+                }else {
+                    return ((Success)result).map(that::launchContainer);
+                }
+            }
+        };
+        resEntitry.andThen(launchContainer, ec);
     }
 
     private Object launchContainer(Object createcontainerRequestEnity){
@@ -58,26 +79,34 @@ public class DockerAgentLauncher extends AbstractActor {
         ActorSystem system = getContext().getSystem();
         ActorMaterializer materializer = ActorMaterializer.create(getContext());
 
-        HttpRequest req = HttpRequest.POST(getUrl("/containers/create")).withEntity((RequestEntity) createcontainerRequestEnity);
+        HttpRequest req = HttpRequest.POST(getUrl("/services/create")).withEntity((RequestEntity) createcontainerRequestEnity);
         CompletionStage<HttpResponse> rsp = Http.get(system).singleRequest(req, materializer);
-        rsp.whenCompleteAsync(this::startContainer);
+        rsp.whenCompleteAsync(this::serviceStartResponseHandler);
         return createcontainerRequestEnity;
     }
 
-    private void startContainer(HttpResponse httpResponse, Throwable throwable) {
-        ActorSystem system = getContext().getSystem();
+    private void serviceStartResponseHandler(HttpResponse httpResponse, Throwable throwable) {
         ActorMaterializer materializer = ActorMaterializer.create(getContext());
         if(throwable != null){
             throwable.printStackTrace(logger);
-            system.scheduler().scheduleOnce(Duration.apply(12, TimeUnit.SECONDS),getSelf(),createRequest, getContext().dispatcher(), ActorRef.noSender());
+            resechedule();
         }else{
-            Unmarshaller<HttpEntity, CreateContainerResponse> unmarshaller = Jackson.unmarshaller(CreateContainerResponse.class);
-            unmarshaller.unmarshal(httpResponse.entity(),materializer).thenApply( ccr -> {
-                HttpRequest start = HttpRequest.POST( getUrl("/containers/"+ccr.getId()+"/start"));
-                CompletionStage<HttpResponse> startRsp = Http.get(system).singleRequest(start, materializer);
-                startRsp.whenCompleteAsync(this::handleContainerStart);
-                return ccr;
-            });
+
+            if(httpResponse.status().isFailure()){
+                logger.println(httpResponse.entity().toString());
+                resechedule();
+            }else {
+                Unmarshaller<HttpEntity, CreateServiceResponse> unmarshaller = Jackson.unmarshaller(CreateServiceResponse.class);
+                unmarshaller.unmarshal(httpResponse.entity(),materializer).thenApply( csr -> {
+                    logger.println("Service created with ID : " + csr.ID);
+                    if(StringUtils.isNotEmpty(csr.Warning)){
+                        logger.println("Service creation warning : " + csr.Warning);
+                    }
+                    return csr;
+                });
+            }
+
+
         }
     }
 
@@ -85,22 +114,6 @@ public class DockerAgentLauncher extends AbstractActor {
         return this.dockerUri+path;
     }
 
-    private void handleContainerStart(HttpResponse httpResponse, Throwable throwable) {
-        restartOnException(throwable);
-        if(httpResponse.status().isFailure()){
-            logger.println(httpResponse.entity().toString());
-            resechedule();
-        }else {
-            computer.setConnecting(false);
-        }
-    }
-
-    private void restartOnException(Throwable throwable) {
-        if(throwable != null){
-            throwable.printStackTrace(logger);
-            resechedule();
-        }
-    }
 
     private void resechedule() {
         ActorSystem system = getContext().getSystem();

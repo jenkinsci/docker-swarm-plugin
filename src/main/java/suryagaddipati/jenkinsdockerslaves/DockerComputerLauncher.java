@@ -19,7 +19,7 @@ import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-import suryagaddipati.jenkinsdockerslaves.docker.CreateContainerRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.CreateServiceRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.DockerAgentLauncher;
 
 import java.io.IOException;
@@ -80,11 +80,16 @@ public class DockerComputerLauncher extends ComputerLauncher {
     }
     public void launchContainer(String[] command, DockerSlaveConfiguration configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-        CreateContainerRequest crReq = new CreateContainerRequest(labelConfiguration.getImage(), command, envVars);
-        crReq.HostConfig.Binds = labelConfiguration.getHostBindsConfig();
-        if(StringUtils.isNotEmpty(configuration.getSwarmNetwork())){
-            crReq.HostConfig.NetworkMode = configuration.getSwarmNetwork();
+        CreateServiceRequest crReq = new CreateServiceRequest(computer.getName(), labelConfiguration.getImage(), command, envVars);
+        String[] hostBinds = labelConfiguration.getHostBindsConfig();
+        for(int i = 0; i < hostBinds.length; i++){
+           String hostBind = hostBinds[i];
+            String[] srcDest = hostBind.split(":");
+            crReq.addBindVolume(srcDest[0],srcDest[1]);
         }
+//        if(StringUtils.isNotEmpty(configuration.getSwarmNetwork())){
+//            crReq.HostConfig.NetworkMode = configuration.getSwarmNetwork();
+//        }
 
         final String[] cacheDirs = labelConfiguration.getCacheDirs();
         if (cacheDirs.length > 0) {
@@ -92,7 +97,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
             this.bi.getAction(DockerSlaveInfo.class).setCacheVolumeName(cacheVolumeName);
             for (int i = 0; i < cacheDirs.length; i++) {
                 listener.getLogger().println("Binding Volume" + cacheDirs[i] + " to " + cacheVolumeName);
-                crReq.HostConfig.addCacheMount(cacheVolumeName, cacheDirs[i]);
+//                crReq.HostConfig.addCacheMount(cacheVolumeName, cacheDirs[i]);
             }
         }
 

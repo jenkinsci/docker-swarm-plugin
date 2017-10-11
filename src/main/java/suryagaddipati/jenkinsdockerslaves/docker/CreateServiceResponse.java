@@ -26,49 +26,9 @@ package suryagaddipati.jenkinsdockerslaves.docker;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
-public class CreateContainerRequest {
-    private final String[] Env;
-    public String Image;
-    public String[] Cmd;
-    public HostConfig  HostConfig = new HostConfig();
-
-    public CreateContainerRequest(String Image, String[] Cmd, String[] Env) {
-        this.Image = Image;
-        this.Cmd = Cmd;
-        this.Env= Env;
-    }
-
-
-
-    public static  class  HostConfig{
-        public boolean AutoRemove = true;
-        public String NetworkMode;
-        public String[] Binds = new String[]{};
-        public List<Mount> Mounts = new ArrayList<>();
-        public void addCacheMount(String Source, String Target){
-            Mounts.add(new Mount(Source,Target));
-        }
-    }
-    private static class Mount {
-        String Target;
-        String Source;
-        String Type = "volume";
-        VolumeOptions VolumeOptions = new VolumeOptions();
-
-        public Mount(String Source, String Target) {
-            this.Source = Source;
-            this.Target =Target;
-        }
-
-        private static class VolumeOptions{
-            private static class DriverConfig{
-                String Name = "cache-driver";
-            }
-        }
-    }
+public class CreateServiceResponse {
+    public String ID;
+    public String Warning;
 }
