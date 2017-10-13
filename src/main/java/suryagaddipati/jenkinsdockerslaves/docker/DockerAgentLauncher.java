@@ -20,70 +20,63 @@ import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 import scala.util.Failure;
 import scala.util.Success;
-import suryagaddipati.jenkinsdockerslaves.DockerComputer;
 
 import java.io.PrintStream;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DockerAgentLauncher extends AbstractActor {
-    private DockerComputer computer;
+    private static final Logger LOGGER = Logger.getLogger(DockerAgentLauncher.class.getName());
     private PrintStream logger;
     private String dockerUri;
     private CreateServiceRequest createRequest;
 
-    public DockerAgentLauncher(DockerComputer computer, PrintStream logger, String dockerUri) {
-        this.computer = computer;
+    public DockerAgentLauncher( PrintStream logger, String dockerUri) {
         this.logger = logger;
         this.dockerUri = dockerUri;
     }
 
-    public static Props props(DockerComputer computer, PrintStream logger, String dockerUri) {
-        return Props.create(DockerAgentLauncher.class, () -> new DockerAgentLauncher(computer,logger,dockerUri));
+    public static Props props(PrintStream logger, String dockerUri) {
+        return Props.create(DockerAgentLauncher.class, () -> new DockerAgentLauncher(logger,dockerUri));
     }
 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
-                .match(CreateServiceRequest.class, createServiceRequest -> launchContainer(createServiceRequest))
+                .match(CreateServiceRequest.class, createServiceRequest -> launchService(createServiceRequest))
+                .match(DeleteServiceRequest.class, deleteServiceRequest -> deleteService(deleteServiceRequest))
                 .build();
     }
 
-    private void launchContainer(CreateServiceRequest createRequest) {
+    private void deleteService(DeleteServiceRequest deleteServiceRequest) {
+        HttpRequest req = HttpRequest.DELETE(getUrl("/services/"+ deleteServiceRequest.serviceName));
+        executeRequest(req,(httpResponse,throwable) -> {
+            if(throwable != null){
+                LOGGER.log(Level.SEVERE,"",throwable);
+            }
+            if(httpResponse.status().isFailure()) {
+                LOGGER.log(Level.SEVERE, httpResponse.entity().toString());
+            }
+            getContext().stop(getSelf());
+        });
+    }
+
+    private void launchService(CreateServiceRequest createRequest) {
         this.createRequest = createRequest;
-        ExecutionContextExecutor ec = getContext().dispatcher();
-        Marshaller<Object, RequestEntity> marshaller = Jackson.marshaller();
-        Future resEntitry = new Marshal(createRequest).to(marshaller.asScala(), ec);
-        DockerAgentLauncher that = this;
-        PartialFunction launchContainer = new PartialFunction() {
-            @Override
-            public boolean isDefinedAt(Object x) {
-                return true;
-            }
-            @Override
-            public Object apply(Object result) {
-                if(result instanceof Failure){
-                    Failure failure = (Failure) result;
-                    failure.exception().printStackTrace(logger);
-                    return null;
-                }else {
-                    return ((Success)result).map(that::launchContainer);
-                }
-            }
-        };
-        resEntitry.andThen(launchContainer, ec);
+        marshallAndRun(createRequest,this::launchService);
     }
 
-    private Object launchContainer(Object createcontainerRequestEnity){
-//    String containerName = getSelf().path().name();
-        ActorSystem system = getContext().getSystem();
-        ActorMaterializer materializer = ActorMaterializer.create(getContext());
 
+
+
+    private CompletionStage<HttpResponse> launchService(Object createcontainerRequestEnity){
         HttpRequest req = HttpRequest.POST(getUrl("/services/create")).withEntity((RequestEntity) createcontainerRequestEnity);
-        CompletionStage<HttpResponse> rsp = Http.get(system).singleRequest(req, materializer);
-        rsp.whenCompleteAsync(this::serviceStartResponseHandler);
-        return createcontainerRequestEnity;
+        return executeRequest(req,this::serviceStartResponseHandler);
     }
+
 
     private void serviceStartResponseHandler(HttpResponse httpResponse, Throwable throwable) {
         ActorMaterializer materializer = ActorMaterializer.create(getContext());
@@ -120,4 +113,34 @@ public class DockerAgentLauncher extends AbstractActor {
         system.scheduler().scheduleOnce(Duration.apply(12, TimeUnit.SECONDS),getSelf(),createRequest, getContext().dispatcher(), ActorRef.noSender());
     }
 
+    private  void marshallAndRun(Object object, scala.Function1 andThen){
+        ExecutionContextExecutor ec = getContext().dispatcher();
+        Marshaller<Object, RequestEntity> marshaller = Jackson.marshaller();
+        Future entity = new Marshal(object).to(marshaller.asScala(), ec);
+        PartialFunction nextAction = new PartialFunction() {
+            @Override
+            public boolean isDefinedAt(Object x) {
+                return true;
+            }
+            @Override
+            public Object apply(Object result) {
+                if(result instanceof Failure){ // This would be caused if there is a bug in code, shouldn't be rescheduled here.
+                    Failure failure = (Failure) result;
+                    failure.exception().printStackTrace(logger);
+                    return null;
+                }else {
+                    return ((Success)result).map(andThen);
+                }
+            }
+        };
+
+        entity.andThen(nextAction,ec);
+    }
+    private CompletionStage<HttpResponse> executeRequest(HttpRequest req, BiConsumer<HttpResponse, ? super Throwable> onComplete){
+        ActorSystem system = getContext().getSystem();
+        ActorMaterializer materializer = ActorMaterializer.create(getContext());
+        CompletionStage<HttpResponse> rsp = Http.get(system).singleRequest(req, materializer);
+        return rsp.whenCompleteAsync(onComplete);
+
+    }
 }

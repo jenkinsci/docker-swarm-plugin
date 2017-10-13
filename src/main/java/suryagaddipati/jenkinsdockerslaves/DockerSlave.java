@@ -25,6 +25,8 @@
 
 package suryagaddipati.jenkinsdockerslaves;
 
+import akka.actor.ChildActorPath;
+import akka.actor.RootActorPath;
 import hudson.model.Descriptor;
 import hudson.model.Label;
 import hudson.model.Node;
@@ -34,6 +36,7 @@ import hudson.model.labels.LabelAtom;
 import hudson.model.queue.CauseOfBlockage;
 import hudson.slaves.AbstractCloudSlave;
 import hudson.slaves.EphemeralNode;
+import jenkins.model.Jenkins;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -59,6 +62,12 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
     protected void _terminate(final TaskListener listener) throws IOException, InterruptedException {
     }
 
+    @Override
+    public void terminate() throws InterruptedException, IOException {
+
+
+        super.terminate();
+    }
 
     @Override
     public Node asNode() {
