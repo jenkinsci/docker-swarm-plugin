@@ -91,7 +91,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
             }
         }
 
-        computer.setConnecting(true);
+//        computer.setConnecting(true);
         final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerAgentLauncher.props(computer,listener.getLogger(),configuration.getDockerUri()), computer.getName());
         agentLauncher.tell(crReq,ActorRef.noSender());
     }

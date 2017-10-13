@@ -14,10 +14,11 @@ import java.util.logging.Logger;
 public class DockerSlaveRetentionStrategy extends RetentionStrategy implements ExecutorListener {
     private static final Logger LOGGER = Logger.getLogger(DockerSlaveRetentionStrategy.class.getName());
     private transient boolean terminating;
+    private boolean taskCompleted;
 
     @Override
     public long check(final Computer c) {
-        if (c.isIdle() && !c.isConnecting()) {
+        if ( this.taskCompleted  && c.isIdle() && !c.isConnecting()) {
             final long idleMilliseconds = System.currentTimeMillis() - c.getIdleStartMilliseconds();
             if (idleMilliseconds > TimeUnit2.MINUTES.toMillis(1)) {
                 LOGGER.log(Level.FINE, "Disconnecting {0}", c.getName());
@@ -46,11 +47,13 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy implements E
 
     @Override
     public void taskCompleted(final Executor executor, final Queue.Task task, final long durationMS) {
+        this.taskCompleted =true;
         done(executor);
     }
 
     @Override
     public void taskCompletedWithProblems(final Executor executor, final Queue.Task task, final long durationMS, final Throwable problems) {
+        this.taskCompleted =true;
         done(executor);
     }
 

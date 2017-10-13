@@ -34,11 +34,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
-
     private String containerId;
     private String swarmNodeName;
-    private boolean isConnecting;
-
 
     public DockerComputer(final DockerSlave dockerSlave) {
         super(dockerSlave);
@@ -89,12 +86,4 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         return false;
     }
 
-    @Override
-    public boolean isConnecting() {
-        return this.isConnecting;
-    }
-
-    public void setConnecting(boolean connecting) {
-        isConnecting = connecting;
-    }
 }
