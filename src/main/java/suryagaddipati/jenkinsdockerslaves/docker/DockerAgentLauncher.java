@@ -13,6 +13,7 @@ import akka.http.javadsl.model.RequestEntity;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
 import akka.http.scaladsl.marshalling.Marshal;
 import akka.stream.ActorMaterializer;
+import akka.util.ByteString;
 import org.apache.commons.lang.StringUtils;
 import scala.PartialFunction;
 import scala.concurrent.ExecutionContextExecutor;
@@ -22,9 +23,11 @@ import scala.util.Failure;
 import scala.util.Success;
 
 import java.io.PrintStream;
+import java.nio.charset.Charset;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,14 +72,13 @@ public class DockerAgentLauncher extends AbstractActor {
         marshallAndRun(createRequest,this::launchService);
     }
 
-
-
-
     private CompletionStage<HttpResponse> launchService(Object createcontainerRequestEnity){
         HttpRequest req = HttpRequest.POST(getUrl("/services/create")).withEntity((RequestEntity) createcontainerRequestEnity);
         return executeRequest(req,this::serviceStartResponseHandler);
     }
 
+    final Function<ByteString, ByteString> transformEachLine = line -> line /* some transformation here */;
+    final int maximumFrameLength = 256;
 
     private void serviceStartResponseHandler(HttpResponse httpResponse, Throwable throwable) {
         ActorMaterializer materializer = ActorMaterializer.create(getContext());
@@ -95,6 +97,14 @@ public class DockerAgentLauncher extends AbstractActor {
                     if(StringUtils.isNotEmpty(csr.Warning)){
                         logger.println("Service creation warning : " + csr.Warning);
                     }
+
+
+                    HttpRequest logsRequest = HttpRequest.GET(getUrl("/services/" + csr.ID + "/logs?follow=true&stdout=true&stderr=true"));
+                    executeRequest(logsRequest, (response,err)->{
+                        response.entity().getDataBytes().runForeach(x -> {
+                           logger.print(x.decodeString(Charset.defaultCharset()));
+                        } , materializer);
+                    });
                     return csr;
                 });
             }
