@@ -8,7 +8,7 @@ public class LabelConfiguration {
     String image;
     String hostBinds;
     String envVars;
-    private Integer maxCpuShares;
+    private Long  maxCpuShares;
     private Long maxMemory;
     private boolean dynamicResourceAllocation;
     private String label;
@@ -19,7 +19,7 @@ public class LabelConfiguration {
     }
 
     @DataBoundConstructor
-    public LabelConfiguration(final String image, final String hostBinds, final String label, final String cacheDir, final Integer maxCpuShares, final Long maxMemory, final boolean dynamicResourceAllocation, final String envVars, final String network) {
+    public LabelConfiguration(final String image, final String hostBinds, final String label, final String cacheDir, final Long maxCpuShares, final Long maxMemory, final boolean dynamicResourceAllocation, final String envVars, final String network) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.label = label;
@@ -76,16 +76,16 @@ public class LabelConfiguration {
     }
 
 
-    public Integer getMaxCpuShares() {
-        return this.maxCpuShares == null ? 1 : this.maxCpuShares;
+    public Long getMaxCpuShares() {
+        return this.maxCpuShares ;
     }
 
-    public void setMaxCpuShares(final Integer maxCpuShares) {
+    public void setMaxCpuShares(final Long maxCpuShares) {
         this.maxCpuShares = maxCpuShares;
     }
 
     public Long getMaxMemory() {
-        return this.maxMemory == null ? 0l : this.maxMemory;
+        return this.maxMemory;
     }
 
     public void setMaxMemory(final Long maxMemory) {

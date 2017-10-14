@@ -9,16 +9,19 @@ import akka.http.javadsl.model.MediaTypes;
 import akka.http.javadsl.model.RequestEntity;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
 import akka.util.ByteString;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
 public class Jackson {
-  private static final ObjectMapper defaultObjectMapper =
-    new ObjectMapper().enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
-
+  private static final ObjectMapper defaultObjectMapper = new ObjectMapper();
+  static{
+    defaultObjectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
+    defaultObjectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+  }
   public static <T> Marshaller<T, RequestEntity> marshaller() {
     return marshaller(defaultObjectMapper);
   }

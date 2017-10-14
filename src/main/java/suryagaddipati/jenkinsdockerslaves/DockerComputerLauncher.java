@@ -64,13 +64,12 @@ public class DockerComputerLauncher extends ComputerLauncher {
             final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer, configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
             final String[] command = new String[]{"sh", "-cx", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
             launchContainer(command,configuration, envVars, labelConfiguration, listener, computer);
-
-//            lauchDocker(computer, listener, dockerSlaveInfo, configuration, labelConfiguration, envVars, command);
-
     }
+
     public void launchContainer(String[] command, DockerSlaveConfiguration configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
         CreateServiceRequest crReq = new CreateServiceRequest(computer.getName(), labelConfiguration.getImage(), command, envVars);
+        crReq.setCpuReservation(labelConfiguration.getMaxCpuShares());
         String[] hostBinds = labelConfiguration.getHostBindsConfig();
         for(int i = 0; i < hostBinds.length; i++){
            String hostBind = hostBinds[i];
@@ -91,7 +90,6 @@ public class DockerComputerLauncher extends ComputerLauncher {
             }
         }
 
-//        computer.setConnecting(true);
         final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerAgentLauncher.props(listener.getLogger(),configuration.getDockerUri()), computer.getName());
         agentLauncher.tell(crReq,ActorRef.noSender());
     }

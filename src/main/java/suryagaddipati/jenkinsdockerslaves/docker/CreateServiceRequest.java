@@ -23,14 +23,9 @@ THE SOFTWARE.
  */
 package suryagaddipati.jenkinsdockerslaves.docker;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import java.util.ArrayList;
 import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
 public class CreateServiceRequest {
     public TaskTemplate TaskTemplate ;
     public String Name;
@@ -45,11 +40,16 @@ public class CreateServiceRequest {
         this.TaskTemplate.ContainerSpec.Mounts.add(volume);
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
+    public void setCpuReservation(Long maxCpuShares) {
+        if(maxCpuShares != null){
+            this.TaskTemplate.Resources.Reservations.NanoCPUs = maxCpuShares;
+        }
+    }
+
     public static class TaskTemplate{
         public ContainerSpec ContainerSpec ;
         public RestartPolicy RestartPolicy= new RestartPolicy();
+        public Resources Resources= new Resources();
 
         public TaskTemplate(String image, String[] cmd, String[] env) {
             this.ContainerSpec = new ContainerSpec(image,cmd,env);
@@ -57,14 +57,22 @@ public class CreateServiceRequest {
         }
 
 
-        @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
+        public  static class  Resources {
+            public Resource Limits = new Resource();
+            public Resource Reservations = new Resource();
+
+            public static class Resource{
+                public Long  NanoCPUs;
+                public Long   MemoryBytes;
+            }
+        }
+
+
         public  static class RestartPolicy {
             public String  Condition = "none";
         }
 
 
-        @JsonIgnoreProperties(ignoreUnknown = true)
-        @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
         public static class ContainerSpec{
 
             public final String Image;
@@ -79,8 +87,6 @@ public class CreateServiceRequest {
             }
 
 
-            @JsonIgnoreProperties(ignoreUnknown = true)
-            @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE, setterVisibility = JsonAutoDetect.Visibility.NONE)
             public static abstract class Mount {
                 String Target;
                 String Source;
@@ -114,11 +120,4 @@ public class CreateServiceRequest {
             }
         }
     }
-
-
-
-
-
-
-
 }
