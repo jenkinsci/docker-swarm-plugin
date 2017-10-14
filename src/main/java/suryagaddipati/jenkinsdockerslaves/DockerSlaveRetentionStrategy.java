@@ -1,6 +1,5 @@
 package suryagaddipati.jenkinsdockerslaves;
 
-import akka.actor.ActorRef;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Computer;
 import hudson.model.Executor;
@@ -8,8 +7,6 @@ import hudson.model.ExecutorListener;
 import hudson.model.Queue;
 import hudson.slaves.RetentionStrategy;
 import hudson.util.TimeUnit2;
-import jenkins.model.Jenkins;
-import suryagaddipati.jenkinsdockerslaves.docker.DeleteServiceRequest;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,11 +61,6 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy implements E
         final DockerComputer c = (DockerComputer) executor.getOwner();
         final Queue.Executable exec = executor.getCurrentExecutable();
         LOGGER.log(Level.FINE, "terminating {0} since {1} seems to be finished", new Object[]{c.getName(), exec});
-
-        DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-        ActorRef agentLauncherRef = swarmPlugin.getActorSystem().actorFor("/user/" + c.getName());
-
-        agentLauncherRef.tell(new DeleteServiceRequest(c.getName()),ActorRef.noSender());
         done(c, exec);
     }
 

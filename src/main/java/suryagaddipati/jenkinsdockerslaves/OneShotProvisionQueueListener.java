@@ -9,10 +9,13 @@ import jenkins.model.Jenkins;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Extension
 public class OneShotProvisionQueueListener extends QueueListener {
 
+    private static final Logger LOGGER = Logger.getLogger(OneShotProvisionQueueListener.class.getName());
     @Override
     public void onEnterBuildable(final Queue.BuildableItem bi) {
         final Queue.Task job = bi.task;
@@ -35,9 +38,9 @@ public class OneShotProvisionQueueListener extends QueueListener {
                     @Override
                     public void run() {
                         try {
-                            Jenkins.getInstance().removeNode(node);
-                        } catch (final IOException e) {
-//                            e.printStackTrace();
+                            ((DockerSlave)node).terminate();
+                        } catch (final IOException | InterruptedException e) {
+                           LOGGER.log(Level.SEVERE,"",e);
                         }
                     }
                 });

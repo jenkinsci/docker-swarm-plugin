@@ -25,8 +25,7 @@
 
 package suryagaddipati.jenkinsdockerslaves;
 
-import akka.actor.ChildActorPath;
-import akka.actor.RootActorPath;
+import akka.actor.ActorRef;
 import hudson.model.Descriptor;
 import hudson.model.Label;
 import hudson.model.Node;
@@ -37,6 +36,7 @@ import hudson.model.queue.CauseOfBlockage;
 import hudson.slaves.AbstractCloudSlave;
 import hudson.slaves.EphemeralNode;
 import jenkins.model.Jenkins;
+import suryagaddipati.jenkinsdockerslaves.docker.DeleteServiceRequest;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -64,8 +64,9 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
 
     @Override
     public void terminate() throws InterruptedException, IOException {
-
-
+        DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
+        ActorRef agentLauncherRef = swarmPlugin.getActorSystem().actorFor("/user/" + getComputer().getName());
+        agentLauncherRef.tell(new DeleteServiceRequest(getComputer().getName()),ActorRef.noSender());
         super.terminate();
     }
 
