@@ -69,7 +69,10 @@ public class DockerComputerLauncher extends ComputerLauncher {
     public void launchContainer(String[] command, DockerSlaveConfiguration configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
         CreateServiceRequest crReq = new CreateServiceRequest(computer.getName(), labelConfiguration.getImage(), command, envVars);
-        crReq.setCpuReservation(labelConfiguration.getMaxCpuShares());
+
+        crReq.setTaskLimits(labelConfiguration.getLimitsNanoCPUs(),labelConfiguration.getLimitsMemoryBytes() );
+        crReq.setTaskReservations(labelConfiguration.getReservationsNanoCPUs(),labelConfiguration.getReservationsMemoryBytes() );
+
         String[] hostBinds = labelConfiguration.getHostBindsConfig();
         for(int i = 0; i < hostBinds.length; i++){
            String hostBind = hostBinds[i];

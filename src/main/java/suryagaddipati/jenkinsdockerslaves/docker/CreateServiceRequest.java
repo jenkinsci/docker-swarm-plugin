@@ -40,10 +40,14 @@ public class CreateServiceRequest {
         this.TaskTemplate.ContainerSpec.Mounts.add(volume);
     }
 
-    public void setCpuReservation(Long maxCpuShares) {
-        if(maxCpuShares != null){
-            this.TaskTemplate.Resources.Reservations.NanoCPUs = maxCpuShares;
-        }
+    public void setTaskLimits(Long nanoCPUs, Long memoryBytes) {
+        this.TaskTemplate.Resources.Limits.NanoCPUs = nanoCPUs;
+        this.TaskTemplate.Resources.Limits.MemoryBytes = memoryBytes;
+    }
+
+    public void setTaskReservations(Long nanoCPUs, Long memoryBytes) {
+        this.TaskTemplate.Resources.Reservations.NanoCPUs = nanoCPUs;
+        this.TaskTemplate.Resources.Reservations.MemoryBytes = memoryBytes;
     }
 
     public static class TaskTemplate{
@@ -56,7 +60,6 @@ public class CreateServiceRequest {
 
         }
 
-
         public  static class  Resources {
             public Resource Limits = new Resource();
             public Resource Reservations = new Resource();
@@ -67,11 +70,9 @@ public class CreateServiceRequest {
             }
         }
 
-
         public  static class RestartPolicy {
             public String  Condition = "none";
         }
-
 
         public static class ContainerSpec{
 

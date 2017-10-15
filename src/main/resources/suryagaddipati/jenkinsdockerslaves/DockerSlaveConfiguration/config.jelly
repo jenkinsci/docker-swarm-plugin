@@ -76,21 +76,10 @@ THE SOFTWARE.
                         <f:textbox value="${labelConfiguration.hostBinds}"/>
                     </f:entry>
 
-                    <f:entry title="Max CPU shares" field="maxCpuShares">
-                        <f:number value="${labelConfiguration.maxCpuShares}"/>
-                    </f:entry>
 
-                    <f:entry title="Max Memory(bytes)" field="maxMemory">
-                        <f:number value="${labelConfiguration.maxMemory}"/>
-                    </f:entry>
 
                     <f:entry title="Cache Dir" field="cacheDir">
                         <f:textbox value="${labelConfiguration.cacheDir}"/>
-                    </f:entry>
-                    <f:entry title="Dynamic Resource Allocation"
-                             field="dynamicResourceAllocation">
-                        <f:checkbox
-                                checked="${labelConfiguration.dynamicResourceAllocation}"/>
                     </f:entry>
                     <f:entry title="Env (space-separated)" field="envVars">
                         <f:textbox value="${labelConfiguration.envVars}"/>
@@ -98,6 +87,26 @@ THE SOFTWARE.
                     <f:entry title="Network" field="network">
                         <f:textbox value="${labelConfiguration.network}"/>
                     </f:entry>
+
+                    <f:section title="Limits">
+                        <f:entry title="NanoCPUs" field="limitsNanoCPUs">
+                            <f:number value="${labelConfiguration.limitsNanoCPUs}"/>
+                        </f:entry>
+
+                        <f:entry title="MemoryBytes" field="limitsMemoryBytes">
+                            <f:number value="${labelConfiguration.limitsMemoryBytes}"/>
+                        </f:entry>
+                    </f:section>
+                    <f:section title="Reservations">
+                        <f:entry title="NanoCPUs" field="reservationsNanoCPUs">
+                            <f:number value="${labelConfiguration.reservationsNanoCPUs}"/>
+                        </f:entry>
+
+                        <f:entry title="MemoryBytes" field="reservationsMemoryBytes">
+                            <f:number value="${labelConfiguration.reservationsMemoryBytes}"/>
+                        </f:entry>
+                    </f:section>
+
                     <f:entry title="">
                         <div align="right">
                             <f:repeatableDeleteButton/>
