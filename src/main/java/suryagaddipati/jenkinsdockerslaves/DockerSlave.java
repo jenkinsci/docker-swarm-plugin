@@ -36,7 +36,7 @@ import hudson.model.queue.CauseOfBlockage;
 import hudson.slaves.AbstractCloudSlave;
 import hudson.slaves.EphemeralNode;
 import jenkins.model.Jenkins;
-import suryagaddipati.jenkinsdockerslaves.docker.DeleteServiceRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.api.service.DeleteServiceRequest;
 
 import java.io.IOException;
 import java.util.Collections;

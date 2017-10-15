@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves.docker;
+package suryagaddipati.jenkinsdockerslaves.docker.actors;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
@@ -21,6 +21,10 @@ import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 import scala.util.Failure;
 import scala.util.Success;
+import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceResponse;
+import suryagaddipati.jenkinsdockerslaves.docker.api.service.DeleteServiceRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.Jackson;
 
 import java.io.PrintStream;
 import java.nio.charset.Charset;
