@@ -9,8 +9,8 @@ import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
 import jenkins.model.Jenkins;
+import suryagaddipati.jenkinsdockerslaves.docker.actors.DockerAgentLauncher;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.DockerAgentLauncher;
 
 import java.io.IOException;
 import java.util.Date;

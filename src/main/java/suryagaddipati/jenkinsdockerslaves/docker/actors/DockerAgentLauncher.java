@@ -13,7 +13,6 @@ import akka.http.javadsl.model.RequestEntity;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
 import akka.http.scaladsl.marshalling.Marshal;
 import akka.stream.ActorMaterializer;
-import akka.util.ByteString;
 import org.apache.commons.lang.StringUtils;
 import scala.PartialFunction;
 import scala.concurrent.ExecutionContextExecutor;
@@ -21,17 +20,16 @@ import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 import scala.util.Failure;
 import scala.util.Success;
+import suryagaddipati.jenkinsdockerslaves.docker.Jackson;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceResponse;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.DeleteServiceRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.Jackson;
 
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -80,9 +78,6 @@ public class DockerAgentLauncher extends AbstractActor {
         HttpRequest req = HttpRequest.POST(getUrl("/services/create")).withEntity((RequestEntity) createcontainerRequestEnity);
         return executeRequest(req,this::serviceStartResponseHandler);
     }
-
-    final Function<ByteString, ByteString> transformEachLine = line -> line /* some transformation here */;
-    final int maximumFrameLength = 256;
 
     private void serviceStartResponseHandler(HttpResponse httpResponse, Throwable throwable) {
         ActorMaterializer materializer = ActorMaterializer.create(getContext());
