@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api.service;
+package suryagaddipati.jenkinsdockerslaves;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
@@ -22,6 +22,11 @@ import scala.util.Failure;
 import scala.util.Success;
 import suryagaddipati.jenkinsdockerslaves.docker.Jackson;
 import suryagaddipati.jenkinsdockerslaves.docker.api.DockerApiActor;
+import suryagaddipati.jenkinsdockerslaves.docker.api.response.SerializationException;
+import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceResponse;
+import suryagaddipati.jenkinsdockerslaves.docker.api.service.DeleteServiceRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.api.service.ServiceCreateApiRequest;
 
 import java.io.PrintStream;
 import java.nio.charset.Charset;
@@ -53,6 +58,7 @@ public class DockerAgentLauncherActor extends AbstractActor {
         return receiveBuilder()
                 .match(CreateServiceRequest.class, createServiceRequest -> launchService(createServiceRequest))
                 .match(CreateServiceResponse.class, createServiceResponse -> createServiceSuccess(createServiceResponse))
+                .match(SerializationException.class, serializationException -> serializationException.getCause().printStackTrace(logger))
                 .match(DeleteServiceRequest.class, deleteServiceRequest -> deleteService(deleteServiceRequest))
                 .build();
     }
