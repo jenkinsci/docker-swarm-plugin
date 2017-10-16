@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves.docker.actors;
+package suryagaddipati.jenkinsdockerslaves.docker.api.service;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
@@ -21,9 +21,7 @@ import scala.concurrent.duration.Duration;
 import scala.util.Failure;
 import scala.util.Success;
 import suryagaddipati.jenkinsdockerslaves.docker.Jackson;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceResponse;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.DeleteServiceRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.api.DockerApiActor;
 
 import java.io.PrintStream;
 import java.nio.charset.Charset;
@@ -33,28 +31,44 @@ import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class DockerAgentLauncher extends AbstractActor {
-    private static final Logger LOGGER = Logger.getLogger(DockerAgentLauncher.class.getName());
+public class DockerAgentLauncherActor extends AbstractActor {
+    private static final Logger LOGGER = Logger.getLogger(DockerAgentLauncherActor.class.getName());
+    private final ActorRef apiActor;
     private PrintStream logger;
     private String dockerUri;
     private CreateServiceRequest createRequest;
 
-    public DockerAgentLauncher( PrintStream logger, String dockerUri) {
+    public DockerAgentLauncherActor(PrintStream logger, String dockerUri) {
         this.logger = logger;
         this.dockerUri = dockerUri;
+        this.apiActor = getContext().actorOf(DockerApiActor.props());
     }
 
     public static Props props(PrintStream logger, String dockerUri) {
-        return Props.create(DockerAgentLauncher.class, () -> new DockerAgentLauncher(logger,dockerUri));
+        return Props.create(DockerAgentLauncherActor.class, () -> new DockerAgentLauncherActor(logger,dockerUri));
     }
 
     @Override
     public Receive createReceive() {
         return receiveBuilder()
                 .match(CreateServiceRequest.class, createServiceRequest -> launchService(createServiceRequest))
+                .match(CreateServiceResponse.class, createServiceResponse -> createServiceSuccess(createServiceResponse))
                 .match(DeleteServiceRequest.class, deleteServiceRequest -> deleteService(deleteServiceRequest))
                 .build();
     }
+
+    private void launchService(CreateServiceRequest createRequest) {
+        this.createRequest = createRequest;
+        apiActor.tell(new ServiceCreateApiRequest(createRequest),getSelf());
+    }
+
+    private void createServiceSuccess(CreateServiceResponse createServiceResponse) {
+        logger.println("Service created with ID : " + createServiceResponse.ID);
+        if(StringUtils.isNotEmpty(createServiceResponse.Warning)){
+            logger.println("Service creation warning : " + createServiceResponse.Warning);
+        }
+    }
+
 
     private void deleteService(DeleteServiceRequest deleteServiceRequest) {
         HttpRequest req = HttpRequest.DELETE(getUrl("/services/"+ deleteServiceRequest.serviceName));
@@ -69,10 +83,6 @@ public class DockerAgentLauncher extends AbstractActor {
         });
     }
 
-    private void launchService(CreateServiceRequest createRequest) {
-        this.createRequest = createRequest;
-        marshallAndRun(createRequest,this::launchService);
-    }
 
     private CompletionStage<HttpResponse> launchService(Object createcontainerRequestEnity){
         HttpRequest req = HttpRequest.POST(getUrl("/services/create")).withEntity((RequestEntity) createcontainerRequestEnity);
@@ -101,7 +111,7 @@ public class DockerAgentLauncher extends AbstractActor {
                     HttpRequest logsRequest = HttpRequest.GET(getUrl("/services/" + csr.ID + "/logs?follow=true&stdout=true&stderr=true"));
                     executeRequest(logsRequest, (response,err)->{
                         response.entity().getDataBytes().runForeach(x -> {
-                           logger.print(x.decodeString(Charset.defaultCharset()));
+                            logger.print(x.decodeString(Charset.defaultCharset()));
                         } , materializer);
                     });
                     return csr;

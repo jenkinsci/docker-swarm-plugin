@@ -23,7 +23,23 @@ THE SOFTWARE.
  */
 package suryagaddipati.jenkinsdockerslaves.docker.api.service;
 
-public class CreateServiceResponse {
-    public String ID;
-    public String Warning;
+import akka.http.javadsl.model.HttpMethods;
+import suryagaddipati.jenkinsdockerslaves.docker.api.ApiRequest;
+
+public class ServiceCreateApiRequest extends ApiRequest {
+    public static final String NAME = "CREATE_SERVICE";
+
+    public ServiceCreateApiRequest(CreateServiceRequest entity) {
+        super(HttpMethods.POST, "/services/create", entity);
+    }
+
+    @Override
+    public String getName() {
+        return NAME ;
+    }
+
+    @Override
+    public Class<?> getResponseClass() {
+        return CreateServiceResponse.class;
+    }
 }
