@@ -22,6 +22,7 @@ import suryagaddipati.jenkinsdockerslaves.docker.api.service.ServiceLogRequest;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DockerAgentLauncherActor extends AbstractActor {
@@ -49,10 +50,21 @@ public class DockerAgentLauncherActor extends AbstractActor {
 
                 .match(DeleteServiceRequest.class, deleteServiceRequest -> deleteService(deleteServiceRequest))
 
-                .match(SerializationException.class, serializationException -> serializationException.getCause().printStackTrace(logger))
-                .match(ApiError.class, apiError -> logger.println( apiError.getStatusCode() + " : " + apiError.getMessage()) )
+                .match(SerializationException.class, serializationException -> serializationException(serializationException))
+                .match(ApiError.class, apiError -> apiError(apiError) )
                 .match(ApiException.class, apiException -> apiException.getCause().printStackTrace(logger) )
                 .build();
+    }
+
+    private void apiError(ApiError apiError) {
+        String errorMessage =  apiError.getStatusCode() + " : " + apiError.getMessage();
+        logger.println(errorMessage);
+        LOGGER.log(Level.SEVERE,errorMessage);
+    }
+
+    private void serializationException(SerializationException serializationException) {
+        serializationException.getCause().printStackTrace(logger);
+        LOGGER.log(Level.SEVERE,"",serializationException.getCause());
     }
 
     private void serviceDeleted(ResponseEntity responseEntity) {
