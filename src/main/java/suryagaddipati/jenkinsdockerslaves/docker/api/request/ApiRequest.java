@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api;
+package suryagaddipati.jenkinsdockerslaves.docker.api.request;
 
 import akka.http.javadsl.model.HttpMethod;
 import akka.http.javadsl.model.HttpRequest;

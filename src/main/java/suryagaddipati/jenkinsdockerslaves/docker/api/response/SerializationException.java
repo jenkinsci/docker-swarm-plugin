@@ -1,12 +1,10 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api;
+package suryagaddipati.jenkinsdockerslaves.docker.api.response;
 
-class SerializationException{
+public class SerializationException{
     public SerializationException(Throwable cause) {
         this.cause = cause;
     }
-
     public Throwable cause ;
-
     public Throwable getCause() {
         return cause;
     }

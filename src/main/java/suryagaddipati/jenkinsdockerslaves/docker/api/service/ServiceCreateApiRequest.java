@@ -24,7 +24,7 @@ THE SOFTWARE.
 package suryagaddipati.jenkinsdockerslaves.docker.api.service;
 
 import akka.http.javadsl.model.HttpMethods;
-import suryagaddipati.jenkinsdockerslaves.docker.api.ApiRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
 
 public class ServiceCreateApiRequest extends ApiRequest {
     public static final String NAME = "CREATE_SERVICE";

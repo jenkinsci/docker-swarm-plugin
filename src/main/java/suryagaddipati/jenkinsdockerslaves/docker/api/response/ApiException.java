@@ -1,8 +1,8 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api;
+package suryagaddipati.jenkinsdockerslaves.docker.api.response;
 
-class ApiException {
+public class ApiException {
     private Class<?> requestClass;
-
+    private Throwable cause;
     public Class<?> getRequestClass() {
         return requestClass;
     }
@@ -10,8 +10,6 @@ class ApiException {
     public Throwable getCause() {
         return cause;
     }
-
-    private Throwable cause;
 
     public ApiException(Class<?> requestClass,  Throwable cause) {
         this.requestClass = requestClass;

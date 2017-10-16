@@ -1,9 +1,10 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api;
+package suryagaddipati.jenkinsdockerslaves.docker.api.response;
 
 import akka.http.javadsl.model.StatusCode;
+import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
 
-class ApiError {
-    public ApiError(Class<?> requestClass, StatusCode statusCode, String message) {
+public class ApiError {
+    public ApiError(Class<? extends ApiRequest> requestClass, StatusCode statusCode, String message) {
         this.requestClass = requestClass;
         this.statusCode = statusCode;
         this.message = message;

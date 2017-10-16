@@ -19,6 +19,11 @@ import scala.concurrent.Future;
 import scala.util.Failure;
 import scala.util.Success;
 import suryagaddipati.jenkinsdockerslaves.docker.Jackson;
+import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiError;
+import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiException;
+import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiSuccess;
+import suryagaddipati.jenkinsdockerslaves.docker.api.response.SerializationException;
 
 import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
@@ -50,17 +55,25 @@ public class DockerApiActor extends AbstractActor {
         return (httpResponse, throwable) -> {
             if(throwable != null){
                 sender.tell(new ApiException(apiRequest.getClass(),throwable) ,getSelf());
-            }
-            if(httpResponse.status().isFailure()) {
+            }else {
 
-            }else{
-                if(apiRequest.getResponseClass() != null){
-                    ActorMaterializer materializer = ActorMaterializer.create(getContext());
-                    Unmarshaller<HttpEntity, ?> unmarshaller = Jackson.unmarshaller(apiRequest.getResponseClass());
+                ActorMaterializer materializer = ActorMaterializer.create(getContext());
+                if(httpResponse.status().isFailure()) {
+                    Unmarshaller<HttpEntity, ErrorMessage> unmarshaller = Jackson.unmarshaller(ErrorMessage.class);
                     unmarshaller.unmarshal(httpResponse.entity(),materializer).thenApply( csr -> {
-                        sender.tell(csr,getSelf());
+                        sender.tell(new ApiError(apiRequest.getClass(),httpResponse.status(),csr.message),getSelf());
                         return csr;
                     });
+                }else{
+                    if(apiRequest.getResponseClass() != null){
+                        Unmarshaller<HttpEntity, ?> unmarshaller = Jackson.unmarshaller(apiRequest.getResponseClass());
+                        unmarshaller.unmarshal(httpResponse.entity(),materializer).thenApply( csr -> {
+                            sender.tell(csr,getSelf());
+                            return csr;
+                        });
+                    }else{
+                        sender.tell(new ApiSuccess(apiRequest.getClass()),getSelf());
+                    }
                 }
             }
         };
@@ -81,7 +94,7 @@ public class DockerApiActor extends AbstractActor {
             public Object apply(Object result) {
                 if(result instanceof Failure){ // This would be caused if there is a bug in code, shouldn't be rescheduled here.
                     Failure failure = (Failure) result;
-                    getSender().tell( new ApiResponse.SerializationException(failure.exception()),getSelf()) ;
+                    getSender().tell( new SerializationException(failure.exception()),getSelf()) ;
                     return null;
                 }else {
                     return ((Success)result).map(andThen);
@@ -97,5 +110,10 @@ public class DockerApiActor extends AbstractActor {
         CompletionStage<HttpResponse> rsp = Http.get(system).singleRequest(req, materializer);
         return rsp.whenCompleteAsync(onComplete);
 
+    }
+
+
+    private static class ErrorMessage{
+        public String message;
     }
 }
