@@ -32,7 +32,7 @@ import java.util.List;
 public class CreateServiceRequest extends ApiRequest {
     public TaskTemplate TaskTemplate ;
     public String Name;
-
+    public List<String> Networks = new ArrayList<>();
     public CreateServiceRequest(String name, String Image, String[] Cmd, String[] Env) {
         super(HttpMethods.POST, "/services/create",CreateServiceResponse.class);
         this.Name = name;
@@ -52,6 +52,10 @@ public class CreateServiceRequest extends ApiRequest {
     public void setTaskReservations(Long nanoCPUs, Long memoryBytes) {
         this.TaskTemplate.Resources.Reservations.NanoCPUs = nanoCPUs;
         this.TaskTemplate.Resources.Reservations.MemoryBytes = memoryBytes;
+    }
+
+    public void setNetwork(String network) {
+        Networks.add(network);
     }
 
     public static class TaskTemplate{

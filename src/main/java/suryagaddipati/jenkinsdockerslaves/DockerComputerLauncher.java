@@ -78,9 +78,8 @@ public class DockerComputerLauncher extends ComputerLauncher {
             String[] srcDest = hostBind.split(":");
             crReq.addBindVolume(srcDest[0],srcDest[1]);
         }
-//        if(StringUtils.isNotEmpty(configuration.getSwarmNetwork())){
-//            crReq.HostConfig.NetworkMode = configuration.getSwarmNetwork();
-//        }
+        crReq.setNetwork(configuration.getSwarmNetwork());
+
 
         final String[] cacheDirs = labelConfiguration.getCacheDirs();
         if (cacheDirs.length > 0) {
