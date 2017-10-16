@@ -23,14 +23,18 @@ THE SOFTWARE.
  */
 package suryagaddipati.jenkinsdockerslaves.docker.api.service;
 
+import akka.http.javadsl.model.HttpMethods;
+import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class CreateServiceRequest {
+public class CreateServiceRequest extends ApiRequest {
     public TaskTemplate TaskTemplate ;
     public String Name;
 
     public CreateServiceRequest(String name, String Image, String[] Cmd, String[] Env) {
+        super(HttpMethods.POST, "/services/create",CreateServiceResponse.class);
         this.Name = name;
         this.TaskTemplate = new TaskTemplate(Image,Cmd,Env);
     }

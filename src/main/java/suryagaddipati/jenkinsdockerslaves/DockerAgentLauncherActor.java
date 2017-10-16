@@ -4,68 +4,78 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import akka.http.javadsl.Http;
-import akka.http.javadsl.marshalling.Marshaller;
-import akka.http.javadsl.model.HttpEntity;
-import akka.http.javadsl.model.HttpRequest;
-import akka.http.javadsl.model.HttpResponse;
-import akka.http.javadsl.model.RequestEntity;
-import akka.http.javadsl.unmarshalling.Unmarshaller;
-import akka.http.scaladsl.marshalling.Marshal;
+import akka.http.javadsl.model.ResponseEntity;
+import akka.japi.pf.ReceiveBuilder;
 import akka.stream.ActorMaterializer;
 import org.apache.commons.lang.StringUtils;
-import scala.PartialFunction;
-import scala.concurrent.ExecutionContextExecutor;
-import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
-import scala.util.Failure;
-import scala.util.Success;
-import suryagaddipati.jenkinsdockerslaves.docker.Jackson;
 import suryagaddipati.jenkinsdockerslaves.docker.api.DockerApiActor;
+import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiError;
+import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiException;
+import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiSuccess;
 import suryagaddipati.jenkinsdockerslaves.docker.api.response.SerializationException;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceResponse;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.DeleteServiceRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.ServiceCreateApiRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.api.service.ServiceLogRequest;
 
 import java.io.PrintStream;
 import java.nio.charset.Charset;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DockerAgentLauncherActor extends AbstractActor {
     private static final Logger LOGGER = Logger.getLogger(DockerAgentLauncherActor.class.getName());
     private final ActorRef apiActor;
     private PrintStream logger;
-    private String dockerUri;
     private CreateServiceRequest createRequest;
 
-    public DockerAgentLauncherActor(PrintStream logger, String dockerUri) {
+    public DockerAgentLauncherActor(PrintStream logger ) {
         this.logger = logger;
-        this.dockerUri = dockerUri;
         this.apiActor = getContext().actorOf(DockerApiActor.props());
     }
 
-    public static Props props(PrintStream logger, String dockerUri) {
-        return Props.create(DockerAgentLauncherActor.class, () -> new DockerAgentLauncherActor(logger,dockerUri));
+    public static Props props(PrintStream logger) {
+        return Props.create(DockerAgentLauncherActor.class, () -> new DockerAgentLauncherActor(logger));
     }
 
     @Override
     public Receive createReceive() {
-        return receiveBuilder()
-                .match(CreateServiceRequest.class, createServiceRequest -> launchService(createServiceRequest))
-                .match(CreateServiceResponse.class, createServiceResponse -> createServiceSuccess(createServiceResponse))
-                .match(SerializationException.class, serializationException -> serializationException.getCause().printStackTrace(logger))
+        ReceiveBuilder builder = receiveBuilder();
+        return serviceCreateMatchers(builder)
+
+                .match(ApiSuccess.class, apiSuccess -> apiSuccess.getRequestClass().equals(ServiceLogRequest.class), apiSuccess -> serviceLogResponse(apiSuccess.getResponseEntity()) )
+                .match(ApiSuccess.class, apiSuccess -> apiSuccess.getRequestClass().equals(DeleteServiceRequest.class), apiSuccess -> serviceDeleted(apiSuccess.getResponseEntity()) )
+
                 .match(DeleteServiceRequest.class, deleteServiceRequest -> deleteService(deleteServiceRequest))
+
+                .match(SerializationException.class, serializationException -> serializationException.getCause().printStackTrace(logger))
+                .match(ApiError.class, apiError -> logger.println( apiError.getStatusCode() + " : " + apiError.getMessage()) )
+                .match(ApiException.class, apiException -> apiException.getCause().printStackTrace(logger) )
                 .build();
     }
 
-    private void launchService(CreateServiceRequest createRequest) {
+    private void serviceDeleted(ResponseEntity responseEntity) {
+        getContext().stop(getSelf());
+    }
+
+    private void serviceLogResponse(ResponseEntity responseEntity) {
+        ActorMaterializer materializer = ActorMaterializer.create(getContext());
+        responseEntity.getDataBytes().runForeach(x -> {
+            logger.print(x.decodeString(Charset.defaultCharset()));
+        } , materializer);
+    }
+
+    private  ReceiveBuilder serviceCreateMatchers(ReceiveBuilder builder) {
+        return builder.match(CreateServiceRequest.class, createServiceRequest -> createService(createServiceRequest))
+                .match(CreateServiceResponse.class, createServiceResponse -> createServiceSuccess(createServiceResponse))
+                .match(ApiException.class, apiException -> apiException.getRequestClass().equals(CreateServiceRequest.class), apiException -> serviceCreateException(apiException) );
+    }
+
+
+    private void createService(CreateServiceRequest createRequest) {
         this.createRequest = createRequest;
-        apiActor.tell(new ServiceCreateApiRequest(createRequest),getSelf());
+        apiActor.tell(createRequest,getSelf());
     }
 
     private void createServiceSuccess(CreateServiceResponse createServiceResponse) {
@@ -73,99 +83,19 @@ public class DockerAgentLauncherActor extends AbstractActor {
         if(StringUtils.isNotEmpty(createServiceResponse.Warning)){
             logger.println("Service creation warning : " + createServiceResponse.Warning);
         }
+        apiActor.tell(new ServiceLogRequest(createServiceResponse.ID),getSelf());
     }
-
+    private void serviceCreateException(ApiException apiException) {
+        apiException.getCause().printStackTrace(this.logger);
+        resechedule();
+    }
 
     private void deleteService(DeleteServiceRequest deleteServiceRequest) {
-        HttpRequest req = HttpRequest.DELETE(getUrl("/services/"+ deleteServiceRequest.serviceName));
-        executeRequest(req,(httpResponse,throwable) -> {
-            if(throwable != null){
-                LOGGER.log(Level.SEVERE,"",throwable);
-            }
-            if(httpResponse.status().isFailure()) {
-                LOGGER.log(Level.SEVERE, httpResponse.entity().toString());
-            }
-            getContext().stop(getSelf());
-        });
+        apiActor.tell(deleteServiceRequest,getSelf());
     }
-
-
-    private CompletionStage<HttpResponse> launchService(Object createcontainerRequestEnity){
-        HttpRequest req = HttpRequest.POST(getUrl("/services/create")).withEntity((RequestEntity) createcontainerRequestEnity);
-        return executeRequest(req,this::serviceStartResponseHandler);
-    }
-
-    private void serviceStartResponseHandler(HttpResponse httpResponse, Throwable throwable) {
-        ActorMaterializer materializer = ActorMaterializer.create(getContext());
-        if(throwable != null){
-            throwable.printStackTrace(logger);
-            resechedule();
-        }else{
-
-            if(httpResponse.status().isFailure()){
-                logger.println(httpResponse.entity().toString());
-                resechedule();
-            }else {
-                Unmarshaller<HttpEntity, CreateServiceResponse> unmarshaller = Jackson.unmarshaller(CreateServiceResponse.class);
-                unmarshaller.unmarshal(httpResponse.entity(),materializer).thenApply( csr -> {
-                    logger.println("Service created with ID : " + csr.ID);
-                    if(StringUtils.isNotEmpty(csr.Warning)){
-                        logger.println("Service creation warning : " + csr.Warning);
-                    }
-
-
-                    HttpRequest logsRequest = HttpRequest.GET(getUrl("/services/" + csr.ID + "/logs?follow=true&stdout=true&stderr=true"));
-                    executeRequest(logsRequest, (response,err)->{
-                        response.entity().getDataBytes().runForeach(x -> {
-                            logger.print(x.decodeString(Charset.defaultCharset()));
-                        } , materializer);
-                    });
-                    return csr;
-                });
-            }
-
-
-        }
-    }
-
-    private String getUrl(String path) {
-        return this.dockerUri+path;
-    }
-
 
     private void resechedule() {
         ActorSystem system = getContext().getSystem();
         system.scheduler().scheduleOnce(Duration.apply(12, TimeUnit.SECONDS),getSelf(),createRequest, getContext().dispatcher(), ActorRef.noSender());
-    }
-
-    private  void marshallAndRun(Object object, scala.Function1 andThen){
-        ExecutionContextExecutor ec = getContext().dispatcher();
-        Marshaller<Object, RequestEntity> marshaller = Jackson.marshaller();
-        Future entity = new Marshal(object).to(marshaller.asScala(), ec);
-        PartialFunction nextAction = new PartialFunction() {
-            @Override
-            public boolean isDefinedAt(Object x) {
-                return true;
-            }
-            @Override
-            public Object apply(Object result) {
-                if(result instanceof Failure){ // This would be caused if there is a bug in code, shouldn't be rescheduled here.
-                    Failure failure = (Failure) result;
-                    failure.exception().printStackTrace(logger);
-                    return null;
-                }else {
-                    return ((Success)result).map(andThen);
-                }
-            }
-        };
-
-        entity.andThen(nextAction,ec);
-    }
-    private CompletionStage<HttpResponse> executeRequest(HttpRequest req, BiConsumer<HttpResponse, ? super Throwable> onComplete){
-        ActorSystem system = getContext().getSystem();
-        ActorMaterializer materializer = ActorMaterializer.create(getContext());
-        CompletionStage<HttpResponse> rsp = Http.get(system).singleRequest(req, materializer);
-        return rsp.whenCompleteAsync(onComplete);
-
     }
 }

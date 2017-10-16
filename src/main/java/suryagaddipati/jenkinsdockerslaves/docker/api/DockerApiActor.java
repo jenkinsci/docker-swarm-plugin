@@ -42,13 +42,8 @@ public class DockerApiActor extends AbstractActor {
     }
 
     private void executeApiRequest(ApiRequest apiRequest) {
-
         HttpRequest request = apiRequest.getHttpRequest();
-        if(apiRequest.getEntity() ==null){
-            executeRequest(request,handleResponse(apiRequest,getSender()));
-        }else {
-            marshallAndRun(apiRequest.getEntity(), requestEntity -> executeRequest( request.withEntity((RequestEntity) requestEntity), handleResponse(apiRequest,getSender())));
-        }
+        marshallAndRun(apiRequest.getEntity(), requestEntity -> executeRequest( request.withEntity((RequestEntity) requestEntity), handleResponse(apiRequest,getSender())));
     }
 
     private BiConsumer<HttpResponse, Throwable> handleResponse(ApiRequest apiRequest, ActorRef sender){
@@ -59,25 +54,33 @@ public class DockerApiActor extends AbstractActor {
 
                 ActorMaterializer materializer = ActorMaterializer.create(getContext());
                 if(httpResponse.status().isFailure()) {
-                    Unmarshaller<HttpEntity, ErrorMessage> unmarshaller = Jackson.unmarshaller(ErrorMessage.class);
-                    unmarshaller.unmarshal(httpResponse.entity(),materializer).thenApply( csr -> {
-                        sender.tell(new ApiError(apiRequest.getClass(),httpResponse.status(),csr.message),getSelf());
-                        return csr;
-                    });
+                    handleFailure(apiRequest, sender, httpResponse, materializer);
                 }else{
-                    if(apiRequest.getResponseClass() != null){
-                        Unmarshaller<HttpEntity, ?> unmarshaller = Jackson.unmarshaller(apiRequest.getResponseClass());
-                        unmarshaller.unmarshal(httpResponse.entity(),materializer).thenApply( csr -> {
-                            sender.tell(csr,getSelf());
-                            return csr;
-                        });
-                    }else{
-                        sender.tell(new ApiSuccess(apiRequest.getClass()),getSelf());
-                    }
+                    handleSuccess(apiRequest, sender, httpResponse, materializer);
                 }
             }
         };
 
+    }
+
+    private void handleFailure(ApiRequest apiRequest, ActorRef sender, HttpResponse httpResponse, ActorMaterializer materializer) {
+        Unmarshaller<HttpEntity, ErrorMessage> unmarshaller = Jackson.unmarshaller(ErrorMessage.class);
+        unmarshaller.unmarshal(httpResponse.entity(),materializer).thenApply( csr -> {
+            sender.tell(new ApiError(apiRequest.getClass(),httpResponse.status(),csr.message),getSelf());
+            return csr;
+        });
+    }
+
+    private void handleSuccess(ApiRequest apiRequest, ActorRef sender, HttpResponse httpResponse, ActorMaterializer materializer) {
+        if(apiRequest.getResponseClass() != null){
+            Unmarshaller<HttpEntity, ?> unmarshaller = Jackson.unmarshaller(apiRequest.getResponseClass());
+            unmarshaller.unmarshal(httpResponse.entity(),materializer).thenApply( csr -> {
+                sender.tell(csr,getSelf());
+                return csr;
+            });
+        }else{
+            sender.tell(new ApiSuccess(apiRequest.getClass(),httpResponse.entity() ),getSelf());
+        }
     }
 
 

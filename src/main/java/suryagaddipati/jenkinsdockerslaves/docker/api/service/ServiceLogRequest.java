@@ -26,20 +26,9 @@ package suryagaddipati.jenkinsdockerslaves.docker.api.service;
 import akka.http.javadsl.model.HttpMethods;
 import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
 
-public class ServiceCreateApiRequest extends ApiRequest {
-    public static final String NAME = "CREATE_SERVICE";
+public class ServiceLogRequest extends ApiRequest {
 
-    public ServiceCreateApiRequest(CreateServiceRequest entity) {
-        super(HttpMethods.POST, "/services/create", entity);
-    }
-
-    @Override
-    public String getName() {
-        return NAME ;
-    }
-
-    @Override
-    public Class<?> getResponseClass() {
-        return CreateServiceResponse.class;
+    public ServiceLogRequest(String id) {
+        super(HttpMethods.GET, "/services/" + id + "/logs?follow=true&stdout=true&stderr=true");
     }
 }

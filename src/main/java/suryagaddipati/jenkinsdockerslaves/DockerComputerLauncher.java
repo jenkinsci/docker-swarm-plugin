@@ -10,7 +10,6 @@ import hudson.slaves.ComputerLauncher;
 import hudson.slaves.SlaveComputer;
 import jenkins.model.Jenkins;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.DockerAgentLauncherActor;
 
 import java.io.IOException;
 import java.util.Date;
@@ -93,7 +92,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
             }
         }
 
-        final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerAgentLauncherActor.props(listener.getLogger(),configuration.getDockerUri()), computer.getName());
+        final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerAgentLauncherActor.props(listener.getLogger()), computer.getName());
         agentLauncher.tell(crReq,ActorRef.noSender());
     }
 
