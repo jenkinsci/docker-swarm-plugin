@@ -43,6 +43,10 @@ public class CreateServiceRequest extends ApiRequest {
         CreateServiceRequest.TaskTemplate.ContainerSpec.BindVolume volume = new CreateServiceRequest.TaskTemplate.ContainerSpec.BindVolume(source, target);
         this.TaskTemplate.ContainerSpec.Mounts.add(volume);
     }
+    public void addCacheVolume(String cacheVolumeName, String target) {
+        CreateServiceRequest.TaskTemplate.ContainerSpec.CacheDriverVolume volume = new CreateServiceRequest.TaskTemplate.ContainerSpec.CacheDriverVolume(cacheVolumeName, target);
+        this.TaskTemplate.ContainerSpec.Mounts.add(volume);
+    }
 
     public void setTaskLimits(Long nanoCPUs, Long memoryBytes) {
         this.TaskTemplate.Resources.Limits.NanoCPUs = nanoCPUs;
@@ -57,6 +61,7 @@ public class CreateServiceRequest extends ApiRequest {
     public void setNetwork(String network) {
         Networks.add(network);
     }
+
 
     public static class TaskTemplate{
         public ContainerSpec ContainerSpec ;

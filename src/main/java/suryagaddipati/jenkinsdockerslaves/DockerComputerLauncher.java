@@ -87,7 +87,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
             this.bi.getAction(DockerSlaveInfo.class).setCacheVolumeName(cacheVolumeName);
             for (int i = 0; i < cacheDirs.length; i++) {
                 listener.getLogger().println("Binding Volume" + cacheDirs[i] + " to " + cacheVolumeName);
-//                crReq.HostConfig.addCacheMount(cacheVolumeName, cacheDirs[i]);
+                crReq.addCacheVolume(cacheVolumeName, cacheDirs[i]);
             }
         }
 
