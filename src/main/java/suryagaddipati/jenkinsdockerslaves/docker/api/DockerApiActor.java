@@ -68,7 +68,10 @@ public class DockerApiActor extends AbstractActor {
         unmarshaller.unmarshal(httpResponse.entity(),materializer).thenApply( csr -> {
             sender.tell(new ApiError(apiRequest.getClass(),httpResponse.status(),csr.message),getSelf());
             return csr;
-        });
+        }).exceptionally(throwable -> {
+            sender.tell(new SerializationException(throwable),getSelf());
+            return new ErrorMessage();
+        } );
     }
 
     private void handleSuccess(ApiRequest apiRequest, ActorRef sender, HttpResponse httpResponse, ActorMaterializer materializer) {

@@ -24,6 +24,7 @@ THE SOFTWARE.
 package suryagaddipati.jenkinsdockerslaves.docker.api.service;
 
 import akka.http.javadsl.model.HttpMethods;
+import com.google.common.base.Strings;
 import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
 
 import java.util.ArrayList;
@@ -59,7 +60,9 @@ public class CreateServiceRequest extends ApiRequest {
     }
 
     public void setNetwork(String network) {
-        Networks.add(network);
+        if(!Strings.isNullOrEmpty(network)){
+            Networks.add(network);
+        }
     }
 
 
