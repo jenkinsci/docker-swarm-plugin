@@ -1,7 +1,5 @@
-/*
- * Copyright (C) 2009-2017 Typesafe Inc. <http://www.typesafe.com>
- */
-package suryagaddipati.jenkinsdockerslaves.docker;
+
+package suryagaddipati.jenkinsdockerslaves.docker.marshalling;
 
 import akka.http.javadsl.marshalling.Marshaller;
 import akka.http.javadsl.model.HttpEntity;
@@ -14,10 +12,13 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.type.CollectionType;
 
 import java.io.IOException;
+import java.util.List;
 
 public class Jackson {
+
   private static final ObjectMapper defaultObjectMapper = new ObjectMapper();
   static{
     defaultObjectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
@@ -34,10 +35,6 @@ public class Jackson {
       Marshaller.stringToEntity(),
       MediaTypes.APPLICATION_JSON
     );
-  }
-
-  public static <T> Unmarshaller<ByteString, T> byteStringUnmarshaller(Class<T> expectedType) {
-    return byteStringUnmarshaller(defaultObjectMapper, expectedType);
   }
 
   public static <T> Unmarshaller<HttpEntity, T> unmarshaller(Class<T> expectedType) {
@@ -67,5 +64,28 @@ public class Jackson {
     } catch (IOException e) {
       throw new IllegalArgumentException("Cannot unmarshal JSON as " + expectedType.getSimpleName(), e);
     }
+  }
+
+  private static <T> T fromJSONArray(ObjectMapper mapper, String json, Class<T> expectedType) {
+    try {
+      CollectionType arrayType = mapper.getTypeFactory()
+              .constructCollectionType(List.class, expectedType);
+      return mapper.readerFor(arrayType).readValue(json);
+    } catch (IOException e) {
+      throw new IllegalArgumentException("Cannot unmarshal JSON as " + expectedType.getSimpleName(), e);
+    }
+  }
+
+
+  public static Unmarshaller<HttpEntity,?> unmarshaller(Class<?> responseClass, ResponseType responseType) {
+      if(responseType == ResponseType.CLASS){
+        return unmarshaller(responseClass);
+      }else {
+        return Unmarshaller.forMediaType(MediaTypes.APPLICATION_JSON, Unmarshaller.entityToString())
+                .thenApply(s -> fromJSONArray(defaultObjectMapper, s, responseClass));
+      }
+  }
+  public static ObjectMapper getDefaultObjectMapper() {
+    return defaultObjectMapper;
   }
 }

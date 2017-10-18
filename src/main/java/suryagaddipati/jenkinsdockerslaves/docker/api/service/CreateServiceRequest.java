@@ -4,6 +4,7 @@ package suryagaddipati.jenkinsdockerslaves.docker.api.service;
 import akka.http.javadsl.model.HttpMethods;
 import com.google.common.base.Strings;
 import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.marshalling.ResponseType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +14,7 @@ public class CreateServiceRequest extends ApiRequest {
     public String Name;
     public List<String> Networks = new ArrayList<>();
     public CreateServiceRequest(String name, String Image, String[] Cmd, String[] Env) {
-        super(HttpMethods.POST, "/services/create",CreateServiceResponse.class);
+        super(HttpMethods.POST, "/services/create",CreateServiceResponse.class, ResponseType.CLASS);
         this.Name = name;
         this.TaskTemplate = new TaskTemplate(Image,Cmd,Env);
     }

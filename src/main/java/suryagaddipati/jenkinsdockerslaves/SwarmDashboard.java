@@ -1,5 +1,8 @@
 package suryagaddipati.jenkinsdockerslaves;
 
+import akka.actor.ActorRef;
+import akka.pattern.Patterns;
+import akka.util.Timeout;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import hudson.Extension;
@@ -10,6 +13,9 @@ import hudson.model.RootAction;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
+import scala.concurrent.duration.Duration;
+import scala.concurrent.duration.FiniteDuration;
+import suryagaddipati.jenkinsdockerslaves.docker.api.DockerApiActor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,6 +56,10 @@ public class SwarmDashboard implements RootAction {
 
 
     public Iterable<SwarmNode> getNodes() {
+        DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
+        Duration duration = Duration.apply("10 sec");
+        ActorRef apiActor = swarmPlugin.getActorSystem().actorOf(DockerApiActor.props());
+        Patterns.ask(apiActor,"", Timeout.durationToTimeout((FiniteDuration) duration));
 
       return null;
     }
