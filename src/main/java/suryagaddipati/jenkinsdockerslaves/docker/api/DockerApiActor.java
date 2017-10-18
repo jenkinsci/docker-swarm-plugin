@@ -22,9 +22,6 @@ public class DockerApiActor extends AbstractActor {
     private void executeApiRequest(ApiRequest apiRequest) {
         ActorSystem as = getContext().getSystem();
         ActorRef sender = getSender();
-        new DockerApiRequest(as,apiRequest).execute().thenAcceptAsync( x -> {
-            sender.tell(x,sender );
-
-        });
+        new DockerApiRequest(as,apiRequest).execute().thenAcceptAsync( response ->  sender.tell(response,sender ));
     }
 }
