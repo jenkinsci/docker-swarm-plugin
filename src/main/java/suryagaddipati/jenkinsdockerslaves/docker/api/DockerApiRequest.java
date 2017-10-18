@@ -43,11 +43,7 @@ public class DockerApiRequest {
     private CompletionStage<Object> marshallResponse(Either<SerializationException, HttpResponse> response) {
         if(response.isRight()){
             HttpResponse httpResponse = response.right().get();
-            if(httpResponse.status().isFailure()) {
-                return handleFailure(httpResponse);
-            }else{
-                return handleSuccess( httpResponse);
-            }
+            return httpResponse.status().isFailure()?  handleFailure(httpResponse) : handleSuccess( httpResponse);
         }
         return   CompletableFuture.completedFuture( response.left().get());
     }
