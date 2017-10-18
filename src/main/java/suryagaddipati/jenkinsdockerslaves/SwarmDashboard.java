@@ -1,8 +1,6 @@
 package suryagaddipati.jenkinsdockerslaves;
 
-import akka.actor.ActorRef;
-import akka.pattern.Patterns;
-import akka.util.Timeout;
+import akka.actor.ActorSystem;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import hudson.Extension;
@@ -13,15 +11,18 @@ import hudson.model.RootAction;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
-import suryagaddipati.jenkinsdockerslaves.docker.api.DockerApiActor;
+import suryagaddipati.jenkinsdockerslaves.docker.api.DockerApiRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.ListNodesRequest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Extension
 public class SwarmDashboard implements RootAction {
@@ -57,11 +58,18 @@ public class SwarmDashboard implements RootAction {
 
     public Iterable<SwarmNode> getNodes() {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-        Duration duration = Duration.apply("10 sec");
-        ActorRef apiActor = swarmPlugin.getActorSystem().actorOf(DockerApiActor.props());
-        Patterns.ask(apiActor,"", Timeout.durationToTimeout((FiniteDuration) duration));
+        ActorSystem as = swarmPlugin.getActorSystem();
+        ListNodesRequest apiRequest = new ListNodesRequest();
 
-      return null;
+        CompletableFuture<Object> nodes = new DockerApiRequest(as, apiRequest).execute().toCompletableFuture();
+        try {
+            Object nodeList = nodes.get(5, TimeUnit.SECONDS);
+            System.out.print(nodeList);
+        } catch (InterruptedException|ExecutionException|TimeoutException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public String getUsage() {

@@ -36,7 +36,7 @@ public class DockerApiRequest {
         return marshall(apiRequest.getEntity())
                 .thenComposeAsync( marshallResult -> executeRequest( marshallResult, apiRequest.getHttpRequest()))
                 .thenComposeAsync( httpResponse -> marshallResponse(httpResponse))
-                .exceptionally(ex -> CompletableFuture.completedFuture(new SerializationException(ex)) );
+                .exceptionally(ex ->new SerializationException(ex));
     }
 
 
