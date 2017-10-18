@@ -16,8 +16,8 @@
         </div>
 
         <div class="mdl-card__supporting-text">
-            <div>CPUs: ${node.reservedCPUs}</div>
-            <div>Memory: ${node.reservedMemory}</div>
+            <div>CPUs: ${node.totalCPUs}</div>
+            <div>Memory: ${node.totalMemory} MB</div>
 
             <ul class="mdl-list">
                 <j:forEach items="${node.currentBuilds}" var="build">

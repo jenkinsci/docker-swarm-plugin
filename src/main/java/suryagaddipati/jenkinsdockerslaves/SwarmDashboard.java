@@ -13,6 +13,8 @@ import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import suryagaddipati.jenkinsdockerslaves.docker.api.DockerApiRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.ListNodesRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.Node;
+import suryagaddipati.jenkinsdockerslaves.docker.api.response.SerializationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 @Extension
 public class SwarmDashboard implements RootAction {
@@ -63,13 +66,16 @@ public class SwarmDashboard implements RootAction {
 
         CompletableFuture<Object> nodes = new DockerApiRequest(as, apiRequest).execute().toCompletableFuture();
         try {
-            Object nodeList = nodes.get(5, TimeUnit.SECONDS);
-            System.out.print(nodeList);
+            Object result = nodes.get(5, TimeUnit.SECONDS);
+            if(result instanceof SerializationException){
+                throw new RuntimeException (((SerializationException)result).getCause());
+            }
+            List<Node> nodeList = (List<Node>)result ;
+            return nodeList.stream().map(node -> new SwarmNode(node,new ArrayList<>())).collect(Collectors.toList());
         } catch (InterruptedException|ExecutionException|TimeoutException e) {
-            e.printStackTrace();
+           throw  new RuntimeException(e);
         }
 
-        return null;
     }
 
     public String getUsage() {
@@ -180,22 +186,22 @@ public class SwarmDashboard implements RootAction {
     }
 
     public static class SwarmNode {
-        //Healthy
         private final String healthy;
         private final Iterable<String> computers;
         private final String name;
 
 
-        private final String reservedCPUs;
+
+        private final long totalCPUs;
 
 
-        private final String reservedMemory;
+        private final long totalMemory;
 
-        public SwarmNode(final List<Object> info, final List<Computer> dockerComputers) {
-            this.name = get(info, 0, 0);
-            this.healthy = get(info, 2, 1);
-            this.reservedCPUs = get(info, 4, 1);
-            this.reservedMemory = get(info, 5, 1);
+        public SwarmNode(final Node node, final List<Computer> dockerComputers) {
+            this.name = node.Description.Hostname;
+            this.healthy = node.Status.State;
+            this.totalCPUs = node.Description.Resources.NanoCPUs/1000000000 ;
+            this.totalMemory = Bytes.toMB( node.Description.Resources.MemoryBytes) ;
             final Iterable<Computer> currentComputers = Iterables.filter(dockerComputers, new Predicate<Computer>() {
                 public boolean apply(final Computer computer) {
                     final String computerSwarmNodeName = ((DockerComputer) computer).getSwarmNodeName();
@@ -220,30 +226,22 @@ public class SwarmDashboard implements RootAction {
         }
 
         public boolean isHealthy() {
-            return this.healthy == "Healthy";
+            return this.healthy == "ready";
         }
 
         public boolean isFull() {
-            final String[] cpus = this.reservedCPUs.split("/");
-            return cpus.length == 2 ? cpus[0].trim().equals(cpus[1].trim()) : false;
+//            final String[] cpus = this.reservedCPUs.split("/");
+//            return cpus.length == 2 ? cpus[0].trim().equals(cpus[1].trim()) : false;
+            return false;
         }
 
-        public int getTotalCPUs() {
-            final String[] cpus = this.reservedCPUs.split("/");
-            return cpus.length == 2 ? Integer.parseInt(cpus[1].trim()) : 0;
-        }
+
+
 
         public int getComputerCount() {
             return Iterables.size(this.computers);
         }
 
-        public String getReservedCPUs() {
-            return this.reservedCPUs;
-        }
-
-        public String getReservedMemory() {
-            return this.reservedMemory;
-        }
 
         public List<Run> getCurrentBuilds() {
             final Jenkins jenkins = Jenkins.getInstance();
@@ -255,6 +253,14 @@ public class SwarmDashboard implements RootAction {
                 }
             }
             return currentBuilds;
+        }
+
+        public long getTotalCPUs() {
+            return totalCPUs;
+        }
+
+        public long getTotalMemory() {
+            return totalMemory;
         }
 
     }
