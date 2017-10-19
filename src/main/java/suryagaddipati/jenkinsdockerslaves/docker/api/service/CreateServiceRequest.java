@@ -4,6 +4,7 @@ package suryagaddipati.jenkinsdockerslaves.docker.api.service;
 import akka.http.javadsl.model.HttpMethods;
 import com.google.common.base.Strings;
 import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.api.task.TaskTemplate;
 import suryagaddipati.jenkinsdockerslaves.docker.marshalling.ResponseType;
 
 import java.util.ArrayList;
@@ -20,11 +21,11 @@ public class CreateServiceRequest extends ApiRequest {
     }
 
     public void  addBindVolume(String source,String target){
-        CreateServiceRequest.TaskTemplate.ContainerSpec.BindVolume volume = new CreateServiceRequest.TaskTemplate.ContainerSpec.BindVolume(source, target);
+        TaskTemplate.ContainerSpec.BindVolume volume = new TaskTemplate.ContainerSpec.BindVolume(source, target);
         this.TaskTemplate.ContainerSpec.Mounts.add(volume);
     }
     public void addCacheVolume(String cacheVolumeName, String target) {
-        CreateServiceRequest.TaskTemplate.ContainerSpec.CacheDriverVolume volume = new CreateServiceRequest.TaskTemplate.ContainerSpec.CacheDriverVolume(cacheVolumeName, target);
+        TaskTemplate.ContainerSpec.CacheDriverVolume volume = new suryagaddipati.jenkinsdockerslaves.docker.api.task.TaskTemplate.ContainerSpec.CacheDriverVolume(cacheVolumeName, target);
         this.TaskTemplate.ContainerSpec.Mounts.add(volume);
     }
 
@@ -45,75 +46,4 @@ public class CreateServiceRequest extends ApiRequest {
     }
 
 
-    public static class TaskTemplate{
-        public ContainerSpec ContainerSpec ;
-        public RestartPolicy RestartPolicy= new RestartPolicy();
-        public Resources Resources= new Resources();
-
-        public TaskTemplate(String image, String[] cmd, String[] env) {
-            this.ContainerSpec = new ContainerSpec(image,cmd,env);
-
-        }
-
-        public  static class  Resources {
-            public Resource Limits = new Resource();
-            public Resource Reservations = new Resource();
-
-            public static class Resource{
-                public Long  NanoCPUs;
-                public Long   MemoryBytes;
-            }
-        }
-
-        public  static class RestartPolicy {
-            public String  Condition = "none";
-        }
-
-        public static class ContainerSpec{
-
-            public final String Image;
-            public final String[] Command;
-            public final String[] Env;
-            public List<Mount> Mounts = new ArrayList<>();
-
-            public ContainerSpec(String image, String[] cmd, String[] env) {
-                this.Image = image;
-                this.Command = cmd;
-                this.Env  = env;
-            }
-
-
-            public static abstract class Mount {
-                String Target;
-                String Source;
-
-                public Mount(String Source, String Target) {
-                    this.Source = Source;
-                    this.Target =Target;
-                }
-
-            }
-
-            public static class BindVolume extends Mount{
-                String Type = "bind";
-                public BindVolume(String Source, String Target) {
-                    super(Source, Target);
-                }
-            }
-
-            public static class CacheDriverVolume extends  Mount{
-                VolumeOptions VolumeOptions = new VolumeOptions();
-
-                String Type = "volume";
-                public CacheDriverVolume(String Source, String Target) {
-                    super(Source, Target);
-                }
-                private static class VolumeOptions{
-                    private static class DriverConfig{
-                        String Name = "cache-driver";
-                    }
-                }
-            }
-        }
-    }
 }

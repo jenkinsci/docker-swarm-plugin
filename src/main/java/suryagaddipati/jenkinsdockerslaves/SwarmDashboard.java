@@ -15,6 +15,7 @@ import suryagaddipati.jenkinsdockerslaves.docker.api.DockerApiRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.ListNodesRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.Node;
 import suryagaddipati.jenkinsdockerslaves.docker.api.response.SerializationException;
+import suryagaddipati.jenkinsdockerslaves.docker.api.task.ListTasksRequest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,20 +63,27 @@ public class SwarmDashboard implements RootAction {
     public Iterable<SwarmNode> getNodes() {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
         ActorSystem as = swarmPlugin.getActorSystem();
-        ListNodesRequest apiRequest = new ListNodesRequest();
 
-        CompletableFuture<Object> nodes = new DockerApiRequest(as, apiRequest).execute().toCompletableFuture();
+        CompletableFuture<Object> nodes = new DockerApiRequest(as, new ListNodesRequest()).execute().toCompletableFuture();
+        CompletableFuture<Object> tasks = new DockerApiRequest(as, new ListTasksRequest()).execute().toCompletableFuture();
+
         try {
-            Object result = nodes.get(5, TimeUnit.SECONDS);
-            if(result instanceof SerializationException){
-                throw new RuntimeException (((SerializationException)result).getCause());
-            }
-            List<Node> nodeList = (List<Node>)result ;
+
+            List<Node> nodeList = (List<Node>) getFuture(nodes);
+            List<Node> taskList = (List<Node>) getFuture(tasks);
             return nodeList.stream().map(node -> new SwarmNode(node,new ArrayList<>())).collect(Collectors.toList());
         } catch (InterruptedException|ExecutionException|TimeoutException e) {
            throw  new RuntimeException(e);
         }
 
+    }
+
+    private Object getFuture(CompletableFuture<Object> nodes) throws InterruptedException, ExecutionException, TimeoutException {
+        Object result = nodes.get(5, TimeUnit.SECONDS);
+        if(result instanceof SerializationException){
+            throw new RuntimeException (((SerializationException)result).getCause());
+        }
+        return result;
     }
 
     public String getUsage() {
