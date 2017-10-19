@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -64,26 +65,32 @@ public class SwarmDashboard implements RootAction {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
         ActorSystem as = swarmPlugin.getActorSystem();
 
-        CompletableFuture<Object> nodes = new DockerApiRequest(as, new ListNodesRequest()).execute().toCompletableFuture();
-        CompletableFuture<Object> tasks = new DockerApiRequest(as, new ListTasksRequest()).execute().toCompletableFuture();
+        CompletionStage<Object> nodesStage = new DockerApiRequest(as, new ListNodesRequest()).execute();
+        CompletionStage<Object> swarmNodesFuture = nodesStage.thenComposeAsync(nodes -> {
+            if (nodes instanceof List) {
+                CompletableFuture<Object> tasksFuture = new DockerApiRequest(as, new ListTasksRequest()).execute().toCompletableFuture();
+                return tasksFuture.thenApply(tasks -> {
+                    List<Node> nodeList = (List<Node>) nodes;
+                    return nodeList.stream().map(node -> new SwarmNode(node, new ArrayList<>())).collect(Collectors.toList());
+                });
+            }
+            return CompletableFuture.completedFuture(nodes);
+        });
 
-        try {
-
-            List<Node> nodeList = (List<Node>) getFuture(nodes);
-            List<Node> taskList = (List<Node>) getFuture(tasks);
-            return nodeList.stream().map(node -> new SwarmNode(node,new ArrayList<>())).collect(Collectors.toList());
-        } catch (InterruptedException|ExecutionException|TimeoutException e) {
-           throw  new RuntimeException(e);
-        }
+        return (List<SwarmNode>) getFuture(swarmNodesFuture);
 
     }
 
-    private Object getFuture(CompletableFuture<Object> nodes) throws InterruptedException, ExecutionException, TimeoutException {
-        Object result = nodes.get(5, TimeUnit.SECONDS);
-        if(result instanceof SerializationException){
-            throw new RuntimeException (((SerializationException)result).getCause());
+    private Object getFuture(CompletionStage<Object> future) {
+        try {
+            Object result = future.toCompletableFuture().get(5, TimeUnit.SECONDS);
+            if(result instanceof SerializationException){
+                throw new RuntimeException (((SerializationException)result).getCause());
+            }
+            return result;
+        } catch (InterruptedException|ExecutionException|TimeoutException e) {
+            throw  new RuntimeException(e);
         }
-        return result;
     }
 
     public String getUsage() {

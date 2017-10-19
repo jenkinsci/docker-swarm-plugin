@@ -3,6 +3,7 @@ package suryagaddipati.jenkinsdockerslaves.docker.api.service;
 
 import akka.http.javadsl.model.HttpMethods;
 import com.google.common.base.Strings;
+import suryagaddipati.jenkinsdockerslaves.docker.api.containers.ContainerSpec;
 import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.task.TaskTemplate;
 import suryagaddipati.jenkinsdockerslaves.docker.marshalling.ResponseType;
@@ -21,12 +22,12 @@ public class CreateServiceRequest extends ApiRequest {
     }
 
     public void  addBindVolume(String source,String target){
-        TaskTemplate.ContainerSpec.BindVolume volume = new TaskTemplate.ContainerSpec.BindVolume(source, target);
-        this.TaskTemplate.ContainerSpec.Mounts.add(volume);
+        ContainerSpec.Mount mount = ContainerSpec.Mount.bindMount(source, target);
+        this.TaskTemplate.ContainerSpec.Mounts.add(mount);
     }
     public void addCacheVolume(String cacheVolumeName, String target) {
-        TaskTemplate.ContainerSpec.CacheDriverVolume volume = new suryagaddipati.jenkinsdockerslaves.docker.api.task.TaskTemplate.ContainerSpec.CacheDriverVolume(cacheVolumeName, target);
-        this.TaskTemplate.ContainerSpec.Mounts.add(volume);
+        ContainerSpec.Mount mount = ContainerSpec.Mount.cacheMount(cacheVolumeName, target);
+        this.TaskTemplate.ContainerSpec.Mounts.add(mount);
     }
 
     public void setTaskLimits(Long nanoCPUs, Long memoryBytes) {
