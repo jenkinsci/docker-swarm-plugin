@@ -49,6 +49,9 @@ public class ContainerSpec {
         String Source;
         String Type;
         public Mount.VolumeOptions VolumeOptions;
+        public Mount(){
+           // for deserilization
+        }
         public Mount(String Source, String Target) {
             this.Source = Source;
             this.Target =Target;

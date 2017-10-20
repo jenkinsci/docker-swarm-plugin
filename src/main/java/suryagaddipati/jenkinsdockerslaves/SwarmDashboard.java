@@ -1,7 +1,6 @@
 package suryagaddipati.jenkinsdockerslaves;
 
 import akka.actor.ActorSystem;
-import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import hudson.Extension;
 import hudson.model.Computer;
@@ -16,6 +15,7 @@ import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.ListNodesRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.Node;
 import suryagaddipati.jenkinsdockerslaves.docker.api.response.SerializationException;
 import suryagaddipati.jenkinsdockerslaves.docker.api.task.ListTasksRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.api.task.Task;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +28,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Extension
 public class SwarmDashboard implements RootAction {
@@ -70,8 +71,16 @@ public class SwarmDashboard implements RootAction {
             if (nodes instanceof List) {
                 CompletableFuture<Object> tasksFuture = new DockerApiRequest(as, new ListTasksRequest()).execute().toCompletableFuture();
                 return tasksFuture.thenApply(tasks -> {
-                    List<Node> nodeList = (List<Node>) nodes;
-                    return nodeList.stream().map(node -> new SwarmNode(node, new ArrayList<>())).collect(Collectors.toList());
+                    if(tasks instanceof  List){
+                        List<Node> nodeList = (List<Node>) nodes;
+                        return nodeList.stream().map(node -> {
+                            Stream<String> computers = ((List<Task>) tasks).stream()
+                                    .filter(task -> node.ID.equals(task.NodeID) && task.Spec.getComputerName() != null)
+                                    .map(task -> task.Spec.getComputerName());
+                        return    new SwarmNode(node, computers.collect(Collectors.toList()));
+                        }).collect(Collectors.toList());
+                    }
+                    return  CompletableFuture.completedFuture(tasks);
                 });
             }
             return CompletableFuture.completedFuture(nodes);
@@ -141,16 +150,6 @@ public class SwarmDashboard implements RootAction {
         return slaveInfo == null ? 0 : (slaveInfo.getCpuAllocation() == null ? 0 : slaveInfo.getCpuAllocation());
     }
 
-    private List<Computer> filterDockerComputers(final Computer[] computers) {
-        final List<Computer> dockerComputers = new ArrayList<>();
-        for (int i = 0; i < computers.length; i++) {
-            if (computers[i] instanceof DockerComputer)
-                dockerComputers.add(computers[i]);
-        }
-        return dockerComputers;
-    }
-
-
 
     public static class SwarmQueueItem {
 
@@ -212,23 +211,12 @@ public class SwarmDashboard implements RootAction {
 
         private final long totalMemory;
 
-        public SwarmNode(final Node node, final List<Computer> dockerComputers) {
+        public SwarmNode(final Node node, final List<String> computers) {
             this.name = node.Description.Hostname;
             this.healthy = node.Status.State;
             this.totalCPUs = node.Description.Resources.NanoCPUs/1000000000 ;
             this.totalMemory = Bytes.toMB( node.Description.Resources.MemoryBytes) ;
-            final Iterable<Computer> currentComputers = Iterables.filter(dockerComputers, new Predicate<Computer>() {
-                public boolean apply(final Computer computer) {
-                    final String computerSwarmNodeName = ((DockerComputer) computer).getSwarmNodeName();
-                    return computerSwarmNodeName != null && (SwarmNode.this.name.contains(computerSwarmNodeName) || computerSwarmNodeName.contains(SwarmNode.this.name));
-                }
-            });
-
-            if (!Iterables.isEmpty(currentComputers)) {
-                this.computers = Iterables.transform(currentComputers, computer -> computer.getName());
-            } else {
-                this.computers = new ArrayList<>();
-            }
+            this.computers = computers;
         }
 
         private static String get(final List<Object> info, final int i, final int j) {
@@ -262,7 +250,7 @@ public class SwarmDashboard implements RootAction {
             final Jenkins jenkins = Jenkins.getInstance();
             final List currentBuilds = new ArrayList();
             for (final String computer : this.computers) {
-                final Queue.Executable currentBuild = ((DockerComputer) jenkins.getComputer(computer)).getCurrentBuild();
+                final Queue.Executable currentBuild = ((DockerComputer) jenkins.getComputer("agent-"+computer)).getCurrentBuild();
                 if (currentBuild instanceof Run) {
                     currentBuilds.add(currentBuild);
                 }
@@ -279,6 +267,7 @@ public class SwarmDashboard implements RootAction {
         }
 
     }
+
 
 
 }
