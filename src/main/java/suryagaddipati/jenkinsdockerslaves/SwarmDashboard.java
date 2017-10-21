@@ -61,7 +61,7 @@ public class SwarmDashboard implements RootAction {
     }
 
 
-    public Iterable<SwarmNode> getNodes() {
+    public List<SwarmNode> getNodes() {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
         ActorSystem as = swarmPlugin.getActorSystem();
 
@@ -76,7 +76,7 @@ public class SwarmDashboard implements RootAction {
                             Stream<Task> tasksForNode = ((List<Task>) tasks).stream()
                                     .filter(task -> node.ID.equals(task.NodeID) && task.Spec.getComputerName() != null);
 
-                        return    new SwarmNode(node, tasksForNode.collect(Collectors.toList()));
+                            return    new SwarmNode(node, tasksForNode.collect(Collectors.toList()));
                         }).collect(Collectors.toList());
                     }
                     return  CompletableFuture.completedFuture(tasks);
@@ -106,26 +106,27 @@ public class SwarmDashboard implements RootAction {
         final ArrayList<Object> usage = new ArrayList<>();
         usage.add(Arrays.asList("Job", "cpu"));
 
-        final Map<String, Integer> usagePerJob = new HashMap<>();
-        int totalCpus = 0;
-        int totalReservedCpus = 0;
+        final Map<String, Long> usagePerJob = new HashMap<>();
+        List<SwarmNode> nodes = getNodes();
+        final long totalCpus = nodes.stream().map(node -> node.getTotalCPUs()).reduce(0l, Long::sum );
+        final long totalReservedCpus = nodes.stream().map(node -> node.getReservedCPUs()).reduce(0l, Long::sum);;
+
         for (final SwarmNode node : getNodes()) {
-            totalCpus += node.getTotalCPUs();
-//            for (final Run build : node.getCurrentBuilds()) {
-//                final String jobName = getJobName(build);
-//                final Integer reservedCpus = getReservedCPUs(build);
-//                totalReservedCpus += reservedCpus;
-//                if (usagePerJob.containsKey(jobName)) {
-//                    usagePerJob.put(jobName, usagePerJob.get(jobName) + reservedCpus);
-//                } else {
-//                    usagePerJob.put(jobName, reservedCpus);
-//                }
-//            }
+            Map<Task, Run> map = node.getTaskRunMap();;
+            for (final Task task : map.keySet()) {
+                final String jobName = getJobName(map.get(task));
+                final Long reservedCpus = task.Spec.Resources.Reservations.NanoCPUs/ 1000000000;
+                if (usagePerJob.containsKey(jobName)) {
+                    usagePerJob.put(jobName, usagePerJob.get(jobName) + reservedCpus);
+                } else {
+                    usagePerJob.put(jobName, reservedCpus);
+                }
+            }
         }
         usagePerJob.put("Available ", totalCpus - totalReservedCpus);
 
         for (final String jobName : usagePerJob.keySet()) {
-            final Integer jobUsage = usagePerJob.get(jobName);
+            final Long jobUsage = usagePerJob.get(jobName);
             usage.add(Arrays.asList(jobName + " - " + jobUsage, jobUsage));
         }
 
@@ -144,10 +145,7 @@ public class SwarmDashboard implements RootAction {
         return job.getParent() instanceof Job ? (Job) job.getParent() : job;
     }
 
-    private Integer getReservedCPUs(final Run build) {
-        final DockerSlaveInfo slaveInfo = build.getAction(DockerSlaveInfo.class);
-        return slaveInfo == null ? 0 : (slaveInfo.getCpuAllocation() == null ? 0 : slaveInfo.getCpuAllocation());
-    }
+
 
 
     public static class SwarmQueueItem {
@@ -213,9 +211,13 @@ public class SwarmDashboard implements RootAction {
         public SwarmNode(final Node node, final List<Task> tasks) {
             this.name = node.Description.Hostname;
             this.healthy = node.Status.State;
-            this.totalCPUs = node.Description.Resources.NanoCPUs/1000000000 ;
+            this.totalCPUs = nanoToCpu(node.Description.Resources.NanoCPUs);
             this.totalMemory = Bytes.toMB( node.Description.Resources.MemoryBytes) ;
             this.tasks = tasks;
+        }
+
+        private long nanoToCpu(long nanoCPUs ) {
+            return nanoCPUs /1000000000;
         }
 
         private static String get(final List<Object> info, final int i, final int j) {
@@ -241,10 +243,25 @@ public class SwarmDashboard implements RootAction {
 
         public Object[] getCurrentBuilds() {
             final Jenkins jenkins = Jenkins.getInstance();
-            return this.tasks.stream().filter(task -> getComputer(jenkins,task) instanceof DockerComputer  )
+            return getTasksWithRuns(jenkins)
                     .map(task ->  getComputer(jenkins, task).getCurrentBuild())
                     .toArray();
         }
+
+        public  Map<Task,Run> getTaskRunMap(){
+            final Jenkins jenkins = Jenkins.getInstance();
+            Map<Task,Run> map = new HashMap<>();
+            getTasksWithRuns(jenkins).forEach(task -> map.put(task,(Run)getComputer(jenkins,task).getCurrentBuild()) );
+            return map;
+        }
+
+        private Stream<Task> getTasksWithRuns(Jenkins jenkins) {
+            return this.tasks.stream().filter(task -> {
+                Computer computer = getComputer(jenkins, task);
+                return computer instanceof DockerComputer && ((DockerComputer) computer).getCurrentBuild() instanceof  Run
+            } );
+        }
+
 
         private DockerComputer getComputer(Jenkins jenkins, Task task) {
             return (DockerComputer) jenkins.getComputer("agent-"+task.Spec.getComputerName());
@@ -261,8 +278,10 @@ public class SwarmDashboard implements RootAction {
         public Stream<String> getComputers() {
             return tasks.stream().map(task -> task.Spec.getComputerName());
         }
+
+        public Long getReservedCPUs() {
+            return nanoToCpu( tasks.stream().map(task -> task.Spec.Resources.Reservations.NanoCPUs).reduce(0l, Long::sum));
+        }
     }
-
-
-
 }
+
