@@ -258,7 +258,7 @@ public class SwarmDashboard implements RootAction {
         private Stream<Task> getTasksWithRuns(Jenkins jenkins) {
             return this.tasks.stream().filter(task -> {
                 Computer computer = getComputer(jenkins, task);
-                return computer instanceof DockerComputer && ((DockerComputer) computer).getCurrentBuild() instanceof  Run
+                return computer instanceof DockerComputer && ((DockerComputer) computer).getCurrentBuild() instanceof  Run;
             } );
         }
 
