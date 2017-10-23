@@ -6,7 +6,7 @@ import hudson.model.AbstractProject;
 import hudson.model.Computer;
 import hudson.model.Queue;
 import hudson.model.TaskListener;
-import hudson.slaves.ComputerLauncher;
+import hudson.slaves.JNLPLauncher;
 import hudson.slaves.SlaveComputer;
 import jenkins.model.Jenkins;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceRequest;
@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Logger;
 
-public class DockerComputerLauncher extends ComputerLauncher {
+public class DockerComputerLauncher extends JNLPLauncher {
 
     private static final Logger LOGGER = Logger.getLogger(DockerComputerLauncher.class.getName());
     private final String label;
@@ -34,7 +34,7 @@ public class DockerComputerLauncher extends ComputerLauncher {
     }
 
     @Override
-    public void launch(final SlaveComputer computer, final TaskListener listener) throws IOException, InterruptedException {
+    public void launch(final SlaveComputer computer, final TaskListener listener) {
         if (computer instanceof DockerComputer) {
             launch((DockerComputer) computer, listener);
         } else {
@@ -42,13 +42,17 @@ public class DockerComputerLauncher extends ComputerLauncher {
         }
     }
 
-    private void launch(final DockerComputer computer, final TaskListener listener) throws IOException, InterruptedException {
+    private void launch(final DockerComputer computer, final TaskListener listener) {
         DockerSlaveInfo dockerSlaveInfo = null;
             dockerSlaveInfo = this.bi.getAction(DockerSlaveInfo.class);
             dockerSlaveInfo.setComputerLaunchTime(new Date());
             final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
             if (this.bi.task instanceof AbstractProject) {
-                ((AbstractProject) this.bi.task).setCustomWorkspace(configuration.getBaseWorkspaceLocation());
+                try {
+                    ((AbstractProject) this.bi.task).setCustomWorkspace(configuration.getBaseWorkspaceLocation());
+                } catch (IOException e) {
+                   throw  new RuntimeException(e) ;
+                }
             }
 
             final LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
