@@ -44,18 +44,12 @@ THE SOFTWARE.
         <f:entry title="Jenkins Url " field="jenkinsUrl">
             <f:textbox/>
         </f:entry>
-        <f:entry title="Swarm Network" field="swarmNetwork">
+        <f:entry title="Swarm Network( Default network to join) " field="swarmNetwork">
             <f:textbox/>
         </f:entry>
         <f:entry title="Privileged" field="privileged">
             <f:checkbox/>
         </f:entry>
-
-        <f:entry title="Maximum Provisioning Attempts"
-                 field="maxProvisioningAttempts">
-            <f:number/>
-        </f:entry>
-
 
         <f:entry title="Image Labels">
             <f:repeatable var="labelConfiguration"

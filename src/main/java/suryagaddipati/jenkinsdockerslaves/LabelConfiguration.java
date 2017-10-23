@@ -1,8 +1,10 @@
 package suryagaddipati.jenkinsdockerslaves;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LabelConfiguration {
     private String network;
     private Long limitsNanoCPUs;

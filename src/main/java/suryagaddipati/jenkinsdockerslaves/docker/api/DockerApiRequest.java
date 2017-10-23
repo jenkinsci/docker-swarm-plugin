@@ -59,6 +59,9 @@ public class DockerApiRequest {
     }
 
     private  CompletionStage<Object> handleFailure(HttpResponse httpResponse) {
+        if(httpResponse.status().intValue() == 500 ){
+           return CompletableFuture.completedFuture(new ApiError(apiRequest.getClass(), httpResponse.status(), httpResponse.entity().toString()));
+        }
         Unmarshaller<HttpEntity, ErrorMessage> unmarshaller = Jackson.unmarshaller(ErrorMessage.class);
         return  unmarshaller.unmarshal(httpResponse.entity(),materializer).<Object>thenApplyAsync(csr ->
                 new ApiError(apiRequest.getClass(), httpResponse.status(), csr.message)

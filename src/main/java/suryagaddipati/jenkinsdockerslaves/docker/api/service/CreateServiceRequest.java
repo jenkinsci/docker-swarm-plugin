@@ -4,6 +4,7 @@ package suryagaddipati.jenkinsdockerslaves.docker.api.service;
 import akka.http.javadsl.model.HttpMethods;
 import com.google.common.base.Strings;
 import suryagaddipati.jenkinsdockerslaves.docker.api.containers.ContainerSpec;
+import suryagaddipati.jenkinsdockerslaves.docker.api.network.Network;
 import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.task.TaskTemplate;
 import suryagaddipati.jenkinsdockerslaves.docker.marshalling.ResponseType;
@@ -14,7 +15,7 @@ import java.util.List;
 public class CreateServiceRequest extends ApiRequest {
     public TaskTemplate TaskTemplate ;
     public String Name;
-    public List<String> Networks = new ArrayList<>();
+    public List<Network> Networks = new ArrayList<>();
     public CreateServiceRequest(String name, String Image, String[] Cmd, String[] Env) {
         super(HttpMethods.POST, "/services/create",CreateServiceResponse.class, ResponseType.CLASS);
         this.Name = name;
@@ -42,7 +43,7 @@ public class CreateServiceRequest extends ApiRequest {
 
     public void setNetwork(String network) {
         if(!Strings.isNullOrEmpty(network)){
-            Networks.add(network);
+            Networks.add(new Network(network));
         }
     }
 
