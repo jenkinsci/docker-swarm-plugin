@@ -36,7 +36,7 @@ public class TaskTemplate {
 
     public String getComputerName(){
         String[] commands = ContainerSpec.Command;
-        if(commands.length == 3   ){
+        if(commands!=null && commands.length == 3   ){
             Matcher m = computerName.matcher(commands[2]);
             if(m.find()){
                return m.group(2);
