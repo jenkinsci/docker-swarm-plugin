@@ -14,6 +14,7 @@ import scala.util.Left;
 import scala.util.Right;
 import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiError;
+import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiException;
 import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiSuccess;
 import suryagaddipati.jenkinsdockerslaves.docker.api.response.SerializationException;
 import suryagaddipati.jenkinsdockerslaves.docker.marshalling.Jackson;
@@ -36,7 +37,7 @@ public class DockerApiRequest {
         return marshall(apiRequest.getEntity())
                 .thenComposeAsync( marshallResult -> executeRequest( marshallResult, apiRequest.getHttpRequest()))
                 .thenComposeAsync( httpResponse -> marshallResponse(httpResponse))
-                .exceptionally(ex ->new SerializationException(ex));
+                .exceptionally(ex -> new ApiException(apiRequest.getClass(),ex));
     }
 
 
