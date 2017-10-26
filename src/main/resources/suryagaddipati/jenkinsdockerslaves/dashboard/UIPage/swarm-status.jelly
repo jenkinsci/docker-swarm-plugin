@@ -3,7 +3,7 @@
 >
     <h4>Nodes</h4>
     <div class="mdl-grid">
-        <j:forEach items="${it.nodes}" var="node">
+        <j:forEach items="${dbrd.nodes}" var="node">
             <st:include page="swarm-node.jelly"/>
         </j:forEach>
     </div>

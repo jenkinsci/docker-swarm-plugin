@@ -4,7 +4,7 @@
     ${h.initPageVariables(context)}
     <h4>Queue</h4>
     <ul class="mdl-list">
-        <j:forEach items="${it.queue}" var="item">
+        <j:forEach items="${dbrd.queue}" var="item">
             <li class="mdl-list__item mdl-list__item--three-line">
                 <span class="mdl-list__item-primary-content">
                     <span>${item.name}</span>

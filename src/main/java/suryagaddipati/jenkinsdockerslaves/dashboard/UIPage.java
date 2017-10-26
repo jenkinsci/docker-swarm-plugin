@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves;
+package suryagaddipati.jenkinsdockerslaves.dashboard;
 
 import akka.actor.ActorSystem;
 import hudson.Extension;
@@ -9,6 +9,13 @@ import hudson.model.RootAction;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
+import suryagaddipati.jenkinsdockerslaves.Bytes;
+import suryagaddipati.jenkinsdockerslaves.DockerComputer;
+import suryagaddipati.jenkinsdockerslaves.DockerLabelAssignmentAction;
+import suryagaddipati.jenkinsdockerslaves.DockerSlaveConfiguration;
+import suryagaddipati.jenkinsdockerslaves.DockerSlaveInfo;
+import suryagaddipati.jenkinsdockerslaves.DockerSwarmPlugin;
+import suryagaddipati.jenkinsdockerslaves.LabelConfiguration;
 import suryagaddipati.jenkinsdockerslaves.docker.api.DockerApiRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.ListNodesRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.Node;
@@ -30,7 +37,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Extension
-public class SwarmDashboard implements RootAction {
+public class UIPage implements RootAction {
     @Override
     public String getIconFileName() {
         return "/plugin/jenkins-docker-slaves/images/24x24/docker.png";
@@ -60,6 +67,9 @@ public class SwarmDashboard implements RootAction {
         return queue;
     }
 
+    public Dashboard getDashboard(){
+       return new Dashboard();
+    }
 
     public List<SwarmNode> getNodes() {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
@@ -75,7 +85,6 @@ public class SwarmDashboard implements RootAction {
                         return nodeList.stream().map(node -> {
                             Stream<Task> tasksForNode = ((List<Task>) tasks).stream()
                                     .filter(task -> node.ID.equals(task.NodeID) && task.Spec.getComputerName() != null);
-
                             return    new SwarmNode(node, tasksForNode.collect(Collectors.toList()));
                         }).collect(Collectors.toList());
                     }
@@ -199,12 +208,7 @@ public class SwarmDashboard implements RootAction {
     public static class SwarmNode {
         private final String healthy;
         private final String name;
-
-
-
         private final long totalCPUs;
-
-
         private final long totalMemory;
         private final List<Task> tasks;
 

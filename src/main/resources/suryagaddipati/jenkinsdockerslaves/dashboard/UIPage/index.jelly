@@ -18,6 +18,8 @@
             <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
             <meta name="apple-mobile-web-app-title" content="Swarm status"/>
             <meta name="msapplication-TileColor" content="#3372DF"/>
+            <j:set var="dbrd" value="${it}" />
+
 
 
             <link rel="stylesheet"
@@ -62,7 +64,7 @@
                 google.charts.setOnLoadCallback(drawChart);
                 function drawChart() {
 
-                var data = google.visualization.arrayToDataTable(${it.usage});
+                var data = google.visualization.arrayToDataTable(${dbrd.usage});
 
                 var options = {
                 title: 'CPU Usage'
