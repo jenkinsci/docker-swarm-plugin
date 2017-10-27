@@ -9,15 +9,35 @@
             <div class="mdl-layout-spacer"></div>
             <h2 class="mdl-card__title-text ${node.full?'node-full':'node-empty'} ">
                 ${node.name}
-                <j:if test="${node.full}">
-                    (full)
-                </j:if>
             </h2>
         </div>
 
         <div class="mdl-card__supporting-text">
-            <div>CPUs: ${node.totalCPUs}</div>
-            <div>Memory: ${node.totalMemory} MB</div>
+
+            <div style="height: 40px">
+                <div  id="cpuFull" class="mdl-progress mdl-js-progress">
+                    <span class="mdl-chip">
+                        <span class="mdl-chip__text">${node.totalCPUs} CPUs</span>
+                    </span>
+                </div>
+            </div>
+
+            <div id="memoryFull" class="mdl-progress mdl-js-progress">
+                <span class="mdl-chip">
+                    <span class="mdl-chip__text">${node.totalMemory} MB</span>
+                </span>
+            </div>
+
+            <script>
+
+                document.querySelector('#cpuFull').addEventListener('mdl-componentupgraded', function() {
+                this.MaterialProgress.setProgress(${node.CPUPercentFull});
+                });
+
+                document.querySelector('#memoryFull').addEventListener('mdl-componentupgraded', function() {
+                this.MaterialProgress.setProgress(${node.memoryPercentFull});
+                });
+            </script>
 
             <ul class="mdl-list">
                 <j:forEach items="${node.currentBuilds}" var="build">

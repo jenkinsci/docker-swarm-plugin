@@ -32,21 +32,12 @@ public class SwarmNode {
         return nanoCPUs /1000000000;
     }
 
-    private static String get(final List<Object> info, final int i, final int j) {
-        return (info.get(i) == null || j > ((List<String>) info.get(i)).size() - 1) ? "_/-" : ((List<String>) info.get(i)).get(j);
-
-    }
-
     public String getName() {
         return this.name;
     }
 
     public boolean isHealthy() {
         return this.healthy == "ready";
-    }
-
-    public boolean isFull() {
-        return false;
     }
 
     public long getComputerCount() {
@@ -87,11 +78,21 @@ public class SwarmNode {
         return totalMemory;
     }
 
+    public float getCPUPercentFull(){
+         return 100 - (getTotalCPUs() - getReservedCPUs())/new Float(getTotalCPUs()) * 100;
+    }
+    public float getMemoryPercentFull(){
+        return 100 - (getTotalMemory() - getReservedMemory())/new Float(getTotalMemory()) * 100;
+    }
+
     public Stream<String> getComputers() {
         return tasks.stream().map(task -> task.Spec.getComputerName());
     }
 
     public Long getReservedCPUs() {
         return nanoToCpu( tasks.stream().map(task -> task.Spec.Resources.Reservations.NanoCPUs).reduce(0l, Long::sum));
+    }
+    public Long getReservedMemory() {
+        return Bytes.toMB( tasks.stream().map(task -> task.Spec.Resources.Reservations.MemoryBytes).reduce(0l, Long::sum));
     }
 }
