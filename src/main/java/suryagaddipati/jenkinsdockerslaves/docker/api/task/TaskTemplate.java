@@ -23,8 +23,8 @@ public class TaskTemplate {
         public Resources.Resource Reservations = new Resources.Resource();
 
         public static class Resource{
-            public long  NanoCPUs;
-            public long   MemoryBytes;
+            public Long  NanoCPUs;
+            public Long   MemoryBytes;
         }
     }
 
