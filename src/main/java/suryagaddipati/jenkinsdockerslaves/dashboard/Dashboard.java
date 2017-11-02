@@ -11,6 +11,7 @@ import suryagaddipati.jenkinsdockerslaves.DockerSwarmPlugin;
 import suryagaddipati.jenkinsdockerslaves.docker.api.DockerApiRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.ListNodesRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.Node;
+import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiException;
 import suryagaddipati.jenkinsdockerslaves.docker.api.response.SerializationException;
 import suryagaddipati.jenkinsdockerslaves.docker.api.task.ListTasksRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.task.Task;
@@ -49,7 +50,7 @@ public class Dashboard {
     }
 
     public List<SwarmNode> getNodes(){
-       return nodes;
+       return this.nodes;
     }
 
     public String getUsage() {
@@ -58,12 +59,12 @@ public class Dashboard {
         usage.add(Arrays.asList("Job", "cpu"));
 
         final Map<String, Long> usagePerJob = new HashMap<>();
-        List<SwarmNode> nodes = calculateNodes();
+        final List<SwarmNode> nodes = calculateNodes();
         final long totalCpus = nodes.stream().map(node -> node.getTotalCPUs()).reduce(0l, Long::sum );
-        final long totalReservedCpus = nodes.stream().map(node -> node.getReservedCPUs()).reduce(0l, Long::sum);;
+        final long totalReservedCpus = nodes.stream().map(node -> node.getReservedCPUs()).reduce(0l, Long::sum);
 
         for (final SwarmNode node : calculateNodes()) {
-            Map<Task, Run> map = node.getTaskRunMap();;
+            final Map<Task, Run> map = node.getTaskRunMap();
             for (final Task task : map.keySet()) {
                 final String jobName = getJobName(map.get(task));
                 final Long reservedCpus = task.Spec.Resources.Reservations.NanoCPUs/ 1000000000;
@@ -88,16 +89,16 @@ public class Dashboard {
     }
 
     private List<SwarmNode> calculateNodes() {
-        DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-        ActorSystem as = swarmPlugin.getActorSystem();
+        final DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
+        final ActorSystem as = swarmPlugin.getActorSystem();
 
-        CompletionStage<Object> nodesStage = new DockerApiRequest(as, new ListNodesRequest()).execute();
-        CompletionStage<Object> swarmNodesFuture = nodesStage.thenComposeAsync(nodes -> {
+        final CompletionStage<Object> nodesStage = new DockerApiRequest(as, new ListNodesRequest()).execute();
+        final CompletionStage<Object> swarmNodesFuture = nodesStage.thenComposeAsync(nodes -> {
             if (nodes instanceof List) {
-                CompletableFuture<Object> tasksFuture = new DockerApiRequest(as, new ListTasksRequest()).execute().toCompletableFuture();
+                final CompletableFuture<Object> tasksFuture = new DockerApiRequest(as, new ListTasksRequest()).execute().toCompletableFuture();
                 return tasksFuture.thenApply(tasks -> {
                     if(tasks instanceof  List){
-                        List<Node> nodeList = (List<Node>) nodes;
+                        final List<Node> nodeList = (List<Node>) nodes;
                         return nodeList.stream().map(node -> {
                             Stream<Task> tasksForNode = ((List<Task>) tasks).stream()
                                     .filter(task -> node.ID.equals(task.NodeID) && task.Spec.getComputerName() != null);
@@ -114,11 +115,14 @@ public class Dashboard {
     }
 
 
-    private Object getFuture(CompletionStage<Object> future) {
+    private Object getFuture(final CompletionStage<Object> future) {
         try {
-            Object result = future.toCompletableFuture().get(5, TimeUnit.SECONDS);
+            final Object result = future.toCompletableFuture().get(5, TimeUnit.SECONDS);
             if(result instanceof SerializationException){
                 throw new RuntimeException (((SerializationException)result).getCause());
+            }
+            if(result instanceof ApiException){
+                throw new RuntimeException (((ApiException)result).getCause());
             }
             return result;
         } catch (InterruptedException|ExecutionException |TimeoutException e) {
