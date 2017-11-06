@@ -22,8 +22,6 @@ public class DockerComputerLauncher extends JNLPLauncher {
 
 
     private final String jobName;
-
-
     private final Queue.BuildableItem bi;
 
 
@@ -134,5 +132,9 @@ public class DockerComputerLauncher extends JNLPLauncher {
                 .replaceAll(" ", "_")
                 .replaceAll("=", "_")
                 .replaceAll("\\.", "_");
+    }
+
+    public Queue.BuildableItem getBi() {
+        return bi;
     }
 }

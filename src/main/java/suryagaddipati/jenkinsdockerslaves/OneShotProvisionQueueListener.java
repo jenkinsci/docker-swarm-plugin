@@ -34,14 +34,11 @@ public class OneShotProvisionQueueListener extends QueueListener {
                 final String computerName = labelAssignmentAction.getLabel().getName();
 
                 final Node node = Jenkins.getInstance().getNode(computerName);
-                Computer.threadPoolForRemoting.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            ((DockerSlave)node).terminate();
-                        } catch (final IOException | InterruptedException e) {
-                           LOGGER.log(Level.SEVERE,"",e);
-                        }
+                Computer.threadPoolForRemoting.submit(() -> {
+                    try {
+                        ((DockerSlave)node).terminate();
+                    } catch (final IOException | InterruptedException e) {
+                       LOGGER.log(Level.SEVERE,"",e);
                     }
                 });
             }
