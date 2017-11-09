@@ -89,7 +89,7 @@ public class DockerComputerLauncher extends JNLPLauncher {
             this.bi.getAction(DockerSlaveInfo.class).setCacheVolumeName(cacheVolumeName);
             for (int i = 0; i < cacheDirs.length; i++) {
                 listener.getLogger().println("Binding Volume" + cacheDirs[i] + " to " + cacheVolumeName);
-                crReq.addCacheVolume(cacheVolumeName, cacheDirs[i]);
+                crReq.addCacheVolume(cacheVolumeName, cacheDirs[i], configuration.getCacheDriverName());
             }
         }
 

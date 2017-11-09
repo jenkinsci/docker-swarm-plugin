@@ -26,9 +26,10 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
 
 
     private String swarmNetwork;
+    private String cacheDriverName;
 
 
-    private int maxProvisioningAttempts;
+    private transient int maxProvisioningAttempts;
     private List<LabelConfiguration> labelConfigurations = new ArrayList<>();
 
     public DockerSlaveConfiguration() {
@@ -154,5 +155,13 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
 
     public void setSwarmNetwork(String swarmNetwork) {
         this.swarmNetwork = swarmNetwork;
+    }
+
+    public String getCacheDriverName() {
+        return cacheDriverName;
+    }
+
+    public void setCacheDriverName(String cacheDriverName) {
+        this.cacheDriverName = cacheDriverName;
     }
 }

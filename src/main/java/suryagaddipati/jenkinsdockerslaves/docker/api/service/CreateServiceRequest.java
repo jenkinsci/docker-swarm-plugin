@@ -26,8 +26,8 @@ public class CreateServiceRequest extends ApiRequest {
         ContainerSpec.Mount mount = ContainerSpec.Mount.bindMount(source, target);
         this.TaskTemplate.ContainerSpec.Mounts.add(mount);
     }
-    public void addCacheVolume(String cacheVolumeName, String target) {
-        ContainerSpec.Mount mount = ContainerSpec.Mount.cacheMount(cacheVolumeName, target);
+    public void addCacheVolume(String cacheVolumeName, String target, String cacheDriverName) {
+        ContainerSpec.Mount mount = ContainerSpec.Mount.cacheMount(cacheVolumeName, target,cacheDriverName);
         this.TaskTemplate.ContainerSpec.Mounts.add(mount);
     }
 

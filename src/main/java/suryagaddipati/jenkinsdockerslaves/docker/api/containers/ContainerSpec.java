@@ -61,11 +61,11 @@ public class ContainerSpec {
             mount.Type ="bind";
             return mount;
         }
-        public static Mount cacheMount(String Source, String Target){
+        public static Mount cacheMount(String Source, String Target, String cacheDriverName){
             Mount mount = new Mount(Source, Target);
             mount.Type ="volume";
             mount.VolumeOptions = new Mount.VolumeOptions();
-            mount.VolumeOptions.DriverConfig = new Mount.VolumeOptions.DriverConfig("cache-driver");
+            mount.VolumeOptions.DriverConfig = new Mount.VolumeOptions.DriverConfig(cacheDriverName);
             return mount;
         }
 

@@ -47,6 +47,9 @@ THE SOFTWARE.
         <f:entry title="Swarm Network( Default network to join) " field="swarmNetwork">
             <f:textbox/>
         </f:entry>
+        <f:entry title="Cache driver name" field="cacheDriverName">
+            <f:textbox/>
+        </f:entry>
         <f:entry title="Privileged" field="privileged">
             <f:checkbox/>
         </f:entry>
