@@ -1,5 +1,0 @@
-package: docker-cache-driver
-import:
-- package: github.com/docker/go-plugins-helpers
-  subpackages:
-  - volume
