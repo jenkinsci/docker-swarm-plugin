@@ -13,7 +13,7 @@ import java.util.Collection;
 public class FakeCloudForLabels extends Cloud {
     @DataBoundConstructor
     public FakeCloudForLabels() {
-        super("Hack for label validatios");
+        super("Docker Swarm");
     }
 
     @Override
@@ -31,7 +31,7 @@ public class FakeCloudForLabels extends Cloud {
 
         @Override
         public String getDisplayName() {
-            return "Jenkins docker slaves(Hack for getting labels in).";
+            return "Docker Swarm";
         }
     }
 }

@@ -32,15 +32,6 @@ THE SOFTWARE.
         <f:entry title="Docker http(s) uri" field="uri">
             <f:textbox/>
         </f:entry>
-        <f:entry title="Api Version" field="apiVersion">
-            <f:textbox/>
-        </f:entry>
-        <f:entry title="use TLS?" field="useTLS">
-            <f:checkbox/>
-        </f:entry>
-        <f:entry title="Certificates Path" field="certificatesPath">
-            <f:textbox/>
-        </f:entry>
         <f:entry title="Jenkins Url " field="jenkinsUrl">
             <f:textbox/>
         </f:entry>
@@ -50,10 +41,6 @@ THE SOFTWARE.
         <f:entry title="Cache driver name" field="cacheDriverName">
             <f:textbox/>
         </f:entry>
-        <f:entry title="Privileged" field="privileged">
-            <f:checkbox/>
-        </f:entry>
-
         <f:entry title="Image Labels">
             <f:repeatable var="labelConfiguration"
                           items="${instance.labelConfigurations}"
