@@ -7,5 +7,8 @@ public class Task {
     public String getServiceID(){
         return ServiceID;
     }
+    public long getReservedCpus() {
+        return Spec.Resources.Reservations.NanoCPUs/ 1000000000;
+    }
 
 }

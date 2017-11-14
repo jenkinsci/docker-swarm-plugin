@@ -50,9 +50,9 @@ public class SwarmNode {
                 .map(task ->  getComputer(jenkins, task).getCurrentBuild())
                 .toArray();
     }
-    public Object[] getUnknownTasks(){
+    public Task[] getUnknownTasks(){
         final Jenkins jenkins = Jenkins.getInstance();
-       return this.tasks.stream().filter(task -> getComputer(jenkins, task)==null ).toArray();
+       return this.tasks.stream().filter(task -> getComputer(jenkins, task)==null ).toArray(Task[]::new);
     }
 
     public Map<Task,Run> getTaskRunMap(){

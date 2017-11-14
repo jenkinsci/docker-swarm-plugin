@@ -67,12 +67,14 @@ public class Dashboard {
             final Map<Task, Run> map = node.getTaskRunMap();
             for (final Task task : map.keySet()) {
                 final String jobName = getJobName(map.get(task));
-                final Long reservedCpus = task.Spec.Resources.Reservations.NanoCPUs/ 1000000000;
                 if (usagePerJob.containsKey(jobName)) {
-                    usagePerJob.put(jobName, usagePerJob.get(jobName) + reservedCpus);
+                    usagePerJob.put(jobName, usagePerJob.get(jobName) + (Long) task.getReservedCpus());
                 } else {
-                    usagePerJob.put(jobName, reservedCpus);
+                    usagePerJob.put(jobName, task.getReservedCpus());
                 }
+            }
+            for (final Task task : node.getUnknownTasks()) {
+                usagePerJob.put(task.getServiceID(), task.getReservedCpus());
             }
         }
         usagePerJob.put("Available ", totalCpus - totalReservedCpus);
@@ -87,6 +89,7 @@ public class Dashboard {
         mJSONArray.addAll(usage);
         return mJSONArray.toString();
     }
+
 
     private List<SwarmNode> calculateNodes() {
         final DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
