@@ -73,7 +73,7 @@ public class Dashboard {
                     usagePerJob.put(jobName, task.getReservedCpus());
                 }
             }
-            for (final Task task : node.getUnknownTasks()) {
+            for (final Task task : node.getUnknownRunningTasks()) {
                 usagePerJob.put(task.getServiceID(), task.getReservedCpus());
             }
         }

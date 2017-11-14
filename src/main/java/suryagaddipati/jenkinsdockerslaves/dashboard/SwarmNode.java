@@ -3,11 +3,14 @@ package suryagaddipati.jenkinsdockerslaves.dashboard;
 import hudson.model.Computer;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONArray;
 import suryagaddipati.jenkinsdockerslaves.Bytes;
 import suryagaddipati.jenkinsdockerslaves.DockerComputer;
 import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.Node;
 import suryagaddipati.jenkinsdockerslaves.docker.api.task.Task;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,9 +53,15 @@ public class SwarmNode {
                 .map(task ->  getComputer(jenkins, task).getCurrentBuild())
                 .toArray();
     }
+
     public Task[] getUnknownTasks(){
         final Jenkins jenkins = Jenkins.getInstance();
-       return this.tasks.stream().filter(task -> getComputer(jenkins, task)==null ).toArray(Task[]::new);
+        return this.tasks.stream().filter(task -> getComputer(jenkins, task)==null).toArray(Task[]::new);
+    }
+
+    public Task[] getUnknownRunningTasks(){
+        final Jenkins jenkins = Jenkins.getInstance();
+       return this.tasks.stream().filter(task -> getComputer(jenkins, task)==null && task.Status.isRunning() ).toArray(Task[]::new);
     }
 
     public Map<Task,Run> getTaskRunMap(){
@@ -85,18 +94,34 @@ public class SwarmNode {
     public float getCPUPercentFull(){
          return 100 - (getTotalCPUs() - getReservedCPUs())/new Float(getTotalCPUs()) * 100;
     }
-    public float getMemoryPercentFull(){
-        return 100 - (getTotalMemory() - getReservedMemory())/new Float(getTotalMemory()) * 100;
-    }
+
 
     public Stream<String> getComputers() {
         return tasks.stream().map(task -> task.Spec.getComputerName());
     }
 
     public Long getReservedCPUs() {
-        return nanoToCpu( tasks.stream().map(task -> task.Spec.Resources.Reservations.NanoCPUs).reduce(0l, Long::sum));
+        return nanoToCpu( tasks.stream().filter(task ->  task.Status.isRunning()).map(task -> task.Spec.Resources.Reservations.NanoCPUs).reduce(0l, Long::sum));
     }
     public Long getReservedMemory() {
-        return Bytes.toMB( tasks.stream().map(task -> task.Spec.Resources.Reservations.MemoryBytes).reduce(0l, Long::sum));
+        return Bytes.toMB( tasks.stream().filter(task ->  task.Status.isRunning()).map(task -> task.Spec.Resources.Reservations.MemoryBytes).reduce(0l, Long::sum));
+    }
+    public String getCpuUsageJson(){
+        final ArrayList<Object> usage = new ArrayList<>();
+        usage.add(Arrays.asList("type", "used"));
+        usage.add(Arrays.asList("empty",getTotalCPUs() - getReservedCPUs()));
+        usage.add(Arrays.asList("reserved",getReservedCPUs()));
+        final JSONArray mJSONArray = new JSONArray();
+        mJSONArray.addAll(usage);
+        return mJSONArray.toString();
+    }
+    public String getMemoryUsageJson(){
+        final ArrayList<Object> usage = new ArrayList<>();
+        usage.add(Arrays.asList("type", "used"));
+        usage.add(Arrays.asList("empty",getTotalMemory() - getReservedMemory()));
+        usage.add(Arrays.asList("reserved",getReservedMemory()));
+        final JSONArray mJSONArray = new JSONArray();
+        mJSONArray.addAll(usage);
+        return mJSONArray.toString();
     }
 }

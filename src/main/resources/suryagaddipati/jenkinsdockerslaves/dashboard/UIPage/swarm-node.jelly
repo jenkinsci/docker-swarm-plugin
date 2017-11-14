@@ -14,29 +14,31 @@
 
         <div class="mdl-card__supporting-text">
 
-            <div style="height: 40px">
-                <div  id="cpuFull" class="mdl-progress mdl-js-progress">
-                    <span class="mdl-chip">
-                        <span class="mdl-chip__text">${node.totalCPUs} CPUs</span>
-                    </span>
-                </div>
-            </div>
 
-            <div id="memoryFull" class="mdl-progress mdl-js-progress">
-                <span class="mdl-chip">
-                    <span class="mdl-chip__text">${node.totalMemory} MB</span>
-                </span>
-            </div>
+            <div id="cpu${node.name}" style="height: 40px;"></div>
+            <div id="memory${node.name}" style="height: 40px;"></div>
 
-            <script>
+            <script defer="true">
 
-                document.querySelector('#cpuFull').addEventListener('mdl-componentupgraded', function() {
-                this.MaterialProgress.setProgress(${node.CPUPercentFull});
-                });
+                (function() {
+                google.charts.setOnLoadCallback(drawMemory);
+                google.charts.setOnLoadCallback(drawCpu);
+                function drawMemory(){
+                var memoryData = google.visualization.arrayToDataTable(${node.memoryUsageJson});
 
-                document.querySelector('#memoryFull').addEventListener('mdl-componentupgraded', function() {
-                this.MaterialProgress.setProgress(${node.memoryPercentFull});
-                });
+                var memoryChart = new google.visualization.PieChart(document.getElementById('memory${node.name}'));
+                memoryChart.draw(memoryData, {legend:{position:'none'}, colors:['grey','#7F7F7F','red','#004411']});
+                }
+                function drawCpu(){
+                var cpuData = google.visualization.arrayToDataTable(${node.cpuUsageJson});
+
+                var cpuChart = new google.visualization.PieChart(document.getElementById('cpu${node.name}'));
+                cpuChart.draw(cpuData, {legend:{position:'none'}, colors:['grey','red']});
+                }
+
+                })()
+
+
             </script>
 
             <ul class="mdl-list">
@@ -49,6 +51,7 @@
                         </span>
                     </li>
                 </j:forEach>
+
                 <j:forEach items="${node.unknownTasks}" var="task">
                     <li class="mdl-list__item">
                         <span class="mdl-list__item-primary-content">

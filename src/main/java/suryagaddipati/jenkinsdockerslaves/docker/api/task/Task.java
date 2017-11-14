@@ -4,6 +4,7 @@ public class Task {
     public TaskTemplate Spec;
     public String NodeID;
     public String ServiceID;
+    public Status Status;
     public String getServiceID(){
         return ServiceID;
     }
