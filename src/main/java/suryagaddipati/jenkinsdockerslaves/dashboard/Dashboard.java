@@ -101,7 +101,7 @@ public class Dashboard {
                         final List<Node> nodeList = (List<Node>) nodes;
                         return nodeList.stream().map(node -> {
                             Stream<Task> tasksForNode = ((List<Task>) tasks).stream()
-                                    .filter(task -> node.ID.equals(task.NodeID) && task.Spec.getComputerName() != null);
+                                    .filter(task -> node.ID.equals(task.NodeID));
                             return    new SwarmNode(node, tasksForNode.collect(Collectors.toList()));
                         }).collect(Collectors.toList());
                     }

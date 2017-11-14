@@ -15,6 +15,7 @@ import java.util.List;
 public class CreateServiceRequest extends ApiRequest {
     public TaskTemplate TaskTemplate ;
     public String Name;
+
     public List<Network> Networks = new ArrayList<>();
     public CreateServiceRequest(String name, String Image, String[] Cmd, String[] Env) {
         super(HttpMethods.POST, "/services/create",CreateServiceResponse.class, ResponseType.CLASS);

@@ -73,6 +73,9 @@ public class ContainerSpec {
         public static class VolumeOptions{
             public Mount.VolumeOptions.DriverConfig DriverConfig ;
             private static class DriverConfig{
+                public DriverConfig(){
+                    // for deserilization
+                }
                 public DriverConfig(String name) {
                     Name = name;
                 }
@@ -80,21 +83,5 @@ public class ContainerSpec {
             }
         }
 
-    }
-
-    public static class BindVolume extends Mount {
-        String Type = "bind";
-        public BindVolume(String Source, String Target) {
-            super(Source, Target);
-        }
-    }
-
-    public static class CacheDriverVolume extends Mount {
-        CacheDriverVolume.VolumeOptions VolumeOptions = new VolumeOptions();
-
-        String Type = "volume";
-        public CacheDriverVolume(String Source, String Target) {
-            super(Source, Target);
-        }
     }
 }

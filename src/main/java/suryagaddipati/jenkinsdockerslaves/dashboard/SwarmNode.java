@@ -50,6 +50,10 @@ public class SwarmNode {
                 .map(task ->  getComputer(jenkins, task).getCurrentBuild())
                 .toArray();
     }
+    public Object[] getUnknownTasks(){
+        final Jenkins jenkins = Jenkins.getInstance();
+       return this.tasks.stream().filter(task -> getComputer(jenkins, task)==null ).toArray();
+    }
 
     public Map<Task,Run> getTaskRunMap(){
         final Jenkins jenkins = Jenkins.getInstance();
@@ -61,7 +65,7 @@ public class SwarmNode {
     private Stream<Task> getTasksWithRuns(Jenkins jenkins) {
         return this.tasks.stream().filter(task -> {
             Computer computer = getComputer(jenkins, task);
-            return computer instanceof DockerComputer && ((DockerComputer) computer).getCurrentBuild() instanceof  Run;
+            return computer != null && computer instanceof DockerComputer && ((DockerComputer) computer).getCurrentBuild() instanceof  Run;
         } );
     }
 
