@@ -32,12 +32,12 @@ public class CreateServiceRequest extends ApiRequest {
         this.TaskTemplate.ContainerSpec.Mounts.add(mount);
     }
 
-    public void setTaskLimits(Long nanoCPUs, Long memoryBytes) {
+    public void setTaskLimits(long nanoCPUs, long memoryBytes) {
         this.TaskTemplate.Resources.Limits.NanoCPUs = nanoCPUs;
         this.TaskTemplate.Resources.Limits.MemoryBytes = memoryBytes;
     }
 
-    public void setTaskReservations(Long nanoCPUs, Long memoryBytes) {
+    public void setTaskReservations(long nanoCPUs, long memoryBytes) {
         this.TaskTemplate.Resources.Reservations.NanoCPUs = nanoCPUs;
         this.TaskTemplate.Resources.Reservations.MemoryBytes = memoryBytes;
     }
