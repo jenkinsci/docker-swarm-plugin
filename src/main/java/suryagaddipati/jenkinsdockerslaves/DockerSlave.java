@@ -60,15 +60,11 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
 
     @Override
     protected void _terminate(final TaskListener listener) throws IOException, InterruptedException {
-    }
-
-    @Override
-    public void terminate() throws InterruptedException, IOException {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
         ActorRef agentLauncherRef = swarmPlugin.getActorSystem().actorFor("/user/" + getComputer().getName());
         agentLauncherRef.tell(new DeleteServiceRequest(getComputer().getName()),ActorRef.noSender());
-        super.terminate();
     }
+
 
     @Override
     public Node asNode() {
