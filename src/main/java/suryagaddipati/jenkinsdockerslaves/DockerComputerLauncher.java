@@ -61,7 +61,7 @@ public class DockerComputerLauncher extends JNLPLauncher {
                 System.arraycopy(envVarOptions, 0, envVars, 0, envVarOptions.length);
             }
 
-            final String additionalSlaveOptions = "-noReconnect";
+            final String additionalSlaveOptions = "-noReconnect -workDir /tmp ";
             final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer, configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
             final String[] command = new String[]{"sh", "-cx", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
             launchContainer(command,configuration, envVars, labelConfiguration, listener, computer);
