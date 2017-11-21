@@ -7,10 +7,10 @@ import org.kohsuke.stapler.DataBoundConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LabelConfiguration {
     private String network;
-    private Long limitsNanoCPUs;
-    private Long limitsMemoryBytes;
-    private Long reservationsNanoCPUs;
-    private Long reservationsMemoryBytes;
+    private long limitsNanoCPUs;
+    private long limitsMemoryBytes;
+    private long reservationsNanoCPUs;
+    private long reservationsMemoryBytes;
     String image;
     String hostBinds;
     String envVars;
@@ -29,8 +29,8 @@ public class LabelConfiguration {
     public LabelConfiguration(final String image, final String hostBinds,
                               final String label, final String cacheDir,
                               final String envVars, final String network,
-                              final Long limitsNanoCPUs, final Long limitsMemoryBytes,
-                              final Long reservationsNanoCPUs, final Long reservationsMemoryBytes ) {
+                              final long limitsNanoCPUs, final long limitsMemoryBytes,
+                              final long reservationsNanoCPUs, final long reservationsMemoryBytes ) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.label = label;
@@ -86,19 +86,19 @@ public class LabelConfiguration {
     public String[] getEnvVarsConfig() {
         return StringUtils.isEmpty(this.envVars) ? new String[]{} : this.envVars.split(" ");
     }
-    public Long getLimitsNanoCPUs() {
+    public long getLimitsNanoCPUs() {
         return limitsNanoCPUs;
     }
 
-    public Long getLimitsMemoryBytes() {
+    public long getLimitsMemoryBytes() {
         return limitsMemoryBytes;
     }
 
-    public Long getReservationsNanoCPUs() {
+    public long getReservationsNanoCPUs() {
         return reservationsNanoCPUs;
     }
 
-    public Long getReservationsMemoryBytes() {
+    public long getReservationsMemoryBytes() {
         return reservationsMemoryBytes;
     }
 }
