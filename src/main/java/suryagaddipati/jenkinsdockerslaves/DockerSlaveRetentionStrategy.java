@@ -1,28 +1,50 @@
 package suryagaddipati.jenkinsdockerslaves;
 
-import hudson.model.AbstractDescribableImpl;
+import hudson.Extension;
 import hudson.model.Computer;
+import hudson.model.Descriptor;
 import hudson.model.Executor;
 import hudson.model.ExecutorListener;
 import hudson.model.Queue;
 import hudson.slaves.RetentionStrategy;
-import hudson.util.TimeUnit2;
+import org.jenkinsci.plugins.durabletask.executors.ContinuableExecutable;
+import org.kohsuke.stapler.DataBoundConstructor;
 
+import javax.annotation.Nonnull;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class DockerSlaveRetentionStrategy extends RetentionStrategy implements ExecutorListener {
+import static java.util.concurrent.TimeUnit.MINUTES;
+
+public class DockerSlaveRetentionStrategy extends RetentionStrategy<DockerComputer> implements ExecutorListener {
     private static final Logger LOGGER = Logger.getLogger(DockerSlaveRetentionStrategy.class.getName());
-    private transient boolean terminating;
-    private boolean taskCompleted;
+
+    private int timeout = 1;
+    private transient volatile boolean terminating;
+
+    /**
+     * Creates the retention strategy.
+     *
+     * @param idleMinutes number of minutes of idleness after which to kill the slave; serves a backup in case the strategy fails to detect the end of a task
+     */
+    @DataBoundConstructor
+    public DockerSlaveRetentionStrategy(int idleMinutes) {
+        this.timeout = idleMinutes;
+    }
+
+    public int getIdleMinutes() {
+        return timeout;
+    }
 
     @Override
-    public long check(final Computer c) {
-        if ( this.taskCompleted  && c.isIdle() && !c.isConnecting()) {
+    public long check(@Nonnull DockerComputer c) {
+        // When the slave is idle we should disable accepting tasks and check to see if it is already trying to
+        // terminate. If it's not already trying to terminate then lets terminate manually.
+        if (c.isIdle()) {
             final long idleMilliseconds = System.currentTimeMillis() - c.getIdleStartMilliseconds();
-            if (idleMilliseconds > TimeUnit2.MINUTES.toMillis(1)) {
+            if (idleMilliseconds > MINUTES.toMillis(timeout)) {
                 LOGGER.log(Level.FINE, "Disconnecting {0}", c.getName());
-                done(c, null);
+                done(c);
             }
         }
 
@@ -31,64 +53,59 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy implements E
     }
 
     @Override
-    public void start(final Computer c) {
-        c.connect(false);
+    public void start(DockerComputer c) {
+//        if (c.getNode() instanceof EphemeralNode) {
+//            throw new IllegalStateException("May not use OnceRetentionStrategy on an EphemeralNode: " + c);
+//        }
+        c.connect(true);
     }
 
     @Override
-    public boolean isManualLaunchAllowed(final Computer c) {
-        return false;
+    public void taskAccepted(Executor executor, Queue.Task task) {
     }
 
     @Override
-    public void taskAccepted(final Executor executor, final Queue.Task task) {
-
-    }
-
-    @Override
-    public void taskCompleted(final Executor executor, final Queue.Task task, final long durationMS) {
-        this.taskCompleted =true;
+    public void taskCompleted(Executor executor, Queue.Task task, long durationMS) {
         done(executor);
     }
 
     @Override
-    public void taskCompletedWithProblems(final Executor executor, final Queue.Task task, final long durationMS, final Throwable problems) {
-        this.taskCompleted =true;
+    public void taskCompletedWithProblems(Executor executor, Queue.Task task, long durationMS, Throwable problems) {
         done(executor);
     }
 
-    private void done(final Executor executor) {
+    private void done(Executor executor) {
         final DockerComputer c = (DockerComputer) executor.getOwner();
-        final Queue.Executable exec = executor.getCurrentExecutable();
+        Queue.Executable exec = executor.getCurrentExecutable();
+        if (exec instanceof ContinuableExecutable && ((ContinuableExecutable) exec).willContinue()) {
+            LOGGER.log(Level.FINE, "not terminating {0} because {1} says it will be continued", new Object[]{c.getName(), exec});
+            return;
+        }
         LOGGER.log(Level.FINE, "terminating {0} since {1} seems to be finished", new Object[]{c.getName(), exec});
-        done(c, exec);
+        done(c);
     }
 
-    private void done(final Computer c, final Queue.Executable exec) {
-        synchronized (this) {
-            if (this.terminating) {
-                return;
-            }
-            this.terminating = true;
+    private synchronized void done(final DockerComputer c) {
+        c.setAcceptingTasks(false); // just in case
+        if (terminating) {
+            return;
         }
-        Computer.threadPoolForRemoting.submit((Runnable) () -> {
-            try {
-                final DockerSlave node = (DockerSlave) c.getNode();
+        terminating = true;
+        Computer.threadPoolForRemoting.submit(() -> {
+            Queue.withLock( () -> {
+                 DockerSlave node = c.getNode();
                 if (node != null) {
-                    node.terminate();
+                    node.terminate(c.getListener());
                 }
-            } catch (final Exception e) {
-                LOGGER.log(Level.WARNING, "Failed to terminate " + c.getName(), e);
-                synchronized (DockerSlaveRetentionStrategy.this) {
-                    DockerSlaveRetentionStrategy.this.terminating = false;
-                }
-            }
+            });
         });
     }
 
-    public static final class DescriptorImpl extends AbstractDescribableImpl {
+    @Extension
+    public static final class DescriptorImpl extends Descriptor<RetentionStrategy<?>> {
+        @Override
         public String getDisplayName() {
-            return "Disconnect after 1 min";
+            return "Use container only once";
         }
     }
 

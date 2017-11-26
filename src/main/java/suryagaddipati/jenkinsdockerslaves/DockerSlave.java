@@ -36,7 +36,6 @@ import hudson.model.queue.CauseOfBlockage;
 import hudson.slaves.AbstractCloudSlave;
 import hudson.slaves.EphemeralNode;
 import jenkins.model.Jenkins;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.DeleteServiceRequest;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -50,7 +49,7 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
         super(labelString, "Container slave for building " + bi.task.getFullDisplayName(),
                 "/home/jenkins", 1, Mode.EXCLUSIVE, labelString,
                 new DockerComputerLauncher(bi),
-                new DockerSlaveRetentionStrategy(),
+                new DockerSlaveRetentionStrategy(1),
                 Collections.emptyList());
     }
 
@@ -62,9 +61,15 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
     protected void _terminate(final TaskListener listener) throws IOException, InterruptedException {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
         ActorRef agentLauncherRef = swarmPlugin.getActorSystem().actorFor("/user/" + getComputer().getName());
-        agentLauncherRef.tell(new DeleteServiceRequest(getComputer().getName()),ActorRef.noSender());
+//        agentLauncherRef.tell(new DeleteServiceRequest(getComputer().getName()),ActorRef.noSender());
     }
 
+//    @Override
+//    public void terminate() throws InterruptedException, IOException {
+//        DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
+//        ActorRef agentLauncherRef = swarmPlugin.getActorSystem().actorFor("/user/" + getComputer().getName());
+////        agentLauncherRef.tell(new DeleteServiceRequest(getComputer().getName()),ActorRef.noSender());
+//    }
 
     @Override
     public Node asNode() {
@@ -86,6 +91,20 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
         final TreeSet<LabelAtom> labels = new TreeSet<>();
         labels.add(new LabelAtom(getLabelString()));
         return labels;
+    }
+
+    public void terminate(TaskListener listener) {
+        try {
+            toComputer().disconnect();
+            listener.getLogger().println("Disconnected computer");
+        } catch (Exception e) {
+            listener.error("Can't disconnect", e);
+        }
+        try {
+            Jenkins.getInstance().removeNode(this);
+        } catch (IOException e) {
+            listener.error("Failed to remove Docker Node", e);
+        }
     }
 }
 
