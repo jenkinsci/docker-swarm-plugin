@@ -36,14 +36,18 @@ import hudson.model.queue.CauseOfBlockage;
 import hudson.slaves.AbstractCloudSlave;
 import hudson.slaves.EphemeralNode;
 import jenkins.model.Jenkins;
+import suryagaddipati.jenkinsdockerslaves.docker.api.service.DeleteServiceRequest;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
 
+    private static final Logger LOGGER = Logger.getLogger(DockerSlave.class.getName());
 
     public DockerSlave(final Queue.BuildableItem bi, final String labelString) throws Descriptor.FormException, IOException {
         super(labelString, "Container slave for building " + bi.task.getFullDisplayName(),
@@ -59,17 +63,7 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
 
     @Override
     protected void _terminate(final TaskListener listener) throws IOException, InterruptedException {
-        DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-        ActorRef agentLauncherRef = swarmPlugin.getActorSystem().actorFor("/user/" + getComputer().getName());
-//        agentLauncherRef.tell(new DeleteServiceRequest(getComputer().getName()),ActorRef.noSender());
     }
-
-//    @Override
-//    public void terminate() throws InterruptedException, IOException {
-//        DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-//        ActorRef agentLauncherRef = swarmPlugin.getActorSystem().actorFor("/user/" + getComputer().getName());
-////        agentLauncherRef.tell(new DeleteServiceRequest(getComputer().getName()),ActorRef.noSender());
-//    }
 
     @Override
     public Node asNode() {
@@ -93,17 +87,17 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
         return labels;
     }
 
-    public void terminate(TaskListener listener) {
+    public void terminate() {
         try {
-            toComputer().disconnect();
-            listener.getLogger().println("Disconnected computer");
-        } catch (Exception e) {
-            listener.error("Can't disconnect", e);
-        }
-        try {
-            Jenkins.getInstance().removeNode(this);
-        } catch (IOException e) {
-            listener.error("Failed to remove Docker Node", e);
+            DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
+            ActorRef agentLauncherRef = swarmPlugin.getActorSystem().actorFor("/user/" + getComputer().getName());
+        agentLauncherRef.tell(new DeleteServiceRequest(getComputer().getName()),ActorRef.noSender());
+        } finally {
+            try {
+                Jenkins.getInstance().removeNode(this);
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING,"Failed to remove computer",e);
+            }
         }
     }
 }

@@ -7,9 +7,7 @@ import hudson.model.Queue;
 import hudson.model.queue.QueueListener;
 import jenkins.model.Jenkins;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @Extension
@@ -35,11 +33,7 @@ public class OneShotProvisionQueueListener extends QueueListener {
 
                 final Node node = Jenkins.getInstance().getNode(computerName);
                 Computer.threadPoolForRemoting.submit(() -> {
-                    try {
                         ((DockerSlave)node).terminate();
-                    } catch (final IOException | InterruptedException e) {
-                       LOGGER.log(Level.SEVERE,"",e);
-                    }
                 });
             }
         }

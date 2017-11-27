@@ -54,9 +54,6 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy<DockerComput
 
     @Override
     public void start(DockerComputer c) {
-//        if (c.getNode() instanceof EphemeralNode) {
-//            throw new IllegalStateException("May not use OnceRetentionStrategy on an EphemeralNode: " + c);
-//        }
         c.connect(true);
     }
 
@@ -95,7 +92,7 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy<DockerComput
             Queue.withLock( () -> {
                  DockerSlave node = c.getNode();
                 if (node != null) {
-                    node.terminate(c.getListener());
+                    node.terminate();
                 }
             });
         });

@@ -7,12 +7,15 @@ import hudson.model.Queue;
 import hudson.model.TaskListener;
 import hudson.remoting.Channel;
 import hudson.slaves.AbstractCloudComputer;
+import hudson.slaves.OfflineCause;
 import hudson.util.StreamTaskListener;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
 
@@ -66,4 +69,19 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         return false;
     }
 
+    @Override
+    public Future<?> disconnect(OfflineCause cause) {
+        return CompletableFuture.completedFuture(true);
+    }
+
+    @Override
+    protected void kill() {
+//        try {
+//            getChannel().close();
+//            DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
+//            ActorRef agentLauncherRef = swarmPlugin.getActorSystem().actorFor("/user/" + getName());
+//            agentLauncherRef.tell(new DeleteServiceRequest(getName()),ActorRef.noSender());
+//        } catch (IOException e) {
+//        }
+    }
 }
