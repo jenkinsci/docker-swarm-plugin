@@ -54,10 +54,6 @@ public class SwarmNode {
                 .toArray();
     }
 
-    public Task[] getUnknownTasks(){
-        final Jenkins jenkins = Jenkins.getInstance();
-        return this.tasks.stream().filter(task -> getComputer(jenkins, task)==null).toArray(Task[]::new);
-    }
 
     public Task[] getUnknownRunningTasks(){
         final Jenkins jenkins = Jenkins.getInstance();
