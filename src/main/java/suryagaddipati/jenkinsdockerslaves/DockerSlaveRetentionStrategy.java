@@ -40,7 +40,7 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy<DockerComput
     public long check(@Nonnull DockerComputer c) {
         // When the slave is idle we should disable accepting tasks and check to see if it is already trying to
         // terminate. If it's not already trying to terminate then lets terminate manually.
-        if (c.isIdle()) {
+        if (c.isIdle() && c.isOnline()) {
             final long idleMilliseconds = System.currentTimeMillis() - c.getIdleStartMilliseconds();
             if (idleMilliseconds > MINUTES.toMillis(timeout)) {
                 LOGGER.log(Level.FINE, "Disconnecting {0}", c.getName());
