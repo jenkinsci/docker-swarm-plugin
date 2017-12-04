@@ -85,7 +85,7 @@ public class DockerComputerLauncher extends JNLPLauncher {
 
         final String[] cacheDirs = labelConfiguration.getCacheDirs();
         if (cacheDirs.length > 0) {
-            final String cacheVolumeName = getJobName() + "-" + computer.getName();
+            final String cacheVolumeName = getJobName() + "-" + computer.getVolumeName();
             this.bi.getAction(DockerSlaveInfo.class).setCacheVolumeName(cacheVolumeName);
             for (int i = 0; i < cacheDirs.length; i++) {
                 listener.getLogger().println("Binding Volume" + cacheDirs[i] + " to " + cacheVolumeName);

@@ -18,15 +18,20 @@ public class DockerSlaveInfo implements RunAction2 {
     private Integer allocatedCPUShares;
     private Long allocatedMemory;
     private Long maxMemoryUsage;
-    private List<Long> perCpuUsage;
     private Integer throttledTime;
     private transient Run<?, ?> run;
     private Date computerLaunchTime;
     private int provisioningAttempts;
-    private String containerId;
     private String dockerImage;
+
+    @Deprecated
+    private String containerId;
+    @Deprecated
     private boolean provisioningInProgress;
+    @Deprecated
     private Date provisionedTime;
+    @Deprecated
+    private List<Long> perCpuUsage;
 
     public DockerSlaveInfo(final boolean provisioningInProgress) {
         this.provisioningInProgress = provisioningInProgress;
@@ -74,8 +79,6 @@ public class DockerSlaveInfo implements RunAction2 {
     public void setProvisionedTime(final Date provisionedTime) {
         this.provisionedTime = provisionedTime;
     }
-
-
 
 
     public void setCacheVolumeMountpoint(final String mountpoint) {
@@ -163,12 +166,6 @@ public class DockerSlaveInfo implements RunAction2 {
         return this.allocatedMemory;
     }
 
-    public Integer getNextCpuAllocation() {
-        if (this.allocatedCPUShares != null && this.allocatedCPUShares != 0) {
-            return wasThrottled() ? this.allocatedCPUShares + 1 : this.allocatedCPUShares;
-        }
-        return 1;
-    }
 
     public Long getNextMemoryAllocation() {
         return this.maxMemoryUsage == null ? 0l : this.maxMemoryUsage + Bytes.MB(500);
@@ -182,9 +179,6 @@ public class DockerSlaveInfo implements RunAction2 {
     public boolean isBuildFinished() throws IOException {
         return !this.run.isBuilding();
     }
-
-
-
 
 
     public void setComputerLaunchTime(final Date computerLaunchTime) {

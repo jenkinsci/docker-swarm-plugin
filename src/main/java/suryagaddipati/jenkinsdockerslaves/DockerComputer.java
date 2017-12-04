@@ -74,14 +74,9 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         return CompletableFuture.completedFuture(true);
     }
 
-    @Override
-    protected void kill() {
-//        try {
-//            getChannel().close();
-//            DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-//            ActorRef agentLauncherRef = swarmPlugin.getActorSystem().actorFor("/user/" + getName());
-//            agentLauncherRef.tell(new DeleteServiceRequest(getName()),ActorRef.noSender());
-//        } catch (IOException e) {
-//        }
+
+
+    public String getVolumeName() {
+        return getName().split("-")[1];
     }
 }
