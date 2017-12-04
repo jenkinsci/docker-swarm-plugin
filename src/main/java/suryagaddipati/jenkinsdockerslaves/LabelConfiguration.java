@@ -6,20 +6,20 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LabelConfiguration {
-    private String network;
     private long limitsNanoCPUs;
     private long limitsMemoryBytes;
     private long reservationsNanoCPUs;
     private long reservationsMemoryBytes;
     String image;
     String hostBinds;
-    String envVars;
     private String label;
     private String cacheDir;
 
     private transient Long  maxCpuShares;
     private transient Long maxMemory;
     private transient boolean dynamicResourceAllocation;
+    String envVars;
+    private String network;
 
     public  LabelConfiguration(){
         //For Yaml Load
@@ -28,24 +28,18 @@ public class LabelConfiguration {
     @DataBoundConstructor
     public LabelConfiguration(final String image, final String hostBinds,
                               final String label, final String cacheDir,
-                              final String envVars, final String network,
                               final long limitsNanoCPUs, final long limitsMemoryBytes,
                               final long reservationsNanoCPUs, final long reservationsMemoryBytes ) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.label = label;
         this.cacheDir = cacheDir;
-        this.envVars = envVars;
-        this.network = network;
         this.limitsNanoCPUs = limitsNanoCPUs;
         this.limitsMemoryBytes = limitsMemoryBytes;
         this.reservationsNanoCPUs = reservationsNanoCPUs;
         this.reservationsMemoryBytes = reservationsMemoryBytes;
     }
 
-    public String getNetwork() {
-        return this.network;
-    }
 
     public String getCacheDir() {
         return this.cacheDir;
@@ -72,14 +66,6 @@ public class LabelConfiguration {
 
     public String[] getHostBindsConfig() {
         return StringUtils.isEmpty(this.hostBinds) ? new String[]{} : this.hostBinds.split(" ");
-    }
-
-    public boolean isDynamicResourceAllocation() {
-        return this.dynamicResourceAllocation;
-    }
-
-    public String getEnvVars() {
-        return this.envVars;
     }
 
 

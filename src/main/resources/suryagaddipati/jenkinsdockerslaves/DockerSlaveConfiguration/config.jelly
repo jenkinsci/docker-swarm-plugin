@@ -60,16 +60,8 @@ THE SOFTWARE.
                         <f:textbox value="${labelConfiguration.hostBinds}"/>
                     </f:entry>
 
-
-
                     <f:entry title="Cache Dir" field="cacheDir">
                         <f:textbox value="${labelConfiguration.cacheDir}"/>
-                    </f:entry>
-                    <f:entry title="Env (space-separated)" field="envVars">
-                        <f:textbox value="${labelConfiguration.envVars}"/>
-                    </f:entry>
-                    <f:entry title="Network" field="network">
-                        <f:textbox value="${labelConfiguration.network}"/>
                     </f:entry>
 
                     <f:section title="Limits">
