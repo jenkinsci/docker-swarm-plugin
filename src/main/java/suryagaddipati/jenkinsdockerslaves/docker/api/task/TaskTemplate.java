@@ -29,7 +29,9 @@ public class TaskTemplate {
     }
 
     public  static class RestartPolicy {
-        public String  Condition = "none";
+        public String  Condition = "on-failure";
+//        public int  Delay = 10;
+        public int  MaxAttempts = 4;
     }
 
     private  static Pattern computerName = Pattern.compile("(agent-)(\\d+)");
