@@ -14,11 +14,15 @@ public class LabelConfiguration {
     String hostBinds;
     private String label;
     private String cacheDir;
+    private String envVars;
 
+    @Deprecated
     private transient Long  maxCpuShares;
+    @Deprecated
     private transient Long maxMemory;
+    @Deprecated
     private transient boolean dynamicResourceAllocation;
-    String envVars;
+    @Deprecated
     private String network;
 
     public  LabelConfiguration(){
@@ -28,6 +32,7 @@ public class LabelConfiguration {
     @DataBoundConstructor
     public LabelConfiguration(final String image, final String hostBinds,
                               final String label, final String cacheDir,
+                              final String envVars,
                               final long limitsNanoCPUs, final long limitsMemoryBytes,
                               final long reservationsNanoCPUs, final long reservationsMemoryBytes ) {
         this.image = image;
@@ -38,15 +43,7 @@ public class LabelConfiguration {
         this.limitsMemoryBytes = limitsMemoryBytes;
         this.reservationsNanoCPUs = reservationsNanoCPUs;
         this.reservationsMemoryBytes = reservationsMemoryBytes;
-    }
-
-
-    public String getCacheDir() {
-        return this.cacheDir;
-    }
-
-    public void setCacheDir(final String cacheDir) {
-        this.cacheDir = cacheDir;
+        this.envVars = envVars;
     }
 
     public String[] getCacheDirs() {
@@ -57,9 +54,6 @@ public class LabelConfiguration {
         return this.label;
     }
 
-    public String getHostBinds() {
-        return this.hostBinds;
-    }
     public String getImage() {
         return this.image;
     }
@@ -67,7 +61,6 @@ public class LabelConfiguration {
     public String[] getHostBindsConfig() {
         return StringUtils.isEmpty(this.hostBinds) ? new String[]{} : this.hostBinds.split(" ");
     }
-
 
     public String[] getEnvVarsConfig() {
         return StringUtils.isEmpty(this.envVars) ? new String[]{} : this.envVars.split(" ");

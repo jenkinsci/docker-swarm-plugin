@@ -54,7 +54,9 @@ THE SOFTWARE.
                     <f:entry title="Image" field="image">
                         <f:textbox value="${labelConfiguration.image}"/>
                     </f:entry>
-
+                    <f:entry title="Env (space-separated)" field="envVars">
+                        <f:textbox value="${labelConfiguration.envVars}"/>
+                    </f:entry>
                     <f:entry title="Host Binds (space-separated)"
                              field="hostBinds">
                         <f:textbox value="${labelConfiguration.hostBinds}"/>
