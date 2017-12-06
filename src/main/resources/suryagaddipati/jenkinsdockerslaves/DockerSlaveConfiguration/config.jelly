@@ -66,6 +66,10 @@ THE SOFTWARE.
                         <f:textbox value="${labelConfiguration.cacheDir}"/>
                     </f:entry>
 
+                    <f:entry title="Tmpfs Dir" field="tmpfsDir">
+                        <f:textbox value="${labelConfiguration.tmpfsDir}"/>
+                    </f:entry>
+
                     <f:section title="Limits">
                         <f:entry title="NanoCPUs" field="limitsNanoCPUs">
                             <f:number value="${labelConfiguration.limitsNanoCPUs}"/>

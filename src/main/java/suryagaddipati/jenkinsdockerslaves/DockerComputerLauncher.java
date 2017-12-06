@@ -9,6 +9,7 @@ import hudson.model.TaskListener;
 import hudson.slaves.JNLPLauncher;
 import hudson.slaves.SlaveComputer;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceRequest;
 
 import java.io.IOException;
@@ -91,6 +92,10 @@ public class DockerComputerLauncher extends JNLPLauncher {
                 listener.getLogger().println("Binding Volume" + cacheDirs[i] + " to " + cacheVolumeName);
                 crReq.addCacheVolume(cacheVolumeName, cacheDirs[i], configuration.getCacheDriverName());
             }
+        }
+        if(StringUtils.isNotEmpty(labelConfiguration.getTmpfsDir())){
+
+            crReq.addTmpfsMount(labelConfiguration.getTmpfsDir());
         }
 
         final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerAgentLauncherActor.props(listener.getLogger()), computer.getName());

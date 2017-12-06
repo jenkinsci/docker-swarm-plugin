@@ -69,6 +69,12 @@ public class ContainerSpec {
             return mount;
         }
 
+        public static Mount tmpfsMount(String Target) {
+            Mount mount = new Mount("", Target);
+            mount.Type ="tmpfs";
+            return mount;
+        }
+
 
         public static class VolumeOptions{
             public Mount.VolumeOptions.DriverConfig DriverConfig ;

@@ -31,6 +31,10 @@ public class CreateServiceRequest extends ApiRequest {
         ContainerSpec.Mount mount = ContainerSpec.Mount.cacheMount(cacheVolumeName, target,cacheDriverName);
         this.TaskTemplate.ContainerSpec.Mounts.add(mount);
     }
+    public void addTmpfsMount(String tmpfsDir) {
+        ContainerSpec.Mount mount = ContainerSpec.Mount.tmpfsMount(tmpfsDir);
+        this.TaskTemplate.ContainerSpec.Mounts.add(mount);
+    }
 
     public void setTaskLimits(long nanoCPUs, long memoryBytes) {
         this.TaskTemplate.Resources.Limits.NanoCPUs = nanoCPUs;

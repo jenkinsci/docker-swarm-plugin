@@ -6,6 +6,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LabelConfiguration {
+    private String tmpfsDir;
     private long limitsNanoCPUs;
     private long limitsMemoryBytes;
     private long reservationsNanoCPUs;
@@ -31,7 +32,8 @@ public class LabelConfiguration {
 
     @DataBoundConstructor
     public LabelConfiguration(final String image, final String hostBinds,
-                              final String label, final String cacheDir,
+                              final String label,
+                              final String cacheDir,final String tmpfsDir,
                               final String envVars,
                               final long limitsNanoCPUs, final long limitsMemoryBytes,
                               final long reservationsNanoCPUs, final long reservationsMemoryBytes ) {
@@ -39,6 +41,7 @@ public class LabelConfiguration {
         this.hostBinds = hostBinds;
         this.label = label;
         this.cacheDir = cacheDir;
+        this.tmpfsDir = tmpfsDir;
         this.limitsNanoCPUs = limitsNanoCPUs;
         this.limitsMemoryBytes = limitsMemoryBytes;
         this.reservationsNanoCPUs = reservationsNanoCPUs;
@@ -80,4 +83,9 @@ public class LabelConfiguration {
     public long getReservationsMemoryBytes() {
         return reservationsMemoryBytes;
     }
+
+    public String getTmpfsDir() {
+        return tmpfsDir;
+    }
+
 }
