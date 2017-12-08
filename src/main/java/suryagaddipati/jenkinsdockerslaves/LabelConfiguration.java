@@ -14,6 +14,7 @@ public class LabelConfiguration {
     String image;
     String hostBinds;
     private String label;
+
     private String cacheDir;
     private String envVars;
 
@@ -88,4 +89,15 @@ public class LabelConfiguration {
         return tmpfsDir;
     }
 
+    public String getHostBinds() {
+        return hostBinds;
+    }
+
+    public String getCacheDir() {
+        return cacheDir;
+    }
+
+    public String getEnvVars() {
+        return envVars;
+    }
 }
