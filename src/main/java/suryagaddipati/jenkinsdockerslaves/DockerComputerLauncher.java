@@ -68,9 +68,17 @@ public class DockerComputerLauncher extends JNLPLauncher {
             launchContainer(command,configuration, envVars, labelConfiguration, listener, computer);
     }
 
-    public void launchContainer(String[] command, DockerSlaveConfiguration configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {
+    public void launchContainer(String[] commands, DockerSlaveConfiguration configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-        CreateServiceRequest crReq = new CreateServiceRequest(computer.getName(), labelConfiguration.getImage(), command, envVars);
+        CreateServiceRequest crReq = null;
+        if(labelConfiguration.getLabel().contains("dind")){
+            String launchCommand = commands[2];
+            String dindLaunchCommand = String.format("docker run --privileged %s sh -xc '%s' ",labelConfiguration.getImage(),launchCommand);
+            commands[2]=dindLaunchCommand;
+            crReq = new CreateServiceRequest(computer.getName(),"docker:17.12" , commands, envVars);
+        }else {
+            crReq = new CreateServiceRequest(computer.getName(), labelConfiguration.getImage(), commands, envVars);
+        }
 
         crReq.setTaskLimits(labelConfiguration.getLimitsNanoCPUs(),labelConfiguration.getLimitsMemoryBytes() );
         crReq.setTaskReservations(labelConfiguration.getReservationsNanoCPUs(),labelConfiguration.getReservationsMemoryBytes() );
