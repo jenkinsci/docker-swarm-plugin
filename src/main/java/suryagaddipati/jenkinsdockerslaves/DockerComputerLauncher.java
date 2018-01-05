@@ -72,9 +72,7 @@ public class DockerComputerLauncher extends JNLPLauncher {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
         CreateServiceRequest crReq = null;
         if(labelConfiguration.getLabel().contains("dind")){
-            String launchCommand = commands[2];
-            String dindLaunchCommand = String.format("docker run --privileged %s sh -xc '%s' ",labelConfiguration.getImage(),launchCommand);
-            commands[2]=dindLaunchCommand;
+            commands[2]= String.format("docker run --privileged %s sh -xc '%s' ",labelConfiguration.getImage(), commands[2]);
             crReq = new CreateServiceRequest(computer.getName(),"docker:17.12" , commands, envVars);
         }else {
             crReq = new CreateServiceRequest(computer.getName(), labelConfiguration.getImage(), commands, envVars);
