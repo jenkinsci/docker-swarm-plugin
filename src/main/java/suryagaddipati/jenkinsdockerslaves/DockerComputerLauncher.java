@@ -73,8 +73,8 @@ public class DockerComputerLauncher extends JNLPLauncher {
         CreateServiceRequest crReq = null;
         if(labelConfiguration.getLabel().contains("dind")){
             commands[2]= StringUtils.isEmpty(configuration.getSwarmNetwork())?
-                    String.format("docker run --privileged %s sh -xc '%s' ",labelConfiguration.getImage(), commands[2]):
-                    String.format("docker run --privileged --network %s %s sh -xc '%s' ",configuration.getSwarmNetwork(), labelConfiguration.getImage(), commands[2]);
+                    String.format("docker run --rm --privileged %s sh -xc '%s' ",labelConfiguration.getImage(), commands[2]):
+                    String.format("docker run --rm --privileged --network %s %s sh -xc '%s' ",configuration.getSwarmNetwork(), labelConfiguration.getImage(), commands[2]);
 
             crReq = new CreateServiceRequest(computer.getName(),"docker:17.12" , commands, envVars);
         }else {
