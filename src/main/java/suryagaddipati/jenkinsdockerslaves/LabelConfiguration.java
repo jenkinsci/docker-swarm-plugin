@@ -1,11 +1,17 @@
 package suryagaddipati.jenkinsdockerslaves;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import hudson.Extension;
+import hudson.model.Describable;
+import hudson.model.Descriptor;
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import javax.annotation.Nonnull;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LabelConfiguration {
+public class LabelConfiguration  implements Describable<LabelConfiguration> {
     private String tmpfsDir;
     private long limitsNanoCPUs;
     private long limitsMemoryBytes;
@@ -18,14 +24,7 @@ public class LabelConfiguration {
     private String cacheDir;
     private String envVars;
 
-    @Deprecated
-    private transient Long  maxCpuShares;
-    @Deprecated
-    private transient Long maxMemory;
-    @Deprecated
-    private transient boolean dynamicResourceAllocation;
-    @Deprecated
-    private String network;
+
 
     public  LabelConfiguration(){
         //For Yaml Load
@@ -99,5 +98,19 @@ public class LabelConfiguration {
 
     public String getEnvVars() {
         return envVars;
+    }
+
+    @Override
+    public Descriptor<LabelConfiguration> getDescriptor() {
+        return (DescriptorImpl) Jenkins.getInstance().getDescriptor(getClass());
+    }
+
+    @Extension
+    public static final class DescriptorImpl extends Descriptor<LabelConfiguration> {
+        @Nonnull
+        @Override
+        public String getDisplayName() {
+            return "Docker Agent Template";
+        }
     }
 }

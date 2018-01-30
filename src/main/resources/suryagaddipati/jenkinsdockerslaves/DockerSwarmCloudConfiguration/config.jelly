@@ -1,0 +1,21 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core"
+         xmlns:f="/lib/form">
+    <f:section title="Docker Slaves Configuration">
+        <f:entry title="Docker http(s) uri" field="uri">
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="Jenkins Url " field="jenkinsUrl">
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="Swarm Network( Default network to join) " field="swarmNetwork">
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="Cache driver name" field="cacheDriverName">
+            <f:textbox/>
+        </f:entry>
+
+
+
+    </f:section>
+</j:jelly>

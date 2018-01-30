@@ -1,10 +1,8 @@
 package suryagaddipati.jenkinsdockerslaves;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import hudson.Extension;
-import hudson.model.Label;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest;
@@ -24,7 +22,6 @@ public class DockerSwarmCloudConfiguration extends GlobalConfiguration {
     private String cacheDriverName;
 
 
-    private transient int maxProvisioningAttempts;
     private List<LabelConfiguration> labelConfigurations = new ArrayList<>();
 
     public DockerSwarmCloudConfiguration() {
@@ -73,11 +70,7 @@ public class DockerSwarmCloudConfiguration extends GlobalConfiguration {
 
 
     public List<String> getLabels() {
-        final Iterable<String> labels = Iterables.transform(getLabelConfigurations(), new Function<LabelConfiguration, String>() {
-            public String apply(final LabelConfiguration labelConfiguration) {
-                return labelConfiguration.getLabel();
-            }
-        });
+        final Iterable<String> labels = Iterables.transform(getLabelConfigurations(), labelConfiguration -> labelConfiguration.getLabel());
         return Lists.newArrayList(labels);
     }
 
@@ -92,17 +85,6 @@ public class DockerSwarmCloudConfiguration extends GlobalConfiguration {
 
     }
 
-    public boolean canProvision(final Label label) {
-        return getLabelConfiguration(label.getName()) != null;
-    }
-
-    public int getMaxProvisioningAttempts() {
-        return this.maxProvisioningAttempts;
-    }
-
-    public void setMaxProvisioningAttempts(final int maxProvisioningAttempts) {
-        this.maxProvisioningAttempts = maxProvisioningAttempts;
-    }
 
     public String getSwarmNetwork() {
         return swarmNetwork;

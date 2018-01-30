@@ -16,7 +16,7 @@ public class DockerSlaveCofigurationTest {
         System.out.println(payloadReq);
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 //        DockerSwarmCloudConfiguration config = mapper.readValue(payloadReq, DockerSlaveConfigurationLoader.class);
-//        System.out.println(config.getLabelConfigurations().get(0).getImage());
+//        System.out.println(config.getAgentTemplates().get(0).getImage());
     }
 
 

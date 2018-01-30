@@ -1,4 +1,4 @@
 certificatesPath: "/meow"
 useTLS: true
-labelConfigurations:
+agentTemplates:
   - image: meow.com
