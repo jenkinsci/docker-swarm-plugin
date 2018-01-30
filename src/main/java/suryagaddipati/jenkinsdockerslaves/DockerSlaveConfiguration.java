@@ -15,14 +15,9 @@ import java.util.List;
 @Extension
 public class DockerSlaveConfiguration extends GlobalConfiguration {
     String uri;
-    Boolean useTLS;
-    String certificatesPath;
 
 
-    String apiVersion;
-    private boolean privileged;
     private String jenkinsUrl;
-    private String baseWorkspaceLocation;
 
 
     private String swarmNetwork;
@@ -68,30 +63,6 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
         this.uri = uri;
     }
 
-    public Boolean getUseTLS() {
-        return this.useTLS;
-    }
-
-    public void setUseTLS(final Boolean useTLS) {
-        this.useTLS = useTLS;
-    }
-
-    public String getCertificatesPath() {
-        return this.certificatesPath;
-    }
-
-    public void setCertificatesPath(final String certificatesPath) {
-        this.certificatesPath = certificatesPath;
-    }
-
-    public boolean isPrivileged() {
-        return this.privileged;
-    }
-
-    public void setPrivileged(final boolean privileged) {
-        this.privileged = privileged;
-    }
-
     public String getJenkinsUrl() {
         return this.jenkinsUrl;
     }
@@ -100,22 +71,6 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
         this.jenkinsUrl = jenkinsUrl;
     }
 
-
-    public String getBaseWorkspaceLocation() {
-        return this.baseWorkspaceLocation;
-    }
-
-    public void setBaseWorkspaceLocation(final String baseWorkspaceLocation) {
-        this.baseWorkspaceLocation = baseWorkspaceLocation;
-    }
-
-    public String getApiVersion() {
-        return this.apiVersion;
-    }
-
-    public void setApiVersion(final String apiVersion) {
-        this.apiVersion = apiVersion;
-    }
 
     public List<String> getLabels() {
         final Iterable<String> labels = Iterables.transform(getLabelConfigurations(), new Function<LabelConfiguration, String>() {

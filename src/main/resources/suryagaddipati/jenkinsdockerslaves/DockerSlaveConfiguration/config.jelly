@@ -25,10 +25,6 @@ THE SOFTWARE.
 <j:jelly xmlns:j="jelly:core"
          xmlns:f="/lib/form">
     <f:section title="Docker Slaves Configuration">
-        <f:entry title="Base WorkspaceLocation" field="baseWorkspaceLocation">
-            <f:textbox/>
-        </f:entry>
-
         <f:entry title="Docker http(s) uri" field="uri">
             <f:textbox/>
         </f:entry>

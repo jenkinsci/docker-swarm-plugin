@@ -12,7 +12,6 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceRequest;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -46,14 +45,6 @@ public class DockerComputerLauncher extends JNLPLauncher {
             dockerSlaveInfo = this.bi.getAction(DockerSlaveInfo.class);
             dockerSlaveInfo.setComputerLaunchTime(new Date());
             final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
-            if (this.bi.task instanceof AbstractProject) {
-                try {
-                    ((AbstractProject) this.bi.task).setCustomWorkspace(configuration.getBaseWorkspaceLocation());
-                } catch (IOException e) {
-                   throw  new RuntimeException(e) ;
-                }
-            }
-
             final LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
 
             final String[] envVarOptions = labelConfiguration.getEnvVarsConfig();
