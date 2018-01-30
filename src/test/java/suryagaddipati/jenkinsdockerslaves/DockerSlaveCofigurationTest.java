@@ -15,7 +15,7 @@ public class DockerSlaveCofigurationTest {
         final String payloadReq = IOUtils.toString(stream);
         System.out.println(payloadReq);
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-//        DockerSlaveConfiguration config = mapper.readValue(payloadReq, DockerSlaveConfigurationLoader.class);
+//        DockerSwarmCloudConfiguration config = mapper.readValue(payloadReq, DockerSlaveConfigurationLoader.class);
 //        System.out.println(config.getLabelConfigurations().get(0).getImage());
     }
 

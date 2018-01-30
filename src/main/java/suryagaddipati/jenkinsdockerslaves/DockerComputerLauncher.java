@@ -44,7 +44,7 @@ public class DockerComputerLauncher extends JNLPLauncher {
         DockerSlaveInfo dockerSlaveInfo = null;
             dockerSlaveInfo = this.bi.getAction(DockerSlaveInfo.class);
             dockerSlaveInfo.setComputerLaunchTime(new Date());
-            final DockerSlaveConfiguration configuration = DockerSlaveConfiguration.get();
+            final DockerSwarmCloudConfiguration configuration = DockerSwarmCloudConfiguration.get();
             final LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
 
             final String[] envVarOptions = labelConfiguration.getEnvVarsConfig();
@@ -59,7 +59,7 @@ public class DockerComputerLauncher extends JNLPLauncher {
             launchContainer(command,configuration, envVars, labelConfiguration, listener, computer);
     }
 
-    public void launchContainer(String[] commands, DockerSlaveConfiguration configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {
+    public void launchContainer(String[] commands, DockerSwarmCloudConfiguration configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
         CreateServiceRequest crReq = null;
         if(labelConfiguration.getLabel().contains("dind")){
@@ -106,11 +106,11 @@ public class DockerComputerLauncher extends JNLPLauncher {
 
 
 
-    private String getSlaveJarUrl(final DockerSlaveConfiguration configuration) {
+    private String getSlaveJarUrl(final DockerSwarmCloudConfiguration configuration) {
         return getJenkinsUrl(configuration) + "jnlpJars/slave.jar";
     }
 
-    private String getSlaveJnlpUrl(final Computer computer, final DockerSlaveConfiguration configuration) {
+    private String getSlaveJnlpUrl(final Computer computer, final DockerSwarmCloudConfiguration configuration) {
         return getJenkinsUrl(configuration) + computer.getUrl() + "slave-agent.jnlp";
 
     }
@@ -120,7 +120,7 @@ public class DockerComputerLauncher extends JNLPLauncher {
 
     }
 
-    private String getJenkinsUrl(final DockerSlaveConfiguration configuration) {
+    private String getJenkinsUrl(final DockerSwarmCloudConfiguration configuration) {
         final String url = configuration.getJenkinsUrl();
         if (url.endsWith("/")) {
             return url;

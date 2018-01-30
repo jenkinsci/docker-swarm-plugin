@@ -17,7 +17,7 @@ public class OneShotProvisionQueueListener extends QueueListener {
     @Override
     public void onEnterBuildable(final Queue.BuildableItem bi) {
         final Queue.Task job = bi.task;
-        final List<String> labels = DockerSlaveConfiguration.get().getLabels();
+        final List<String> labels = DockerSwarmCloudConfiguration.get().getLabels();
         if (job.getAssignedLabel() != null && labels.contains(job.getAssignedLabel().getName())) {
             BuildScheduler.scheduleBuild(bi);
         }

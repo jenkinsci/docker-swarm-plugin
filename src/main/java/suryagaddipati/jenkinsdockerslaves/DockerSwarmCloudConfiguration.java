@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Extension
-public class DockerSlaveConfiguration extends GlobalConfiguration {
+public class DockerSwarmCloudConfiguration extends GlobalConfiguration {
     String uri;
 
 
@@ -27,12 +27,12 @@ public class DockerSlaveConfiguration extends GlobalConfiguration {
     private transient int maxProvisioningAttempts;
     private List<LabelConfiguration> labelConfigurations = new ArrayList<>();
 
-    public DockerSlaveConfiguration() {
+    public DockerSwarmCloudConfiguration() {
         load();
     }
 
-    public static DockerSlaveConfiguration get() {
-        return GlobalConfiguration.all().get(DockerSlaveConfiguration.class);
+    public static DockerSwarmCloudConfiguration get() {
+        return GlobalConfiguration.all().get(DockerSwarmCloudConfiguration.class);
     }
 
     public List<LabelConfiguration> getLabelConfigurations() {
