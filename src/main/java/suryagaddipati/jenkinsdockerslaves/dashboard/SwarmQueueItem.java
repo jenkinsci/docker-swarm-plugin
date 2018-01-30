@@ -4,8 +4,8 @@ import hudson.model.Computer;
 import hudson.model.Queue;
 import jenkins.model.Jenkins;
 import suryagaddipati.jenkinsdockerslaves.DockerLabelAssignmentAction;
-import suryagaddipati.jenkinsdockerslaves.DockerSwarmCloudConfiguration;
 import suryagaddipati.jenkinsdockerslaves.DockerSlaveInfo;
+import suryagaddipati.jenkinsdockerslaves.DockerSwarmCloud;
 import suryagaddipati.jenkinsdockerslaves.LabelConfiguration;
 
 public class SwarmQueueItem {
@@ -20,7 +20,7 @@ public class SwarmQueueItem {
     public SwarmQueueItem(final Queue.BuildableItem item) {
         this.name = item.task.getFullDisplayName();
         this.label = item.task.getAssignedLabel().getName();
-        this.labelConfig = DockerSwarmCloudConfiguration.get().getLabelConfiguration(this.label);
+        this.labelConfig = DockerSwarmCloud.get().getLabelConfiguration(this.label);
         this.inQueueSince = item.getInQueueForString();
         this.slaveInfo = item.getAction(DockerSlaveInfo.class); //this should never be null
 

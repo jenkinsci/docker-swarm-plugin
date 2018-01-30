@@ -8,16 +8,14 @@ import hudson.model.queue.QueueListener;
 import jenkins.model.Jenkins;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 @Extension
 public class OneShotProvisionQueueListener extends QueueListener {
 
-    private static final Logger LOGGER = Logger.getLogger(OneShotProvisionQueueListener.class.getName());
     @Override
     public void onEnterBuildable(final Queue.BuildableItem bi) {
         final Queue.Task job = bi.task;
-        final List<String> labels = DockerSwarmCloudConfiguration.get().getLabels();
+        final List<String> labels = DockerSwarmCloud.get().getLabels();
         if (job.getAssignedLabel() != null && labels.contains(job.getAssignedLabel().getName())) {
             BuildScheduler.scheduleBuild(bi);
         }

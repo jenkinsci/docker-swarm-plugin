@@ -3,7 +3,7 @@ package suryagaddipati.jenkinsdockerslaves.docker.api.request;
 import akka.http.javadsl.model.HttpMethod;
 import akka.http.javadsl.model.HttpRequest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import suryagaddipati.jenkinsdockerslaves.DockerSwarmCloudConfiguration;
+import suryagaddipati.jenkinsdockerslaves.DockerSwarmCloud;
 import suryagaddipati.jenkinsdockerslaves.docker.marshalling.ResponseType;
 
 public  abstract   class ApiRequest {
@@ -20,9 +20,9 @@ public  abstract   class ApiRequest {
     public ApiRequest(HttpMethod method, String url, Class<?> responseClass , ResponseType responseType) {
         this.responseClass = responseClass;
         this.responseType = responseType;
-        final DockerSwarmCloudConfiguration configuration = DockerSwarmCloudConfiguration.get();
+        final DockerSwarmCloud configuration = DockerSwarmCloud.get();
         this.method = method;
-        this.url = configuration.getDockerUri()+ url;
+        this.url = configuration.getDockerSwarmApiUrl()+ url;
     }
     public ApiRequest(HttpMethod method, String url){
        this(method,url,null,null) ;

@@ -30,7 +30,7 @@ public class DockerSwarmPlugin extends Plugin {
             LOGGER.info("Configuring swarm plugin from " + swarmConfigYaml.getAbsolutePath());
             try (InputStream in = new BufferedInputStream(new FileInputStream(swarmConfigYaml))) {
                 ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
-                DockerSwarmCloudConfiguration configuration = mapper.readValue(in, DockerSwarmCloudConfiguration.class);
+                DockerSwarmCloud configuration = mapper.readValue(in, DockerSwarmCloud.class);
                 configuration.save();
             }
         }else {
