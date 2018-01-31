@@ -4,7 +4,7 @@ Launches a single use [docker agent service](https://docs.docker.com/engine/swar
 
 This allows for service options like Limits and Reservations to be set on agent containers.
 
-##Configuration
+### Configuration
 
 ![configuration](http://i.imgur.com/sd5kVSr.png "Configuration")
 
