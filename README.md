@@ -4,26 +4,20 @@ Launches a single use [docker agent service](https://docs.docker.com/engine/swar
 
 This allows for service options like Limits and Reservations to be set on agent containers.
 
-##Configuration
+### Configuration
 
-![configuration](http://i.imgur.com/sd5kVSr.png "Configuration")
+![configuration](https://raw.githubusercontent.com/suryagaddipati/jenkins-docker-swarm-plugin/master/docs/images/configuration.png "Configuration")
 
-#### Add this 'cloud' for label completion
-![label](http://i.imgur.com/IfyzNW7.png)
+### Swarm Scheduling
 
-#### optional caching
-if you would like you use build caching. Compile and launch [this volume driver] (https://github.com/suryagaddipati/jenkins-docker-swarm-plugin/tree/master/src/main/golang/docker-cache-driver). This driver is written to use overlayfs but anyother CoW should work in theory ( PR's welcome :)).
-
-## Swarm Scheduling
-
-Plugin attempts to create a slave as soon as build enters the queue. And if requested cpus/memory is not availabe on swarm, it would keep retrying( on a timer) until resources are availble.
+Plugin attempts to create an agent as soon as build enters the queue. Bypasses cloud apis for faster agent scheduling.
 
 ## caching
- Caching is done via [docker volume plugin](https://github.com/suryagaddipati/jenkins-docker-swarm-plugin/tree/master/src/main/golang/docker-cache-driver) .
- Driver gets called to create an overlayfs cache volume  for each build and once build is done volume gets delted. On delete if there are any new changes to cache they get copied into a new basedir and pointer to baseCache gets updated. You can optionally mount lower base cache dir onto a NFS storage appliance.
+ Caching is done via [docker volume plugin](https://github.com/suryagaddipati/docker-cache-volume-plugin).
+ Driver gets called to create an overlayfs cache volume  for each build and once build is done volume gets deleted. This cache volume is mounted into agent in the directory specified by `Cache Dir` configuration option in Agent Templates.  On delete if there are any new changes to cache they get copied into a new basedir and pointer to baseCache gets updated. You can optionally mount lower base cache dir onto a NFS storage appliance.  Checkout plugin documentation for more details.
 
-## Swarm Dashboard
+### Swarm Dashboard
 
 Follow the link on sidebar to view the status of your swarm. What is executing where, what builds are in queue for what resources ect
 
-![dashboard](http://i.imgur.com/A4Ltqkh.png "Dashboard")
+![dashboard](https://raw.githubusercontent.com/suryagaddipati/jenkins-docker-swarm-plugin/master/docs/images/dashboard.png "Dashboard")
