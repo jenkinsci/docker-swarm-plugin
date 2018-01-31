@@ -10,7 +10,7 @@
         <relativePath/>
     </parent>
     <groupId>suryagaddipati</groupId>
-    <artifactId>jenkins-docker-swarm-plugin</artifactId>
+    <artifactId>docker-swarm</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
