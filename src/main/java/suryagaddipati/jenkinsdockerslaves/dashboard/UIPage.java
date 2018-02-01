@@ -7,7 +7,7 @@ import hudson.model.RootAction;
 public class UIPage implements RootAction {
     @Override
     public String getIconFileName() {
-        return "/plugin/jenkins-docker-slaves/images/24x24/docker.png";
+        return "/plugin/docker-swarm/images/24x24/docker.png";
     }
 
     @Override
