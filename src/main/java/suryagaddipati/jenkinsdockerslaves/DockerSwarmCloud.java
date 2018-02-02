@@ -55,7 +55,7 @@ public class DockerSwarmCloud extends Cloud {
 
     @Override
     public boolean canProvision(final Label label) {
-        return false;
+        return getLabels().contains(label.getName());
     }
 
     @Extension
