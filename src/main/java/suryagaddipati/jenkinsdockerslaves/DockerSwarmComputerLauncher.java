@@ -12,6 +12,7 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceRequest;
 
+import java.io.IOException;
 import java.util.Date;
 
 public class DockerSwarmComputerLauncher extends JNLPLauncher {
@@ -28,7 +29,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
     }
 
     @Override
-    public void launch(final SlaveComputer computer, final TaskListener listener) {
+    public void launch(final SlaveComputer computer, final TaskListener listener){
         if (computer instanceof DockerComputer) {
             launch((DockerComputer) computer, listener);
         } else {
@@ -43,6 +44,8 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         final DockerSwarmCloud configuration = DockerSwarmCloud.get();
         final LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
 
+        setBaseWorkspaceLocation(labelConfiguration);
+
         final String[] envVarOptions = labelConfiguration.getEnvVarsConfig();
         final String[] envVars = new String[envVarOptions.length];
         if (envVarOptions.length != 0) {
@@ -53,6 +56,16 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer, configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
         final String[] command = new String[]{"sh", "-cx", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
         launchContainer(command,configuration, envVars, labelConfiguration, listener, computer);
+    }
+
+    private void setBaseWorkspaceLocation(LabelConfiguration labelConfiguration){
+        if (this.bi.task instanceof AbstractProject && StringUtils.isNotEmpty(labelConfiguration.getBaseWorkspaceLocation())) {
+            try {
+                ((AbstractProject) this.bi.task).setCustomWorkspace(labelConfiguration.getBaseWorkspaceLocation());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public void launchContainer(String[] commands, DockerSwarmCloud configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {

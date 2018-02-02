@@ -23,7 +23,7 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
 
     private String cacheDir;
     private String envVars;
-
+    private String baseWorkspaceLocation;
 
 
     public  LabelConfiguration(){
@@ -36,7 +36,7 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
                               final String cacheDir,final String tmpfsDir,
                               final String envVars,
                               final long limitsNanoCPUs, final long limitsMemoryBytes,
-                              final long reservationsNanoCPUs, final long reservationsMemoryBytes ) {
+                              final long reservationsNanoCPUs, final long reservationsMemoryBytes, final String baseWorkspaceLocation) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.label = label;
@@ -47,6 +47,7 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
         this.reservationsNanoCPUs = reservationsNanoCPUs;
         this.reservationsMemoryBytes = reservationsMemoryBytes;
         this.envVars = envVars;
+        this.baseWorkspaceLocation = baseWorkspaceLocation;
     }
 
     public String[] getCacheDirs() {
@@ -87,15 +88,6 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
     public String getTmpfsDir() {
         return tmpfsDir;
     }
-
-    public String getHostBinds() {
-        return hostBinds;
-    }
-
-    public String getCacheDir() {
-        return cacheDir;
-    }
-
     public String getEnvVars() {
         return envVars;
     }
@@ -103,6 +95,10 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
     @Override
     public Descriptor<LabelConfiguration> getDescriptor() {
         return (DescriptorImpl) Jenkins.getInstance().getDescriptor(getClass());
+    }
+
+    public String getBaseWorkspaceLocation() {
+        return this.baseWorkspaceLocation;
     }
 
     @Extension
