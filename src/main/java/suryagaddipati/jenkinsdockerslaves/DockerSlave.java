@@ -52,7 +52,7 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
     public DockerSlave(final Queue.BuildableItem bi, final String labelString) throws Descriptor.FormException, IOException {
         super(labelString, "Container slave for building " + bi.task.getFullDisplayName(),
                 "/home/jenkins", 1, Mode.EXCLUSIVE, labelString,
-                new DockerComputerLauncher(bi),
+                new DockerSwarmComputerLauncher(bi),
                 new DockerSlaveRetentionStrategy(1),
                 Collections.emptyList());
     }
@@ -91,7 +91,7 @@ public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
         try {
             DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
             ActorRef agentLauncherRef = swarmPlugin.getActorSystem().actorFor("/user/" + getComputer().getName());
-        agentLauncherRef.tell(new DeleteServiceRequest(getComputer().getName()),ActorRef.noSender());
+            agentLauncherRef.tell(new DeleteServiceRequest(getComputer().getName()),ActorRef.noSender());
         } finally {
             try {
                 Jenkins.getInstance().removeNode(this);

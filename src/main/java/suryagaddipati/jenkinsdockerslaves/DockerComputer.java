@@ -49,7 +49,7 @@ public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
         channel.addListener(new Channel.Listener() {
             @Override
             public void onClosed(final Channel channel, final IOException cause) {
-               DockerComputerLauncher launcher = (DockerComputerLauncher) getLauncher();
+               DockerSwarmComputerLauncher launcher = (DockerSwarmComputerLauncher) getLauncher();
                 Queue.BuildableItem queueItem = launcher.getBi();
                 if(cause != null){
                 //    Jenkins.getInstance().getQueue().schedule2(queueItem.task,0, (List<Action>) queueItem.getAllActions());
