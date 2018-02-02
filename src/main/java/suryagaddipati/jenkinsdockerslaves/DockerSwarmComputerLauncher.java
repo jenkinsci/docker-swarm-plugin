@@ -14,14 +14,14 @@ import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceReques
 
 import java.util.Date;
 
-public class DockerComputerLauncher extends JNLPLauncher {
+public class DockerSwarmComputerLauncher extends JNLPLauncher {
 
     private final String label;
     private final String jobName;
     private final Queue.BuildableItem bi;
 
 
-    public DockerComputerLauncher(final Queue.BuildableItem bi) {
+    public DockerSwarmComputerLauncher(final Queue.BuildableItem bi) {
         this.bi = bi;
         this.label = bi.task.getAssignedLabel().getName();
         this.jobName = bi.task instanceof AbstractProject ? ((AbstractProject) bi.task).getFullName() : bi.task.getName();
@@ -38,21 +38,21 @@ public class DockerComputerLauncher extends JNLPLauncher {
 
     private void launch(final DockerComputer computer, final TaskListener listener) {
         DockerSlaveInfo dockerSlaveInfo = null;
-            dockerSlaveInfo = this.bi.getAction(DockerSlaveInfo.class);
-            dockerSlaveInfo.setComputerLaunchTime(new Date());
-            final DockerSwarmCloud configuration = DockerSwarmCloud.get();
-            final LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
+        dockerSlaveInfo = this.bi.getAction(DockerSlaveInfo.class);
+        dockerSlaveInfo.setComputerLaunchTime(new Date());
+        final DockerSwarmCloud configuration = DockerSwarmCloud.get();
+        final LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
 
-            final String[] envVarOptions = labelConfiguration.getEnvVarsConfig();
-            final String[] envVars = new String[envVarOptions.length];
-            if (envVarOptions.length != 0) {
-                System.arraycopy(envVarOptions, 0, envVars, 0, envVarOptions.length);
-            }
+        final String[] envVarOptions = labelConfiguration.getEnvVarsConfig();
+        final String[] envVars = new String[envVarOptions.length];
+        if (envVarOptions.length != 0) {
+            System.arraycopy(envVarOptions, 0, envVars, 0, envVarOptions.length);
+        }
 
-            final String additionalSlaveOptions = "-noReconnect -workDir /tmp ";
-            final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer, configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
-            final String[] command = new String[]{"sh", "-cx", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
-            launchContainer(command,configuration, envVars, labelConfiguration, listener, computer);
+        final String additionalSlaveOptions = "-noReconnect -workDir /tmp ";
+        final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer, configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
+        final String[] command = new String[]{"sh", "-cx", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
+        launchContainer(command,configuration, envVars, labelConfiguration, listener, computer);
     }
 
     public void launchContainer(String[] commands, DockerSwarmCloud configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {
@@ -73,7 +73,7 @@ public class DockerComputerLauncher extends JNLPLauncher {
 
         String[] hostBinds = labelConfiguration.getHostBindsConfig();
         for(int i = 0; i < hostBinds.length; i++){
-           String hostBind = hostBinds[i];
+            String hostBind = hostBinds[i];
             String[] srcDest = hostBind.split(":");
             crReq.addBindVolume(srcDest[0],srcDest[1]);
         }
