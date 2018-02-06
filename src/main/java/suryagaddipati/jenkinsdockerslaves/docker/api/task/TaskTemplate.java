@@ -9,6 +9,8 @@ public class TaskTemplate {
     public suryagaddipati.jenkinsdockerslaves.docker.api.containers.ContainerSpec ContainerSpec ;
     public RestartPolicy RestartPolicy= new RestartPolicy();
     public Resources Resources= new Resources();
+    public Placement Placement;
+
     public TaskTemplate(){
        //for reading from api
     }
@@ -16,6 +18,18 @@ public class TaskTemplate {
     public TaskTemplate(String image, String[] cmd, String[] env) {
         this.ContainerSpec = new ContainerSpec(image,cmd,env);
 
+    }
+
+    public void setPlacementConstraints(String[] placementConstraints) {
+        this.Placement = new Placement(placementConstraints);
+    }
+
+    public static class Placement{
+        public Placement(String[] constraints) {
+            Constraints = constraints;
+        }
+
+        public String[] Constraints;
     }
 
     public  static class  Resources {

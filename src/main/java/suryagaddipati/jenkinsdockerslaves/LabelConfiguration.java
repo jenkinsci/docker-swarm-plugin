@@ -8,8 +8,6 @@ import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.Nonnull;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LabelConfiguration  implements Describable<LabelConfiguration> {
     private String tmpfsDir;
@@ -20,11 +18,10 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
     String image;
     String hostBinds;
     private String label;
-
     private String cacheDir;
     private String envVars;
     private String baseWorkspaceLocation;
-
+    private String placementConstraints;
 
     public  LabelConfiguration(){
         //For Yaml Load
@@ -36,7 +33,7 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
                               final String cacheDir,final String tmpfsDir,
                               final String envVars,
                               final long limitsNanoCPUs, final long limitsMemoryBytes,
-                              final long reservationsNanoCPUs, final long reservationsMemoryBytes, final String baseWorkspaceLocation) {
+                              final long reservationsNanoCPUs, final long reservationsMemoryBytes, final String baseWorkspaceLocation, final String placementConstraints) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.label = label;
@@ -48,6 +45,7 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
         this.reservationsMemoryBytes = reservationsMemoryBytes;
         this.envVars = envVars;
         this.baseWorkspaceLocation = baseWorkspaceLocation;
+        this.placementConstraints = placementConstraints;
     }
 
     public String[] getCacheDirs() {
@@ -85,6 +83,10 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
         return reservationsMemoryBytes;
     }
 
+    public String getPlacementConstraints() {
+        return placementConstraints;
+    }
+
     public String getTmpfsDir() {
         return tmpfsDir;
     }
@@ -101,9 +103,12 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
         return this.baseWorkspaceLocation;
     }
 
+    public String[] getPlacementConstraintsConfig() {
+        return StringUtils.isEmpty(this.placementConstraints) ? new String[]{} : this.placementConstraints.split(";");
+    }
+
     @Extension
     public static final class DescriptorImpl extends Descriptor<LabelConfiguration> {
-        @Nonnull
         @Override
         public String getDisplayName() {
             return "Docker Agent Template";

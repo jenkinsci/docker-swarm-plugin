@@ -70,7 +70,25 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
 
     public void launchContainer(String[] commands, DockerSwarmCloud configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-        CreateServiceRequest crReq = null;
+        CreateServiceRequest crReq = createCreateServiceRequest(commands, configuration, envVars, labelConfiguration, computer);
+
+        setLimitsAndReservations(labelConfiguration, crReq);
+        setHostBinds(labelConfiguration, crReq);
+        setNetwork(configuration, crReq);
+        setCacheDirs(configuration, labelConfiguration, listener, computer, crReq);
+        setTmpfs(labelConfiguration, crReq);
+        setConstraints(labelConfiguration,crReq);
+
+        final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerAgentLauncherActor.props(listener.getLogger()), computer.getName());
+        agentLauncher.tell(crReq,ActorRef.noSender());
+    }
+
+    private void setConstraints(LabelConfiguration labelConfiguration, CreateServiceRequest crReq) {
+        crReq.TaskTemplate.setPlacementConstraints(labelConfiguration.getPlacementConstraintsConfig());
+    }
+
+    private CreateServiceRequest createCreateServiceRequest(String[] commands, DockerSwarmCloud configuration, String[] envVars, LabelConfiguration labelConfiguration, DockerComputer computer) {
+        CreateServiceRequest crReq;
         if(labelConfiguration.getLabel().contains("dind")){
             commands[2]= StringUtils.isEmpty(configuration.getSwarmNetwork())?
                     String.format("docker run --rm --privileged %s sh -xc '%s' ",labelConfiguration.getImage(), commands[2]):
@@ -80,19 +98,16 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         }else {
             crReq = new CreateServiceRequest(computer.getName(), labelConfiguration.getImage(), commands, envVars);
         }
+        return crReq;
+    }
 
-        crReq.setTaskLimits(labelConfiguration.getLimitsNanoCPUs(),labelConfiguration.getLimitsMemoryBytes() );
-        crReq.setTaskReservations(labelConfiguration.getReservationsNanoCPUs(),labelConfiguration.getReservationsMemoryBytes() );
-
-        String[] hostBinds = labelConfiguration.getHostBindsConfig();
-        for(int i = 0; i < hostBinds.length; i++){
-            String hostBind = hostBinds[i];
-            String[] srcDest = hostBind.split(":");
-            crReq.addBindVolume(srcDest[0],srcDest[1]);
+    private void setTmpfs(LabelConfiguration labelConfiguration, CreateServiceRequest crReq) {
+        if(StringUtils.isNotEmpty(labelConfiguration.getTmpfsDir())){
+            crReq.addTmpfsMount(labelConfiguration.getTmpfsDir());
         }
-        crReq.setNetwork(configuration.getSwarmNetwork());
+    }
 
-
+    private void setCacheDirs(DockerSwarmCloud configuration, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer, CreateServiceRequest crReq) {
         final String[] cacheDirs = labelConfiguration.getCacheDirs();
         if (cacheDirs.length > 0) {
             final String cacheVolumeName = getJobName() + "-" + computer.getVolumeName();
@@ -102,17 +117,25 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
                 crReq.addCacheVolume(cacheVolumeName, cacheDirs[i], configuration.getCacheDriverName());
             }
         }
-        if(StringUtils.isNotEmpty(labelConfiguration.getTmpfsDir())){
-
-            crReq.addTmpfsMount(labelConfiguration.getTmpfsDir());
-        }
-
-        final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerAgentLauncherActor.props(listener.getLogger()), computer.getName());
-        agentLauncher.tell(crReq,ActorRef.noSender());
     }
 
+    private void setNetwork(DockerSwarmCloud configuration, CreateServiceRequest crReq) {
+        crReq.setNetwork(configuration.getSwarmNetwork());
+    }
 
+    private void setHostBinds(LabelConfiguration labelConfiguration, CreateServiceRequest crReq) {
+        String[] hostBinds = labelConfiguration.getHostBindsConfig();
+        for(int i = 0; i < hostBinds.length; i++){
+            String hostBind = hostBinds[i];
+            String[] srcDest = hostBind.split(":");
+            crReq.addBindVolume(srcDest[0],srcDest[1]);
+        }
+    }
 
+    private void setLimitsAndReservations(LabelConfiguration labelConfiguration, CreateServiceRequest crReq) {
+        crReq.setTaskLimits(labelConfiguration.getLimitsNanoCPUs(),labelConfiguration.getLimitsMemoryBytes() );
+        crReq.setTaskReservations(labelConfiguration.getReservationsNanoCPUs(),labelConfiguration.getReservationsMemoryBytes() );
+    }
 
 
     private String getSlaveJarUrl(final DockerSwarmCloud configuration) {

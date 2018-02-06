@@ -24,6 +24,12 @@
         <f:textbox value="${labelConfiguration.tmpfsDir}"/>
     </f:entry>
 
+    <f:section title="Placement">
+        <f:entry title="Constraints" field="placementConstraints">
+            <f:textbox value="${labelConfiguration.placementConstraints}"/>
+        </f:entry>
+    </f:section>
+
     <f:section title="Limits">
         <f:entry title="NanoCPUs" field="limitsNanoCPUs">
             <f:number value="${labelConfiguration.limitsNanoCPUs}"/>
