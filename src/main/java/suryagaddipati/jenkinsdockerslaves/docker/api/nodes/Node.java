@@ -8,6 +8,7 @@ public class Node {
 
  public static class Spec{
   public String Availability;
+  public String Role;
  }
 
  public  static class Status{

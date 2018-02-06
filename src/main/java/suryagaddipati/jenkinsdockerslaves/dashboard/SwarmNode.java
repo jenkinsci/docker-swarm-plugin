@@ -24,7 +24,7 @@ public class SwarmNode {
     private final List<Task> tasks;
 
     public SwarmNode(final Node node, final List<Task> tasks) {
-        this.name = node.Description.Hostname;
+        this.name = String.format("%s( %s)" ,node.Description.Hostname,node.Spec.Role);
         this.healthy = node.Status.State;
         this.totalCPUs = nanoToCpu(node.Description.Resources.NanoCPUs);
         this.totalMemory = Bytes.toMB( node.Description.Resources.MemoryBytes) ;

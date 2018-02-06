@@ -100,21 +100,22 @@ public class Dashboard {
             if (nodes instanceof List) {
                 final CompletableFuture<Object> tasksFuture = new DockerApiRequest(as, new ListTasksRequest()).execute().toCompletableFuture();
                 return tasksFuture.thenApply(tasks -> {
-                    if(tasks instanceof  List){
                         final List<Node> nodeList = (List<Node>) nodes;
-                        return nodeList.stream().map(node -> {
-                            Stream<Task> tasksForNode = ((List<Task>) tasks).stream()
-                                    .filter(task -> node.ID.equals(task.NodeID));
-                            return    new SwarmNode(node, tasksForNode.collect(Collectors.toList()));
-                        }).collect(Collectors.toList());
-                    }
-                    return  CompletableFuture.completedFuture(tasks);
+                    return toSwarmNodes((List<Task>) tasks, nodeList);
                 });
             }
             return CompletableFuture.completedFuture(nodes);
         });
 
         return (List<SwarmNode>) getFuture(swarmNodesFuture);
+    }
+
+    private Object toSwarmNodes(List<Task> tasks, List<Node> nodeList) {
+        return nodeList.stream().map(node -> {
+            Stream<Task> tasksForNode = tasks.stream()
+                    .filter(task -> node.ID.equals(task.NodeID));
+            return    new SwarmNode(node, tasksForNode.collect(Collectors.toList()));
+        }).collect(Collectors.toList());
     }
 
 
