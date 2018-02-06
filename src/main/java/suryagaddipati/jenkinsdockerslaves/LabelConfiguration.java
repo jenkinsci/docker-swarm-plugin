@@ -15,8 +15,8 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
     private long limitsMemoryBytes;
     private long reservationsNanoCPUs;
     private long reservationsMemoryBytes;
-    String image;
-    String hostBinds;
+    private String image;
+    private String hostBinds;
     private String label;
     private String cacheDir;
     private String envVars;
@@ -114,4 +114,9 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
             return "Docker Agent Template";
         }
     }
+
+    public String getHostBinds() {
+        return hostBinds;
+    }
+
 }
