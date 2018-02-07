@@ -25,6 +25,9 @@ public class TaskTemplate {
     }
 
     public static class Placement{
+        public Placement(){
+           //for deseriliztion
+        }
         public Placement(String[] constraints) {
             Constraints = constraints;
         }

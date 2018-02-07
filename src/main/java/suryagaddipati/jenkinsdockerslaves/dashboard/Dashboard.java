@@ -100,14 +100,14 @@ public class Dashboard {
             if (nodes instanceof List) {
                 final CompletableFuture<Object> tasksFuture = new DockerApiRequest(as, new ListTasksRequest()).execute().toCompletableFuture();
                 return tasksFuture.thenApply(tasks -> {
-                        final List<Node> nodeList = (List<Node>) nodes;
-                    return toSwarmNodes((List<Task>) tasks, nodeList);
+                    final List<Node> nodeList = (List<Node>) nodes;
+                    return toSwarmNodes(getResult(tasks,List.class), nodeList);
                 });
             }
             return CompletableFuture.completedFuture(nodes);
         });
 
-        return (List<SwarmNode>) getFuture(swarmNodesFuture);
+        return  getFuture(swarmNodesFuture,List.class);
     }
 
     private Object toSwarmNodes(List<Task> tasks, List<Node> nodeList) {
@@ -119,19 +119,23 @@ public class Dashboard {
     }
 
 
-    private Object getFuture(final CompletionStage<Object> future) {
+    private <T> T  getFuture(final CompletionStage<Object> future,Class<T> clazz) {
         try {
             final Object result = future.toCompletableFuture().get(5, TimeUnit.SECONDS);
-            if(result instanceof SerializationException){
-                throw new RuntimeException (((SerializationException)result).getCause());
-            }
-            if(result instanceof ApiException){
-                throw new RuntimeException (((ApiException)result).getCause());
-            }
-            return result;
+            return getResult(result,clazz);
         } catch (InterruptedException|ExecutionException |TimeoutException e) {
             throw  new RuntimeException(e);
         }
+    }
+
+    private <T> T  getResult(Object result, Class<T> clazz){
+        if(result instanceof SerializationException){
+            throw new RuntimeException (((SerializationException)result).getCause());
+        }
+        if(result instanceof ApiException){
+            throw new RuntimeException (((ApiException)result).getCause());
+        }
+       return clazz.cast(result);
     }
 
     private String getJobName(final Run build) {
