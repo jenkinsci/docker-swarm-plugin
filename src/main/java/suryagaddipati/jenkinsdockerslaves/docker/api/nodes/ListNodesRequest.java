@@ -10,4 +10,7 @@ public class ListNodesRequest extends ApiRequest {
     public ListNodesRequest() {
         super(HttpMethods.GET, "/nodes", Node.class, ResponseType.LIST);
     }
+    public ListNodesRequest(String dockerSwarmApiUrl) {
+        super(HttpMethods.GET, dockerSwarmApiUrl, "/nodes", Node.class, ResponseType.LIST);
+    }
 }

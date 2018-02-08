@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import suryagaddipati.jenkinsdockerslaves.DockerSwarmCloud;
 import suryagaddipati.jenkinsdockerslaves.docker.marshalling.ResponseType;
 
-public  abstract   class ApiRequest {
+public abstract class ApiRequest {
 
     @JsonIgnore
     private final HttpMethod method;
@@ -17,12 +17,14 @@ public  abstract   class ApiRequest {
     @JsonIgnore
     private ResponseType responseType;
 
-    public ApiRequest(HttpMethod method, String url, Class<?> responseClass , ResponseType responseType) {
+    public ApiRequest(HttpMethod method, String dockerApiUrl, String url, Class<?> responseClass , ResponseType responseType) {
         this.responseClass = responseClass;
         this.responseType = responseType;
-        final DockerSwarmCloud configuration = DockerSwarmCloud.get();
         this.method = method;
-        this.url = configuration.getDockerSwarmApiUrl()+ url;
+        this.url = dockerApiUrl+url;
+    }
+    public ApiRequest(HttpMethod method, String url, Class<?> responseClass , ResponseType responseType) {
+        this(method,DockerSwarmCloud.get().getDockerSwarmApiUrl(),url,responseClass,responseType);
     }
     public ApiRequest(HttpMethod method, String url){
        this(method,url,null,null) ;

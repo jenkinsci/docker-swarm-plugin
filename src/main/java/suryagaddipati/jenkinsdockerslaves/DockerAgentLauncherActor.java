@@ -14,7 +14,7 @@ import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiError;
 import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiException;
 import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiSuccess;
 import suryagaddipati.jenkinsdockerslaves.docker.api.response.SerializationException;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceRequest;
+import suryagaddipati.jenkinsdockerslaves.docker.api.service.Service;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceResponse;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.DeleteServiceRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.ServiceLogRequest;
@@ -29,7 +29,7 @@ public class DockerAgentLauncherActor extends AbstractActor {
     private static final Logger LOGGER = Logger.getLogger(DockerAgentLauncherActor.class.getName());
     private final ActorRef apiActor;
     private PrintStream logger;
-    private CreateServiceRequest createRequest;
+    private Service createRequest;
 
     public DockerAgentLauncherActor(PrintStream logger ) {
         this.logger = logger;
@@ -79,13 +79,13 @@ public class DockerAgentLauncherActor extends AbstractActor {
     }
 
     private  ReceiveBuilder serviceCreateMatchers(ReceiveBuilder builder) {
-        return builder.match(CreateServiceRequest.class, createServiceRequest -> createService(createServiceRequest))
+        return builder.match(Service.class, service -> createService(service))
                 .match(CreateServiceResponse.class, createServiceResponse -> createServiceSuccess(createServiceResponse))
-                .match(ApiException.class, apiException -> apiException.getRequestClass().equals(CreateServiceRequest.class), apiException -> serviceCreateException(apiException) );
+                .match(ApiException.class, apiException -> apiException.getRequestClass().equals(Service.class), apiException -> serviceCreateException(apiException) );
     }
 
 
-    private void createService(CreateServiceRequest createRequest) {
+    private void createService(Service createRequest) {
         this.createRequest = createRequest;
         apiActor.tell(createRequest,getSelf());
     }
@@ -103,7 +103,7 @@ public class DockerAgentLauncherActor extends AbstractActor {
     }
 
     private void deleteService(DeleteServiceRequest deleteServiceRequest) {
-        apiActor.tell(deleteServiceRequest,getSelf());
+//        apiActor.tell(deleteServiceRequest,getSelf());
     }
 
     private void resechedule() {

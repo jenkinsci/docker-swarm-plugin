@@ -10,17 +10,24 @@ import suryagaddipati.jenkinsdockerslaves.docker.api.task.TaskTemplate;
 import suryagaddipati.jenkinsdockerslaves.docker.marshalling.ResponseType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class CreateServiceRequest extends ApiRequest {
+public class Service extends ApiRequest {
     public TaskTemplate TaskTemplate ;
     public String Name;
+    public Map<String,String> Labels = new HashMap<>();
 
     public List<Network> Networks = new ArrayList<>();
-    public CreateServiceRequest(String name, String Image, String[] Cmd, String[] Env) {
+    public Service(String name, String Image, String[] Cmd, String[] Env) {
         super(HttpMethods.POST, "/services/create",CreateServiceResponse.class, ResponseType.CLASS);
         this.Name = name;
         this.TaskTemplate = new TaskTemplate(Image,Cmd,Env);
+    }
+
+    public Service(){
+        super(HttpMethods.POST, "", "/services/create",CreateServiceResponse.class, ResponseType.CLASS);
     }
 
     public void  addBindVolume(String source,String target){
@@ -51,6 +58,7 @@ public class CreateServiceRequest extends ApiRequest {
             Networks.add(new Network(network));
         }
     }
-
-
+    public  void addLabel(String key, String value){
+        this.Labels.put(key,value);
+    }
 }

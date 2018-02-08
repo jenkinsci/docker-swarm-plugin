@@ -78,6 +78,12 @@ public class Jackson {
       return Unmarshaller.forMediaType(MediaTypes.APPLICATION_JSON, Unmarshaller.entityToString())
               .thenApply(s -> fromJSONArray(defaultObjectMapper, s, responseClass));
     }
+
+  }
+
+  public static String toJson(Object object){
+      return toJSON(getDefaultObjectMapper(),object);
+
   }
   public static ObjectMapper getDefaultObjectMapper() {
     return defaultObjectMapper;
