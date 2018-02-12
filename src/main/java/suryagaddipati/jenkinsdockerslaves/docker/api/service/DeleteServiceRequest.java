@@ -7,5 +7,8 @@ public class DeleteServiceRequest extends ApiRequest {
     public DeleteServiceRequest(String serviceName) {
         super(HttpMethods.DELETE,"/services/"+serviceName);
     }
+    public DeleteServiceRequest(String dockerApiUrl, String serviceName) {
+        super(HttpMethods.DELETE, dockerApiUrl, "/services/"+serviceName,null,null);
+    }
 
 }
