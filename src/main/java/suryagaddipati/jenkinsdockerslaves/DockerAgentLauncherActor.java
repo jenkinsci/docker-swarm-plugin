@@ -14,7 +14,7 @@ import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiError;
 import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiException;
 import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiSuccess;
 import suryagaddipati.jenkinsdockerslaves.docker.api.response.SerializationException;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.Service;
+import suryagaddipati.jenkinsdockerslaves.docker.api.service.ServiceSpec;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceResponse;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.DeleteServiceRequest;
 import suryagaddipati.jenkinsdockerslaves.docker.api.service.ServiceLogRequest;
@@ -29,7 +29,7 @@ public class DockerAgentLauncherActor extends AbstractActor {
     private static final Logger LOGGER = Logger.getLogger(DockerAgentLauncherActor.class.getName());
     private final ActorRef apiActor;
     private PrintStream logger;
-    private Service createRequest;
+    private ServiceSpec createRequest;
 
     public DockerAgentLauncherActor(PrintStream logger ) {
         this.logger = logger;
@@ -79,21 +79,21 @@ public class DockerAgentLauncherActor extends AbstractActor {
     }
 
     private  ReceiveBuilder serviceCreateMatchers(ReceiveBuilder builder) {
-        return builder.match(Service.class, service -> createService(service))
+        return builder.match(ServiceSpec.class, serviceSpec -> createService(serviceSpec))
                 .match(CreateServiceResponse.class, createServiceResponse -> createServiceSuccess(createServiceResponse))
-                .match(ApiException.class, apiException -> apiException.getRequestClass().equals(Service.class), apiException -> serviceCreateException(apiException) );
+                .match(ApiException.class, apiException -> apiException.getRequestClass().equals(ServiceSpec.class), apiException -> serviceCreateException(apiException) );
     }
 
 
-    private void createService(Service createRequest) {
+    private void createService(ServiceSpec createRequest) {
         this.createRequest = createRequest;
         apiActor.tell(createRequest,getSelf());
     }
 
     private void createServiceSuccess(CreateServiceResponse createServiceResponse) {
-        logger.println("Service created with ID : " + createServiceResponse.ID);
+        logger.println("ServiceSpec created with ID : " + createServiceResponse.ID);
         if(StringUtils.isNotEmpty(createServiceResponse.Warning)){
-            logger.println("Service creation warning : " + createServiceResponse.Warning);
+            logger.println("ServiceSpec creation warning : " + createServiceResponse.Warning);
         }
         apiActor.tell(new ServiceLogRequest(createServiceResponse.ID),getSelf());
     }

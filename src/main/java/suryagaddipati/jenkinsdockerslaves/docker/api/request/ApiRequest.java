@@ -4,7 +4,13 @@ import akka.http.javadsl.model.HttpMethod;
 import akka.http.javadsl.model.HttpRequest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import suryagaddipati.jenkinsdockerslaves.DockerSwarmCloud;
+import suryagaddipati.jenkinsdockerslaves.docker.marshalling.Jackson;
 import suryagaddipati.jenkinsdockerslaves.docker.marshalling.ResponseType;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class ApiRequest {
 
@@ -28,6 +34,16 @@ public abstract class ApiRequest {
     }
     public ApiRequest(HttpMethod method, String url){
        this(method,url,null,null) ;
+    }
+
+    protected static String encodeJsonFilter(String filterKey, String filterValue) {
+        Map<Object,Object> filter = new HashMap<>();
+        filter.put(filterKey,new String[]{filterValue});
+        try {
+            return URLEncoder.encode( Jackson.toJson(filter),"UTF-8");
+        } catch (UnsupportedEncodingException e) {
+           throw new RuntimeException(e);
+        }
     }
 
     public HttpRequest getHttpRequest() {

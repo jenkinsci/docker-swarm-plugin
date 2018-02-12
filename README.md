@@ -1,8 +1,8 @@
 # Jenkins docker swarm plugin
 
-Launches a single use [docker agent service](https://docs.docker.com/engine/swarm/how-swarm-mode-works/services/) from a given image on docker swarm.
+Launches a single use [docker agent serviceSpec](https://docs.docker.com/engine/swarm/how-swarm-mode-works/services/) from a given image on docker swarm.
 
-This allows for service options like Limits and Reservations to be set on agent containers.
+This allows for serviceSpec options like Limits and Reservations to be set on agent containers.
 
 ### Configuration
 

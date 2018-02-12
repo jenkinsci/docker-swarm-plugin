@@ -5,4 +5,8 @@ public class Status {
      public boolean isRunning(){
          return "running".equals(State);
      }
+
+    public boolean isComplete() {
+         return "complete".equals(State);
+    }
 }

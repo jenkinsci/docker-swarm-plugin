@@ -12,4 +12,7 @@ public class Task {
         return Spec.Resources.Reservations.NanoCPUs/ 1000000000;
     }
 
+    public boolean isComplete() {
+        return Status.isComplete();
+    }
 }

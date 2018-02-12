@@ -10,7 +10,7 @@ import hudson.slaves.JNLPLauncher;
 import hudson.slaves.SlaveComputer;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.Service;
+import suryagaddipati.jenkinsdockerslaves.docker.api.service.ServiceSpec;
 
 import java.io.IOException;
 import java.util.Date;
@@ -70,7 +70,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
 
     public void launchContainer(String[] commands, DockerSwarmCloud configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-        Service crReq = createCreateServiceRequest(commands, configuration, envVars, labelConfiguration, computer);
+        ServiceSpec crReq = createCreateServiceRequest(commands, configuration, envVars, labelConfiguration, computer);
 
         setLimitsAndReservations(labelConfiguration, crReq);
         setHostBinds(labelConfiguration, crReq);
@@ -84,35 +84,35 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         agentLauncher.tell(crReq,ActorRef.noSender());
     }
 
-    private void setLabels(Service crReq) {
+    private void setLabels(ServiceSpec crReq) {
         crReq.addLabel("ROLE","jenkins-agent");
     }
 
-    private void setConstraints(LabelConfiguration labelConfiguration, Service crReq) {
+    private void setConstraints(LabelConfiguration labelConfiguration, ServiceSpec crReq) {
         crReq.TaskTemplate.setPlacementConstraints(labelConfiguration.getPlacementConstraintsConfig());
     }
 
-    private Service createCreateServiceRequest(String[] commands, DockerSwarmCloud configuration, String[] envVars, LabelConfiguration labelConfiguration, DockerComputer computer) {
-        Service crReq;
+    private ServiceSpec createCreateServiceRequest(String[] commands, DockerSwarmCloud configuration, String[] envVars, LabelConfiguration labelConfiguration, DockerComputer computer) {
+        ServiceSpec crReq;
         if(labelConfiguration.getLabel().contains("dind")){
             commands[2]= StringUtils.isEmpty(configuration.getSwarmNetwork())?
                     String.format("docker run --rm --privileged %s sh -xc '%s' ",labelConfiguration.getImage(), commands[2]):
                     String.format("docker run --rm --privileged --network %s %s sh -xc '%s' ",configuration.getSwarmNetwork(), labelConfiguration.getImage(), commands[2]);
 
-            crReq = new Service(computer.getName(),"docker:17.12" , commands, envVars);
+            crReq = new ServiceSpec(computer.getName(),"docker:17.12" , commands, envVars);
         }else {
-            crReq = new Service(computer.getName(), labelConfiguration.getImage(), commands, envVars);
+            crReq = new ServiceSpec(computer.getName(), labelConfiguration.getImage(), commands, envVars);
         }
         return crReq;
     }
 
-    private void setTmpfs(LabelConfiguration labelConfiguration, Service crReq) {
+    private void setTmpfs(LabelConfiguration labelConfiguration, ServiceSpec crReq) {
         if(StringUtils.isNotEmpty(labelConfiguration.getTmpfsDir())){
             crReq.addTmpfsMount(labelConfiguration.getTmpfsDir());
         }
     }
 
-    private void setCacheDirs(DockerSwarmCloud configuration, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer, Service crReq) {
+    private void setCacheDirs(DockerSwarmCloud configuration, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer, ServiceSpec crReq) {
         final String[] cacheDirs = labelConfiguration.getCacheDirs();
         if (cacheDirs.length > 0) {
             final String cacheVolumeName = getJobName() + "-" + computer.getVolumeName();
@@ -124,11 +124,11 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         }
     }
 
-    private void setNetwork(DockerSwarmCloud configuration, Service crReq) {
+    private void setNetwork(DockerSwarmCloud configuration, ServiceSpec crReq) {
         crReq.setNetwork(configuration.getSwarmNetwork());
     }
 
-    private void setHostBinds(LabelConfiguration labelConfiguration, Service crReq) {
+    private void setHostBinds(LabelConfiguration labelConfiguration, ServiceSpec crReq) {
         String[] hostBinds = labelConfiguration.getHostBindsConfig();
         for(int i = 0; i < hostBinds.length; i++){
             String hostBind = hostBinds[i];
@@ -137,7 +137,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         }
     }
 
-    private void setLimitsAndReservations(LabelConfiguration labelConfiguration, Service crReq) {
+    private void setLimitsAndReservations(LabelConfiguration labelConfiguration, ServiceSpec crReq) {
         crReq.setTaskLimits(labelConfiguration.getLimitsNanoCPUs(),labelConfiguration.getLimitsMemoryBytes() );
         crReq.setTaskReservations(labelConfiguration.getReservationsNanoCPUs(),labelConfiguration.getReservationsMemoryBytes() );
     }

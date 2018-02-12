@@ -14,19 +14,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Service extends ApiRequest {
+public class ServiceSpec extends ApiRequest {
     public TaskTemplate TaskTemplate ;
     public String Name;
     public Map<String,String> Labels = new HashMap<>();
 
     public List<Network> Networks = new ArrayList<>();
-    public Service(String name, String Image, String[] Cmd, String[] Env) {
+    public ServiceSpec(String name, String Image, String[] Cmd, String[] Env) {
         super(HttpMethods.POST, "/services/create",CreateServiceResponse.class, ResponseType.CLASS);
         this.Name = name;
         this.TaskTemplate = new TaskTemplate(Image,Cmd,Env);
     }
 
-    public Service(){
+    public ServiceSpec(){
         super(HttpMethods.POST, "", "/services/create",CreateServiceResponse.class, ResponseType.CLASS);
     }
 
