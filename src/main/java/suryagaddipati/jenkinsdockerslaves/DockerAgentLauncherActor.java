@@ -103,7 +103,7 @@ public class DockerAgentLauncherActor extends AbstractActor {
     }
 
     private void deleteService(DeleteServiceRequest deleteServiceRequest) {
-//        apiActor.tell(deleteServiceRequest,getSelf());
+        apiActor.tell(deleteServiceRequest,getSelf());
     }
 
     private void resechedule() {

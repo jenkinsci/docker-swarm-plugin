@@ -1,5 +1,6 @@
 package suryagaddipati.jenkinsdockerslaves;
 
+import akka.actor.ActorRef;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.collect.Iterables;
@@ -123,6 +124,13 @@ public class DockerSwarmCloud extends Cloud {
                 Jenkins.getInstance().clouds.add(configuration);
             }
         }
+        scheduleReaperActor();
+    }
+
+    private static void scheduleReaperActor() {
+        DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
+        final ActorRef deadAgentReaper = swarmPlugin.getActorSystem().actorOf(DeadAgentServiceReaperActor.props(), "dead-agentService-reaper");
+        deadAgentReaper.tell("start",ActorRef.noSender());
     }
 }
 
