@@ -1,0 +1,30 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core"
+         xmlns:f="/lib/form">
+    <f:section title="Docker Swarm Cloud Configuration">
+        <f:entry title="Docker swarm api url" field="dockerSwarmApiUrl">
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="Jenkins Url " field="jenkinsUrl">
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="Swarm Network for agent" field="swarmNetwork">
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="Cache driver name" field="cacheDriverName">
+            <f:textbox/>
+        </f:entry>
+
+    </f:section>
+    <f:advanced title="${%Docker Agent templates}" align="left">
+        <f:entry title="${%Docker Agent templates}" description="${%List of Agent Templates}">
+            <f:repeatableProperty field="agentTemplates" header="Docker Agent template" add="Add Docker Agent Template">
+                <f:block>
+                    <div align="right">
+                        <f:repeatableDeleteButton value="Delete" />
+                    </div>
+                </f:block>
+            </f:repeatableProperty>
+        </f:entry>
+    </f:advanced>
+</j:jelly>

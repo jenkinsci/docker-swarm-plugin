@@ -1,0 +1,145 @@
+package org.jenkinsci.plugins.docker.swarm.dashboard;
+
+import akka.actor.ActorSystem;
+import hudson.model.Job;
+import hudson.model.Queue;
+import hudson.model.Run;
+import jenkins.model.Jenkins;
+import net.sf.json.JSONArray;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentInfo;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmPlugin;
+import org.jenkinsci.plugins.docker.swarm.docker.api.DockerApiRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.ListNodesRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationException;
+import org.jenkinsci.plugins.docker.swarm.docker.api.task.ListTasksRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class Dashboard {
+    private final List<SwarmNode> nodes;
+
+    public Dashboard(){
+       this.nodes = calculateNodes();
+    }
+
+    public Iterable getQueue() {
+        final List<SwarmQueueItem> queue = new ArrayList<>();
+        final Queue.Item[] items = Jenkins.getInstance().getQueue().getItems();
+        for (int i = items.length - 1; i >= 0; i--) { //reverse order
+            final Queue.Item item = items[i];
+            final DockerSwarmAgentInfo agentInfo = item.getAction(DockerSwarmAgentInfo.class);
+            if (agentInfo != null && item instanceof Queue.BuildableItem) {
+                queue.add(new SwarmQueueItem((Queue.BuildableItem) item));
+            }
+        }
+        return queue;
+    }
+
+    public List<SwarmNode> getNodes(){
+       return this.nodes;
+    }
+
+    public String getUsage() {
+
+        final ArrayList<Object> usage = new ArrayList<>();
+        usage.add(Arrays.asList("Job", "cpu"));
+
+        final Map<String, Long> usagePerJob = new HashMap<>();
+        final List<SwarmNode> nodes = calculateNodes();
+        final long totalCpus = nodes.stream().map(node -> node.getTotalCPUs()).reduce(0l, Long::sum );
+        final long totalReservedCpus = nodes.stream().map(node -> node.getReservedCPUs()).reduce(0l, Long::sum);
+
+        for (final SwarmNode node : calculateNodes()) {
+            final Map<Task, Run> map = node.getTaskRunMap();
+            for (final Task task : map.keySet()) {
+                final String jobName = getJobName(map.get(task));
+                if (usagePerJob.containsKey(jobName)) {
+                    usagePerJob.put(jobName, usagePerJob.get(jobName) + (Long) task.getReservedCpus());
+                } else {
+                    usagePerJob.put(jobName, task.getReservedCpus());
+                }
+            }
+            for (final Task task : node.getUnknownRunningTasks()) {
+                usagePerJob.put(task.getServiceID(), task.getReservedCpus());
+            }
+        }
+        usagePerJob.put("Available ", totalCpus - totalReservedCpus);
+
+        for (final String jobName : usagePerJob.keySet()) {
+            final Long jobUsage = usagePerJob.get(jobName);
+            usage.add(Arrays.asList(jobName + " - " + jobUsage, jobUsage));
+        }
+
+
+        final JSONArray mJSONArray = new JSONArray();
+        mJSONArray.addAll(usage);
+        return mJSONArray.toString();
+    }
+
+
+    private List<SwarmNode> calculateNodes() {
+        final DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
+        final ActorSystem as = swarmPlugin.getActorSystem();
+
+        final CompletionStage<Object> nodesStage = new DockerApiRequest(as, new ListNodesRequest()).execute();
+        final CompletionStage<Object> swarmNodesFuture = nodesStage.thenComposeAsync(nodes -> {
+            if (nodes instanceof List) {
+                final CompletableFuture<Object> tasksFuture = new DockerApiRequest(as, new ListTasksRequest()).execute().toCompletableFuture();
+                return tasksFuture.thenApply(tasks -> {
+                    final List<Node> nodeList = (List<Node>) nodes;
+                    return toSwarmNodes(getResult(tasks,List.class), nodeList);
+                });
+            }
+            return CompletableFuture.completedFuture(nodes);
+        });
+
+        return  getFuture(swarmNodesFuture,List.class);
+    }
+
+    private Object toSwarmNodes(List<Task> tasks, List<Node> nodeList) {
+        return nodeList.stream().map(node -> {
+            Stream<Task> tasksForNode = tasks.stream()
+                    .filter(task -> node.ID.equals(task.NodeID));
+            return    new SwarmNode(node, tasksForNode.collect(Collectors.toList()));
+        }).collect(Collectors.toList());
+    }
+
+
+    private <T> T  getFuture(final CompletionStage<Object> future,Class<T> clazz) {
+        try {
+            final Object result = future.toCompletableFuture().get(5, TimeUnit.SECONDS);
+            return getResult(result,clazz);
+        } catch (InterruptedException|ExecutionException |TimeoutException e) {
+            throw  new RuntimeException(e);
+        }
+    }
+
+    private <T> T  getResult(Object result, Class<T> clazz){
+        if(result instanceof SerializationException){
+            throw new RuntimeException (((SerializationException)result).getCause());
+        }
+        if(result instanceof ApiException){
+            throw new RuntimeException (((ApiException)result).getCause());
+        }
+       return clazz.cast(result);
+    }
+
+    private String getJobName(final Run build) {
+        final Job parent = build.getParent();
+        return (parent.getParent() instanceof Job ? (Job) parent.getParent() : parent).getFullDisplayName();
+    }
+}

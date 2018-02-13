@@ -1,0 +1,25 @@
+<?jelly escape-by-default='false'?>
+<j:jelly xmlns:j="jelly:core">
+    <j:new var="h" className="hudson.Functions"/>
+    ${h.initPageVariables(context)}
+    <h4>Queue</h4>
+    <ul class="mdl-list">
+        <j:forEach items="${dbrd.queue}" var="item">
+            <li class="mdl-list__item mdl-list__item--three-line">
+                <span class="mdl-list__item-primary-content">
+                    <span>${item.name}</span>
+                    <span class="mdl-list__item-text-body">
+                        ${item.inQueueSince} - Provisioning:
+                        ${item.agentInfo.provisioningInProgress}
+                        <j:if test='${item.provisionedComputer != null}'>
+                            <a href="${rootURL}/${item.provisionedComputer.url}">
+                                ${item.provisionedComputer.displayName}
+                            </a>
+                        </j:if>
+                    </span>
+                </span>
+            </li>
+        </j:forEach>
+    </ul>
+
+</j:jelly>
