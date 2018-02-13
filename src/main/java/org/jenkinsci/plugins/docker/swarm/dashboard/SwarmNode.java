@@ -5,7 +5,7 @@ import hudson.model.Run;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import org.jenkinsci.plugins.docker.swarm.Bytes;
-import org.jenkinsci.plugins.docker.swarm.DockerComputer;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmComputer;
 import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
 import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
 
@@ -70,13 +70,13 @@ public class SwarmNode {
     private Stream<Task> getTasksWithRuns(Jenkins jenkins) {
         return this.tasks.stream().filter(task -> {
             Computer computer = getComputer(jenkins, task);
-            return computer != null && computer instanceof DockerComputer && ((DockerComputer) computer).getCurrentBuild() instanceof  Run;
+            return computer != null && computer instanceof DockerSwarmComputer && ((DockerSwarmComputer) computer).getCurrentBuild() instanceof  Run;
         } );
     }
 
 
-    private DockerComputer getComputer(Jenkins jenkins, Task task) {
-        return (DockerComputer) jenkins.getComputer("agent-"+task.Spec.getComputerName());
+    private DockerSwarmComputer getComputer(Jenkins jenkins, Task task) {
+        return (DockerSwarmComputer) jenkins.getComputer("agent-"+task.Spec.getComputerName());
     }
 
     public long getTotalCPUs() {
