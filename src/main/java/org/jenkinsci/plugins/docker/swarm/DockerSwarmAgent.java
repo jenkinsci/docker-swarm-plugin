@@ -32,8 +32,8 @@ public class DockerSwarmAgent extends AbstractCloudSlave implements EphemeralNod
                 Collections.emptyList());
     }
 
-    public DockerComputer createComputer() {
-        return new DockerComputer(this);
+    public DockerSwarmComputer createComputer() {
+        return new DockerSwarmComputer(this);
     }
 
     @Override

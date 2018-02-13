@@ -13,7 +13,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.docker.swarm.docker.api.service.ServiceSpec;
 
 import java.io.IOException;
-import java.util.Date;
 
 public class DockerSwarmComputerLauncher extends JNLPLauncher {
 
@@ -30,17 +29,14 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
 
     @Override
     public void launch(final SlaveComputer computer, final TaskListener listener){
-        if (computer instanceof DockerComputer) {
-            launch((DockerComputer) computer, listener);
+        if (computer instanceof DockerSwarmComputer) {
+            launch((DockerSwarmComputer) computer, listener);
         } else {
-            throw new IllegalArgumentException("This launcher only can handle DockerComputer");
+            throw new IllegalArgumentException("This launcher only can handle DockerSwarmComputer");
         }
     }
 
-    private void launch(final DockerComputer computer, final TaskListener listener) {
-        DockerSwarmAgentInfo dockerSwarmAgentInfo = null;
-        dockerSwarmAgentInfo = this.bi.getAction(DockerSwarmAgentInfo.class);
-        dockerSwarmAgentInfo.setComputerLaunchTime(new Date());
+    private void launch(final DockerSwarmComputer computer, final TaskListener listener) {
         final DockerSwarmCloud configuration = DockerSwarmCloud.get();
         final LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
 
@@ -68,7 +64,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         }
     }
 
-    public void launchContainer(String[] commands, DockerSwarmCloud configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer) {
+    public void launchContainer(String[] commands, DockerSwarmCloud configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerSwarmComputer computer) {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
         ServiceSpec crReq = createCreateServiceRequest(commands, configuration, envVars, labelConfiguration, computer);
 
@@ -92,7 +88,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         crReq.TaskTemplate.setPlacementConstraints(labelConfiguration.getPlacementConstraintsConfig());
     }
 
-    private ServiceSpec createCreateServiceRequest(String[] commands, DockerSwarmCloud configuration, String[] envVars, LabelConfiguration labelConfiguration, DockerComputer computer) {
+    private ServiceSpec createCreateServiceRequest(String[] commands, DockerSwarmCloud configuration, String[] envVars, LabelConfiguration labelConfiguration, DockerSwarmComputer computer) {
         ServiceSpec crReq;
         if(labelConfiguration.getLabel().contains("dind")){
             commands[2]= StringUtils.isEmpty(configuration.getSwarmNetwork())?
@@ -112,7 +108,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         }
     }
 
-    private void setCacheDirs(DockerSwarmCloud configuration, LabelConfiguration labelConfiguration, TaskListener listener, DockerComputer computer, ServiceSpec crReq) {
+    private void setCacheDirs(DockerSwarmCloud configuration, LabelConfiguration labelConfiguration, TaskListener listener, DockerSwarmComputer computer, ServiceSpec crReq) {
         final String[] cacheDirs = labelConfiguration.getCacheDirs();
         if (cacheDirs.length > 0) {
             final String cacheVolumeName = getJobName() + "-" + computer.getVolumeName();
@@ -153,7 +149,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
     }
 
     private String getAgentSecret(final Computer computer) {
-        return ((DockerComputer) computer).getJnlpMac();
+        return ((DockerSwarmComputer) computer).getJnlpMac();
 
     }
 

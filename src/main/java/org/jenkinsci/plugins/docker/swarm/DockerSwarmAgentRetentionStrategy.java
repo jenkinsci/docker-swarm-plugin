@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 
-public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerComputer> implements ExecutorListener {
+public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerSwarmComputer> implements ExecutorListener {
     private static final Logger LOGGER = Logger.getLogger(DockerSwarmAgentRetentionStrategy.class.getName());
 
     private int timeout = 1;
@@ -32,7 +32,7 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerC
     }
 
     @Override
-    public long check(@Nonnull DockerComputer c) {
+    public long check(@Nonnull DockerSwarmComputer c) {
         if (c.isIdle() && c.isOnline()) {
             final long idleMilliseconds = System.currentTimeMillis() - c.getIdleStartMilliseconds();
             if (idleMilliseconds > MINUTES.toMillis(timeout)) {
@@ -45,7 +45,7 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerC
     }
 
     @Override
-    public void start(DockerComputer c) {
+    public void start(DockerSwarmComputer c) {
         c.connect(true);
     }
 
@@ -64,7 +64,7 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerC
     }
 
     private void done(Executor executor) {
-        final DockerComputer c = (DockerComputer) executor.getOwner();
+        final DockerSwarmComputer c = (DockerSwarmComputer) executor.getOwner();
         Queue.Executable exec = executor.getCurrentExecutable();
         if (exec instanceof ContinuableExecutable && ((ContinuableExecutable) exec).willContinue()) {
             LOGGER.log(Level.FINE, "not terminating {0} because {1} says it will be continued", new Object[]{c.getName(), exec});
@@ -74,7 +74,7 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerC
         done(c);
     }
 
-    private synchronized void done(final DockerComputer c) {
+    private synchronized void done(final DockerSwarmComputer c) {
         c.setAcceptingTasks(false); // just in case
         if (terminating) {
             return;
