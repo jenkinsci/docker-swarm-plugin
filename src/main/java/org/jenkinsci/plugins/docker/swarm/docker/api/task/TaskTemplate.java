@@ -1,12 +1,12 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api.task;
+package org.jenkinsci.plugins.docker.swarm.docker.api.task;
 
-import suryagaddipati.jenkinsdockerslaves.docker.api.containers.ContainerSpec;
+import org.jenkinsci.plugins.docker.swarm.docker.api.containers.ContainerSpec;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TaskTemplate {
-    public suryagaddipati.jenkinsdockerslaves.docker.api.containers.ContainerSpec ContainerSpec ;
+    public org.jenkinsci.plugins.docker.swarm.docker.api.containers.ContainerSpec ContainerSpec ;
     public RestartPolicy RestartPolicy= new RestartPolicy();
     public Resources Resources= new Resources();
     public Placement Placement;

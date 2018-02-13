@@ -1,5 +1,5 @@
 
-package suryagaddipati.jenkinsdockerslaves.docker.marshalling;
+package org.jenkinsci.plugins.docker.swarm.docker.marshalling;
 
 import akka.http.javadsl.marshalling.Marshaller;
 import akka.http.javadsl.model.HttpEntity;

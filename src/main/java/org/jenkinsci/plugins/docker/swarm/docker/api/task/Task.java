@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api.task;
+package org.jenkinsci.plugins.docker.swarm.docker.api.task;
 
 public class Task {
     public TaskTemplate Spec;

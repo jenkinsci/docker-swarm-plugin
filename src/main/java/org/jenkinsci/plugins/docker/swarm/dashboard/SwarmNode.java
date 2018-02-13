@@ -1,13 +1,13 @@
-package suryagaddipati.jenkinsdockerslaves.dashboard;
+package org.jenkinsci.plugins.docker.swarm.dashboard;
 
 import hudson.model.Computer;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
-import suryagaddipati.jenkinsdockerslaves.Bytes;
-import suryagaddipati.jenkinsdockerslaves.DockerComputer;
-import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.Node;
-import suryagaddipati.jenkinsdockerslaves.docker.api.task.Task;
+import org.jenkinsci.plugins.docker.swarm.Bytes;
+import org.jenkinsci.plugins.docker.swarm.DockerComputer;
+import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
+import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
 
 import java.util.ArrayList;
 import java.util.Arrays;

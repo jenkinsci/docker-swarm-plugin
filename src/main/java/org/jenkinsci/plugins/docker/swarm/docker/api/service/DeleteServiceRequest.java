@@ -1,7 +1,7 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api.service;
+package org.jenkinsci.plugins.docker.swarm.docker.api.service;
 
 import akka.http.javadsl.model.HttpMethods;
-import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 
 public class DeleteServiceRequest extends ApiRequest {
     public DeleteServiceRequest(String serviceName) {

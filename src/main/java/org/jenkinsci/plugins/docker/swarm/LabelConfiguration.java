@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves;
+package org.jenkinsci.plugins.docker.swarm;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import hudson.Extension;

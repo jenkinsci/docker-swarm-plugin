@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves;
+package org.jenkinsci.plugins.docker.swarm;
 
 import akka.actor.ActorRef;
 import hudson.model.Descriptor;
@@ -11,7 +11,7 @@ import hudson.model.queue.CauseOfBlockage;
 import hudson.slaves.AbstractCloudSlave;
 import hudson.slaves.EphemeralNode;
 import jenkins.model.Jenkins;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.DeleteServiceRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.DeleteServiceRequest;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -20,15 +20,15 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class DockerSlave extends AbstractCloudSlave implements EphemeralNode {
+public class DockerSwarmAgent extends AbstractCloudSlave implements EphemeralNode {
 
-    private static final Logger LOGGER = Logger.getLogger(DockerSlave.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(DockerSwarmAgent.class.getName());
 
-    public DockerSlave(final Queue.BuildableItem bi, final String labelString) throws Descriptor.FormException, IOException {
-        super(labelString, "Container slave for building " + bi.task.getFullDisplayName(),
+    public DockerSwarmAgent(final Queue.BuildableItem bi, final String labelString) throws Descriptor.FormException, IOException {
+        super(labelString, "Docker swarm agent for building " + bi.task.getFullDisplayName(),
                 "/home/jenkins", 1, Mode.EXCLUSIVE, labelString,
                 new DockerSwarmComputerLauncher(bi),
-                new DockerSlaveRetentionStrategy(1),
+                new DockerSwarmAgentRetentionStrategy(1),
                 Collections.emptyList());
     }
 

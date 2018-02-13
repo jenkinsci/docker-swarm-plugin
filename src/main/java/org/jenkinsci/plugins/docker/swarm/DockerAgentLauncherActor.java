@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves;
+package org.jenkinsci.plugins.docker.swarm;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
@@ -8,16 +8,16 @@ import akka.http.javadsl.model.ResponseEntity;
 import akka.japi.pf.ReceiveBuilder;
 import akka.stream.ActorMaterializer;
 import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.docker.swarm.docker.api.DockerApiActor;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiError;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiSuccess;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationException;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.DeleteServiceRequest;
 import scala.concurrent.duration.Duration;
-import suryagaddipati.jenkinsdockerslaves.docker.api.DockerApiActor;
-import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiError;
-import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiException;
-import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiSuccess;
-import suryagaddipati.jenkinsdockerslaves.docker.api.response.SerializationException;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.ServiceSpec;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.CreateServiceResponse;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.DeleteServiceRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.ServiceLogRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.ServiceSpec;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.CreateServiceResponse;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.ServiceLogRequest;
 
 import java.io.PrintStream;
 import java.nio.charset.Charset;

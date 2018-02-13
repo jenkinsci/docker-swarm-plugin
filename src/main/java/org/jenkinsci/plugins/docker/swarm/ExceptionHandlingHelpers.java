@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves;
+package org.jenkinsci.plugins.docker.swarm;
 
 import java.io.PrintStream;
 import java.util.logging.Level;

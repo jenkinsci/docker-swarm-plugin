@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves;
+package org.jenkinsci.plugins.docker.swarm;
 
 public class Bytes {
     public static int GB(final int i) {

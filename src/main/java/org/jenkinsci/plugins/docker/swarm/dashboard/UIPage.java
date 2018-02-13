@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves.dashboard;
+package org.jenkinsci.plugins.docker.swarm.dashboard;
 
 import hudson.Extension;
 import hudson.model.RootAction;

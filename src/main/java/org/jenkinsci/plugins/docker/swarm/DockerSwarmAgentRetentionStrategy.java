@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves;
+package org.jenkinsci.plugins.docker.swarm;
 
 import hudson.Extension;
 import hudson.model.Computer;
@@ -16,19 +16,14 @@ import java.util.logging.Logger;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 
-public class DockerSlaveRetentionStrategy extends RetentionStrategy<DockerComputer> implements ExecutorListener {
-    private static final Logger LOGGER = Logger.getLogger(DockerSlaveRetentionStrategy.class.getName());
+public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerComputer> implements ExecutorListener {
+    private static final Logger LOGGER = Logger.getLogger(DockerSwarmAgentRetentionStrategy.class.getName());
 
     private int timeout = 1;
     private transient volatile boolean terminating;
 
-    /**
-     * Creates the retention strategy.
-     *
-     * @param idleMinutes number of minutes of idleness after which to kill the slave; serves a backup in case the strategy fails to detect the end of a task
-     */
     @DataBoundConstructor
-    public DockerSlaveRetentionStrategy(int idleMinutes) {
+    public DockerSwarmAgentRetentionStrategy(int idleMinutes) {
         this.timeout = idleMinutes;
     }
 
@@ -38,8 +33,6 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy<DockerComput
 
     @Override
     public long check(@Nonnull DockerComputer c) {
-        // When the slave is idle we should disable accepting tasks and check to see if it is already trying to
-        // terminate. If it's not already trying to terminate then lets terminate manually.
         if (c.isIdle() && c.isOnline()) {
             final long idleMilliseconds = System.currentTimeMillis() - c.getIdleStartMilliseconds();
             if (idleMilliseconds > MINUTES.toMillis(timeout)) {
@@ -47,7 +40,6 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy<DockerComput
                 done(c);
             }
         }
-
         // Return one because we want to check every minute if idle.
         return 1;
     }
@@ -90,7 +82,7 @@ public class DockerSlaveRetentionStrategy extends RetentionStrategy<DockerComput
         terminating = true;
         Computer.threadPoolForRemoting.submit(() -> {
             Queue.withLock( () -> {
-                 DockerSlave node = c.getNode();
+                 DockerSwarmAgent node = c.getNode();
                 if (node != null) {
                     node.terminate();
                 }

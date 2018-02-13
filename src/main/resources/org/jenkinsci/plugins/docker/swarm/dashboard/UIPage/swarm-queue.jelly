@@ -10,7 +10,7 @@
                     <span>${item.name}</span>
                     <span class="mdl-list__item-text-body">
                         ${item.inQueueSince} - Provisioning:
-                        ${item.slaveInfo.provisioningInProgress}
+                        ${item.agentInfo.provisioningInProgress}
                         <j:if test='${item.provisionedComputer != null}'>
                             <a href="${rootURL}/${item.provisionedComputer.url}">
                                 ${item.provisionedComputer.displayName}

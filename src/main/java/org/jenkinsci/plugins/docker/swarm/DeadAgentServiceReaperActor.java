@@ -1,19 +1,19 @@
-package suryagaddipati.jenkinsdockerslaves;
+package org.jenkinsci.plugins.docker.swarm;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
+import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
 import scala.concurrent.duration.Duration;
-import suryagaddipati.jenkinsdockerslaves.docker.api.DockerApiRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiException;
-import suryagaddipati.jenkinsdockerslaves.docker.api.response.SerializationException;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.DeleteServiceRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.ListServicesRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.ScheduledService;
-import suryagaddipati.jenkinsdockerslaves.docker.api.task.ListTasksRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.api.task.Task;
+import org.jenkinsci.plugins.docker.swarm.docker.api.DockerApiRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationException;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.DeleteServiceRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.ListServicesRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.ScheduledService;
+import org.jenkinsci.plugins.docker.swarm.docker.api.task.ListTasksRequest;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;

@@ -1,7 +1,8 @@
-package suryagaddipati.jenkinsdockerslaves;
+package org.jenkinsci.plugins.docker.swarm;
 
 import hudson.model.Label;
 import hudson.model.labels.LabelAssignmentAction;
+import hudson.model.labels.LabelAtom;
 import hudson.model.queue.SubTask;
 
 public class DockerLabelAssignmentAction implements LabelAssignmentAction {
@@ -10,6 +11,10 @@ public class DockerLabelAssignmentAction implements LabelAssignmentAction {
 
     public DockerLabelAssignmentAction(Label label) {
         this.label = label;
+    }
+
+    public DockerLabelAssignmentAction(String label){
+        this(new LabelAtom(label));
     }
 
     @Override

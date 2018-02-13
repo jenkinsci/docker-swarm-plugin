@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api.nodes;
+package org.jenkinsci.plugins.docker.swarm.docker.api.nodes;
 
 public class Node {
  public String ID;

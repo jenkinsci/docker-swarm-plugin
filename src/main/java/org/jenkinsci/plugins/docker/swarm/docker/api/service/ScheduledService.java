@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api.service;
+package org.jenkinsci.plugins.docker.swarm.docker.api.service;
 
 import java.util.Date;
 

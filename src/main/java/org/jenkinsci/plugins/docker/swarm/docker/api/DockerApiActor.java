@@ -1,10 +1,10 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api;
+package org.jenkinsci.plugins.docker.swarm.docker.api;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 //TODO delete this class
 public class DockerApiActor extends AbstractActor {
 

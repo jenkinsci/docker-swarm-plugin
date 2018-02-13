@@ -1,12 +1,12 @@
-package suryagaddipati.jenkinsdockerslaves.dashboard;
+package org.jenkinsci.plugins.docker.swarm.dashboard;
 
 import hudson.model.Computer;
 import hudson.model.Queue;
 import jenkins.model.Jenkins;
-import suryagaddipati.jenkinsdockerslaves.DockerLabelAssignmentAction;
-import suryagaddipati.jenkinsdockerslaves.DockerSlaveInfo;
-import suryagaddipati.jenkinsdockerslaves.DockerSwarmCloud;
-import suryagaddipati.jenkinsdockerslaves.LabelConfiguration;
+import org.jenkinsci.plugins.docker.swarm.DockerLabelAssignmentAction;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentInfo;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
+import org.jenkinsci.plugins.docker.swarm.LabelConfiguration;
 
 public class SwarmQueueItem {
 
@@ -14,7 +14,7 @@ public class SwarmQueueItem {
     private final String label;
     private final LabelConfiguration labelConfig;
     private final String inQueueSince;
-    private final DockerSlaveInfo slaveInfo;
+    private final DockerSwarmAgentInfo agentInfo;
     private Computer provisionedComputer;
 
     public SwarmQueueItem(final Queue.BuildableItem item) {
@@ -22,7 +22,7 @@ public class SwarmQueueItem {
         this.label = item.task.getAssignedLabel().getName();
         this.labelConfig = DockerSwarmCloud.get().getLabelConfiguration(this.label);
         this.inQueueSince = item.getInQueueForString();
-        this.slaveInfo = item.getAction(DockerSlaveInfo.class); //this should never be null
+        this.agentInfo = item.getAction(DockerSwarmAgentInfo.class); //this should never be null
 
         final DockerLabelAssignmentAction lblAssignmentAction = item.getAction(DockerLabelAssignmentAction.class);
         if (lblAssignmentAction != null) {
@@ -35,8 +35,8 @@ public class SwarmQueueItem {
         return this.provisionedComputer;
     }
 
-    public DockerSlaveInfo getSlaveInfo() {
-        return this.slaveInfo;
+    public DockerSwarmAgentInfo getAgentInfo() {
+        return this.agentInfo;
     }
 
     public String getName() {

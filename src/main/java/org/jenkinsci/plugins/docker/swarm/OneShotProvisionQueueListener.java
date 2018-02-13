@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves;
+package org.jenkinsci.plugins.docker.swarm;
 
 import hudson.Extension;
 import hudson.model.Computer;
@@ -31,7 +31,7 @@ public class OneShotProvisionQueueListener extends QueueListener {
 
                 final Node node = Jenkins.getInstance().getNode(computerName);
                 Computer.threadPoolForRemoting.submit(() -> {
-                        ((DockerSlave)node).terminate();
+                        ((DockerSwarmAgent)node).terminate();
                 });
             }
         }

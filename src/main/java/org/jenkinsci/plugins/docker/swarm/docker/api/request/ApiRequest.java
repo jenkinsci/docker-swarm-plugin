@@ -1,11 +1,11 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api.request;
+package org.jenkinsci.plugins.docker.swarm.docker.api.request;
 
 import akka.http.javadsl.model.HttpMethod;
 import akka.http.javadsl.model.HttpRequest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import suryagaddipati.jenkinsdockerslaves.DockerSwarmCloud;
-import suryagaddipati.jenkinsdockerslaves.docker.marshalling.Jackson;
-import suryagaddipati.jenkinsdockerslaves.docker.marshalling.ResponseType;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
+import org.jenkinsci.plugins.docker.swarm.docker.marshalling.Jackson;
+import org.jenkinsci.plugins.docker.swarm.docker.marshalling.ResponseType;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -30,7 +30,7 @@ public abstract class ApiRequest {
         this.url = dockerApiUrl+url;
     }
     public ApiRequest(HttpMethod method, String url, Class<?> responseClass , ResponseType responseType) {
-        this(method,DockerSwarmCloud.get().getDockerSwarmApiUrl(),url,responseClass,responseType);
+        this(method, DockerSwarmCloud.get().getDockerSwarmApiUrl(),url,responseClass,responseType);
     }
     public ApiRequest(HttpMethod method, String url){
        this(method,url,null,null) ;

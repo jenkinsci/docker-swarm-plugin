@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api;
+package org.jenkinsci.plugins.docker.swarm.docker.api;
 
 import akka.actor.ActorSystem;
 import akka.http.javadsl.Http;
@@ -9,15 +9,15 @@ import akka.http.javadsl.model.HttpResponse;
 import akka.http.javadsl.unmarshalling.Unmarshaller;
 import akka.stream.ActorMaterializer;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiError;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiSuccess;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationException;
+import org.jenkinsci.plugins.docker.swarm.docker.marshalling.Jackson;
 import scala.util.Either;
 import scala.util.Left;
 import scala.util.Right;
-import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiError;
-import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiException;
-import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiSuccess;
-import suryagaddipati.jenkinsdockerslaves.docker.api.response.SerializationException;
-import suryagaddipati.jenkinsdockerslaves.docker.marshalling.Jackson;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;

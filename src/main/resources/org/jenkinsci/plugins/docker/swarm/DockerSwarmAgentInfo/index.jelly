@@ -5,29 +5,10 @@
     <l:layout>
         <l:main-panel>
             <div class="main">
-                <p><b>Container Name</b>: ${it.containerId}
-                </p>
                 <p><b>Docker Image Used</b>: ${it.dockerImage}
                 </p>
                 <p><b>Cache Volume</b>: ${it.cacheVolumeName}
                 </p>
-
-                <p><b>Memory Reservation</b>: ${it.memoryReservationString}
-                </p>
-                <p><b>CPU Reservation</b>: ${it.allocatedCPUShares}
-                </p>
-
-                <j:if test="${it.buildFinished}">
-                    <br/>
-                    <p><b>Max Memory Usage</b>: ${it.memoryStats}
-                    </p>
-                    <p><b>Per Cpu Usage</b>: ${it.perCpuUsage}
-                    </p>
-                    <p><b>Total Cpu Usage</b>: ${it.totalCpuUsage}
-                    </p>
-                    <p><b>Throttled Time</b>: ${it.throttledTime}
-                    </p>
-                </j:if>
             </div>
         </l:main-panel>
     </l:layout>

@@ -1,13 +1,13 @@
 
-package suryagaddipati.jenkinsdockerslaves.docker.api.service;
+package org.jenkinsci.plugins.docker.swarm.docker.api.service;
 
 import akka.http.javadsl.model.HttpMethods;
 import com.google.common.base.Strings;
-import suryagaddipati.jenkinsdockerslaves.docker.api.containers.ContainerSpec;
-import suryagaddipati.jenkinsdockerslaves.docker.api.network.Network;
-import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.api.task.TaskTemplate;
-import suryagaddipati.jenkinsdockerslaves.docker.marshalling.ResponseType;
+import org.jenkinsci.plugins.docker.swarm.docker.api.containers.ContainerSpec;
+import org.jenkinsci.plugins.docker.swarm.docker.api.network.Network;
+import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.task.TaskTemplate;
+import org.jenkinsci.plugins.docker.swarm.docker.marshalling.ResponseType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ServiceSpec extends ApiRequest {
-    public TaskTemplate TaskTemplate ;
+    public org.jenkinsci.plugins.docker.swarm.docker.api.task.TaskTemplate TaskTemplate ;
     public String Name;
     public Map<String,String> Labels = new HashMap<>();
 

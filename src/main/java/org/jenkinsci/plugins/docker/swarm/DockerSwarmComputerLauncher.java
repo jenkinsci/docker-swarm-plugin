@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves;
+package org.jenkinsci.plugins.docker.swarm;
 
 
 import akka.actor.ActorRef;
@@ -10,7 +10,7 @@ import hudson.slaves.JNLPLauncher;
 import hudson.slaves.SlaveComputer;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-import suryagaddipati.jenkinsdockerslaves.docker.api.service.ServiceSpec;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.ServiceSpec;
 
 import java.io.IOException;
 import java.util.Date;
@@ -38,9 +38,9 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
     }
 
     private void launch(final DockerComputer computer, final TaskListener listener) {
-        DockerSlaveInfo dockerSlaveInfo = null;
-        dockerSlaveInfo = this.bi.getAction(DockerSlaveInfo.class);
-        dockerSlaveInfo.setComputerLaunchTime(new Date());
+        DockerSwarmAgentInfo dockerSwarmAgentInfo = null;
+        dockerSwarmAgentInfo = this.bi.getAction(DockerSwarmAgentInfo.class);
+        dockerSwarmAgentInfo.setComputerLaunchTime(new Date());
         final DockerSwarmCloud configuration = DockerSwarmCloud.get();
         final LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
 
@@ -52,9 +52,9 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
             System.arraycopy(envVarOptions, 0, envVars, 0, envVarOptions.length);
         }
 
-        final String additionalSlaveOptions = "-noReconnect -workDir /tmp ";
-        final String slaveOptions = "-jnlpUrl " + getSlaveJnlpUrl(computer, configuration) + " -secret " + getSlaveSecret(computer) + " " + additionalSlaveOptions;
-        final String[] command = new String[]{"sh", "-cx", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getSlaveJarUrl(configuration) + " && java -jar slave.jar " + slaveOptions};
+        final String additionalAgentOptions = "-noReconnect -workDir /tmp ";
+        final String agentOptions = "-jnlpUrl " + getAgentJnlpUrl(computer, configuration) + " -secret " + getAgentSecret(computer) + " " + additionalAgentOptions;
+        final String[] command = new String[]{"sh", "-cx", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getAgentJarUrl(configuration) + " && java -jar slave.jar " + agentOptions};
         launchContainer(command,configuration, envVars, labelConfiguration, listener, computer);
     }
 
@@ -116,7 +116,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         final String[] cacheDirs = labelConfiguration.getCacheDirs();
         if (cacheDirs.length > 0) {
             final String cacheVolumeName = getJobName() + "-" + computer.getVolumeName();
-            this.bi.getAction(DockerSlaveInfo.class).setCacheVolumeName(cacheVolumeName);
+            this.bi.getAction(DockerSwarmAgentInfo.class).setCacheVolumeName(cacheVolumeName);
             for (int i = 0; i < cacheDirs.length; i++) {
                 listener.getLogger().println("Binding Volume" + cacheDirs[i] + " to " + cacheVolumeName);
                 crReq.addCacheVolume(cacheVolumeName, cacheDirs[i], configuration.getCacheDriverName());
@@ -143,16 +143,16 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
     }
 
 
-    private String getSlaveJarUrl(final DockerSwarmCloud configuration) {
+    private String getAgentJarUrl(final DockerSwarmCloud configuration) {
         return getJenkinsUrl(configuration) + "jnlpJars/slave.jar";
     }
 
-    private String getSlaveJnlpUrl(final Computer computer, final DockerSwarmCloud configuration) {
+    private String getAgentJnlpUrl(final Computer computer, final DockerSwarmCloud configuration) {
         return getJenkinsUrl(configuration) + computer.getUrl() + "slave-agent.jnlp";
 
     }
 
-    private String getSlaveSecret(final Computer computer) {
+    private String getAgentSecret(final Computer computer) {
         return ((DockerComputer) computer).getJnlpMac();
 
     }

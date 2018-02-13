@@ -1,9 +1,9 @@
 
-package suryagaddipati.jenkinsdockerslaves.docker.api.nodes;
+package org.jenkinsci.plugins.docker.swarm.docker.api.nodes;
 
 import akka.http.javadsl.model.HttpMethods;
-import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.marshalling.ResponseType;
+import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.marshalling.ResponseType;
 
 public class ListNodesRequest extends ApiRequest {
 

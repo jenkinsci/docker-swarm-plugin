@@ -1,7 +1,7 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api.response;
+package org.jenkinsci.plugins.docker.swarm.docker.api.response;
 
 import akka.http.javadsl.model.StatusCode;
-import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 
 public class ApiError {
     public ApiError(Class<? extends ApiRequest> requestClass, StatusCode statusCode, String message) {

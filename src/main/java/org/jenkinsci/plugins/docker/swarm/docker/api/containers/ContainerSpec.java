@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api.containers;
+package org.jenkinsci.plugins.docker.swarm.docker.api.containers;
 
 import java.util.ArrayList;
 import java.util.List;

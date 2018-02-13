@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api.network;
+package org.jenkinsci.plugins.docker.swarm.docker.api.network;
 
 public class Network {
     public Network(){

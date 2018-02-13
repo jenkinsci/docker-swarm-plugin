@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves.docker.marshalling;
+package org.jenkinsci.plugins.docker.swarm.docker.marshalling;
 
 public enum  ResponseType{
         CLASS,

@@ -1,8 +1,7 @@
-package suryagaddipati.jenkinsdockerslaves;
+package org.jenkinsci.plugins.docker.swarm;
 
 import hudson.model.Computer;
 import hudson.model.Descriptor;
-import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.Queue;
 import hudson.security.ACL;
@@ -18,8 +17,8 @@ public class BuildScheduler {
     public static void scheduleBuild(final Queue.BuildableItem bi) {
         try (ACLContext _ = ACL.as(ACL.SYSTEM)) {
             final DockerLabelAssignmentAction action = createLabelAssignmentAction();
-            final Node node = new DockerSlave(bi, action.getLabel().toString());
-            bi.replaceAction(new DockerSlaveInfo(true));
+            final Node node = new DockerSwarmAgent(bi, action.getLabel().toString());
+            bi.replaceAction(new DockerSwarmAgentInfo(true));
             bi.replaceAction(action);
             Computer.threadPoolForRemoting.submit(() -> {
                 try {
@@ -40,8 +39,6 @@ public class BuildScheduler {
             LOGGER.log(Level.INFO,"couldn't add agent", e);
         }
 
-        final String id = "agent-" + System.nanoTime();
-        final Label label = new DockerMachineLabel(id);
-        return new DockerLabelAssignmentAction(label);
+        return new DockerLabelAssignmentAction("agent-" + System.nanoTime());
     }
 }

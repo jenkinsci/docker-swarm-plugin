@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api.response;
+package org.jenkinsci.plugins.docker.swarm.docker.api.response;
 
 public class ApiException {
     private Class<?> requestClass;

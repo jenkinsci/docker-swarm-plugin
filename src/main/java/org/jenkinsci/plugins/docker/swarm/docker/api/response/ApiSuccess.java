@@ -1,8 +1,8 @@
-package suryagaddipati.jenkinsdockerslaves.docker.api.response;
+package org.jenkinsci.plugins.docker.swarm.docker.api.response;
 
 
 import akka.http.javadsl.model.ResponseEntity;
-import suryagaddipati.jenkinsdockerslaves.docker.api.request.ApiRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 
 public class ApiSuccess {
 

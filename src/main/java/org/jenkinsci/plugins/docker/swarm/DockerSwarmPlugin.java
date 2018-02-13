@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves;
+package org.jenkinsci.plugins.docker.swarm;
 
 import akka.actor.ActorSystem;
 import com.typesafe.config.ConfigFactory;

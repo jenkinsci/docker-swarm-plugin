@@ -1,5 +1,5 @@
 
-package suryagaddipati.jenkinsdockerslaves;
+package org.jenkinsci.plugins.docker.swarm;
 
 import com.google.common.collect.Iterables;
 import hudson.model.Executor;
@@ -17,10 +17,10 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
-public class DockerComputer extends AbstractCloudComputer<DockerSlave> {
+public class DockerComputer extends AbstractCloudComputer<DockerSwarmAgent> {
 
-    public DockerComputer(final DockerSlave dockerSlave) {
-        super(dockerSlave);
+    public DockerComputer(final DockerSwarmAgent dockerSwarmAgent) {
+        super(dockerSwarmAgent);
     }
 
 

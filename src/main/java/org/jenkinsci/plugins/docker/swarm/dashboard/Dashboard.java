@@ -1,4 +1,4 @@
-package suryagaddipati.jenkinsdockerslaves.dashboard;
+package org.jenkinsci.plugins.docker.swarm.dashboard;
 
 import akka.actor.ActorSystem;
 import hudson.model.Job;
@@ -6,15 +6,15 @@ import hudson.model.Queue;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
-import suryagaddipati.jenkinsdockerslaves.DockerSlaveInfo;
-import suryagaddipati.jenkinsdockerslaves.DockerSwarmPlugin;
-import suryagaddipati.jenkinsdockerslaves.docker.api.DockerApiRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.ListNodesRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.api.nodes.Node;
-import suryagaddipati.jenkinsdockerslaves.docker.api.response.ApiException;
-import suryagaddipati.jenkinsdockerslaves.docker.api.response.SerializationException;
-import suryagaddipati.jenkinsdockerslaves.docker.api.task.ListTasksRequest;
-import suryagaddipati.jenkinsdockerslaves.docker.api.task.Task;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentInfo;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmPlugin;
+import org.jenkinsci.plugins.docker.swarm.docker.api.DockerApiRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.ListNodesRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationException;
+import org.jenkinsci.plugins.docker.swarm.docker.api.task.ListTasksRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,8 +41,8 @@ public class Dashboard {
         final Queue.Item[] items = Jenkins.getInstance().getQueue().getItems();
         for (int i = items.length - 1; i >= 0; i--) { //reverse order
             final Queue.Item item = items[i];
-            final DockerSlaveInfo slaveInfo = item.getAction(DockerSlaveInfo.class);
-            if (slaveInfo != null && item instanceof Queue.BuildableItem) {
+            final DockerSwarmAgentInfo agentInfo = item.getAction(DockerSwarmAgentInfo.class);
+            if (agentInfo != null && item instanceof Queue.BuildableItem) {
                 queue.add(new SwarmQueueItem((Queue.BuildableItem) item));
             }
         }
