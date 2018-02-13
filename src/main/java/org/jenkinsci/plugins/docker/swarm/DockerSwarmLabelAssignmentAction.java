@@ -6,15 +6,15 @@ import hudson.model.labels.LabelAssignmentAction;
 import hudson.model.labels.LabelAtom;
 import hudson.model.queue.SubTask;
 
-public class DockerLabelAssignmentAction implements LabelAssignmentAction {
+public class DockerSwarmLabelAssignmentAction implements LabelAssignmentAction {
 
     private final Label label;
 
-    public DockerLabelAssignmentAction(Label label) {
+    public DockerSwarmLabelAssignmentAction(Label label) {
         this.label = label;
     }
 
-    public DockerLabelAssignmentAction(String label){
+    public DockerSwarmLabelAssignmentAction(String label){
         this(new DockerSwarmAgentLabel(label));
     }
 

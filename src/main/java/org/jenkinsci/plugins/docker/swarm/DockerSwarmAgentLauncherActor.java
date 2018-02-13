@@ -25,19 +25,19 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class DockerAgentLauncherActor extends AbstractActor {
-    private static final Logger LOGGER = Logger.getLogger(DockerAgentLauncherActor.class.getName());
+public class DockerSwarmAgentLauncherActor extends AbstractActor {
+    private static final Logger LOGGER = Logger.getLogger(DockerSwarmAgentLauncherActor.class.getName());
     private final ActorRef apiActor;
     private PrintStream logger;
     private ServiceSpec createRequest;
 
-    public DockerAgentLauncherActor(PrintStream logger ) {
+    public DockerSwarmAgentLauncherActor(PrintStream logger ) {
         this.logger = logger;
         this.apiActor = getContext().actorOf(DockerApiActor.props());
     }
 
     public static Props props(PrintStream logger) {
-        return Props.create(DockerAgentLauncherActor.class, () -> new DockerAgentLauncherActor(logger));
+        return Props.create(DockerSwarmAgentLauncherActor.class, () -> new DockerSwarmAgentLauncherActor(logger));
     }
 
     @Override

@@ -32,16 +32,16 @@ public class DockerSwarmCloud extends Cloud {
     private String jenkinsUrl;
     private String swarmNetwork;
     private String cacheDriverName;
-    private List<LabelConfiguration> agentTemplates = new ArrayList<>();
+    private List<DockerSwarmAgentTemplate> agentTemplates = new ArrayList<>();
 
     @DataBoundConstructor
-    public DockerSwarmCloud(String dockerSwarmApiUrl, String jenkinsUrl, String swarmNetwork, String cacheDriverName, List<LabelConfiguration> agentTemplates) {
+    public DockerSwarmCloud(String dockerSwarmApiUrl, String jenkinsUrl, String swarmNetwork, String cacheDriverName, List<DockerSwarmAgentTemplate> dockerSwarmAgentTemplates) {
         super(DOCKER_SWARM_CLOUD_NAME);
         this.dockerSwarmApiUrl = dockerSwarmApiUrl;
         this.jenkinsUrl = jenkinsUrl;
         this.swarmNetwork = swarmNetwork;
         this.cacheDriverName = cacheDriverName;
-        this.agentTemplates = agentTemplates;
+        this.agentTemplates = dockerSwarmAgentTemplates;
     }
 
     //for yaml serialization
@@ -83,20 +83,20 @@ public class DockerSwarmCloud extends Cloud {
         return cacheDriverName;
     }
 
-    public List<LabelConfiguration> getAgentTemplates() {
+    public List<DockerSwarmAgentTemplate> getAgentTemplates() {
         return agentTemplates;
     }
 
-    public LabelConfiguration getLabelConfiguration(final String label) {
-        for (final LabelConfiguration labelConfiguration : this.agentTemplates) {
-            if (label.equals(labelConfiguration.getLabel())) {
-                return labelConfiguration;
+    public DockerSwarmAgentTemplate getLabelConfiguration(final String label) {
+        for (final DockerSwarmAgentTemplate dockerSwarmAgentTemplate : this.agentTemplates) {
+            if (label.equals(dockerSwarmAgentTemplate.getLabel())) {
+                return dockerSwarmAgentTemplate;
             }
         }
         return null;
     }
     public List<String> getLabels() {
-        final Iterable<String> labels = Iterables.transform(getAgentTemplates(), labelConfiguration -> labelConfiguration.getLabel());
+        final Iterable<String> labels = Iterables.transform(getAgentTemplates(), dockerSwarmAgentTemplate -> dockerSwarmAgentTemplate.getLabel());
         return Lists.newArrayList(labels);
     }
 

@@ -18,7 +18,7 @@
     </f:section>
     <f:advanced title="${%Docker Agent templates}" align="left">
         <f:entry title="${%Docker Agent templates}" description="${%List of Agent Templates}">
-            <f:repeatableProperty field="agentTemplates" header="Docker Agent template" add="Add Docker Agent Template">
+            <f:repeatableProperty field="dockerSwarmAgentTemplates" header="Docker Agent template" add="Add Docker Agent Template">
                 <f:block>
                     <div align="right">
                         <f:repeatableDeleteButton value="Delete" />
