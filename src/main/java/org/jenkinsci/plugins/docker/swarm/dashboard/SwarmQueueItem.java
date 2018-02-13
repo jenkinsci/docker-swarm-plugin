@@ -3,16 +3,16 @@ package org.jenkinsci.plugins.docker.swarm.dashboard;
 import hudson.model.Computer;
 import hudson.model.Queue;
 import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.docker.swarm.DockerLabelAssignmentAction;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentTemplate;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmLabelAssignmentAction;
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentInfo;
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
-import org.jenkinsci.plugins.docker.swarm.LabelConfiguration;
 
 public class SwarmQueueItem {
 
     private final String name;
     private final String label;
-    private final LabelConfiguration labelConfig;
+    private final DockerSwarmAgentTemplate labelConfig;
     private final String inQueueSince;
     private final DockerSwarmAgentInfo agentInfo;
     private Computer provisionedComputer;
@@ -24,7 +24,7 @@ public class SwarmQueueItem {
         this.inQueueSince = item.getInQueueForString();
         this.agentInfo = item.getAction(DockerSwarmAgentInfo.class); //this should never be null
 
-        final DockerLabelAssignmentAction lblAssignmentAction = item.getAction(DockerLabelAssignmentAction.class);
+        final DockerSwarmLabelAssignmentAction lblAssignmentAction = item.getAction(DockerSwarmLabelAssignmentAction.class);
         if (lblAssignmentAction != null) {
             final String computerName = lblAssignmentAction.getLabel().getName();
             this.provisionedComputer = Jenkins.getInstance().getComputer(computerName);
@@ -47,7 +47,7 @@ public class SwarmQueueItem {
         return this.label;
     }
 
-    public LabelConfiguration getLabelConfig() {
+    public DockerSwarmAgentTemplate getLabelConfig() {
         return this.labelConfig;
     }
 

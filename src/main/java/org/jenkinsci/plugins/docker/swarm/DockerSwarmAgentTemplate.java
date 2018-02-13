@@ -9,7 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LabelConfiguration  implements Describable<LabelConfiguration> {
+public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTemplate> {
     private String tmpfsDir;
     private long limitsNanoCPUs;
     private long limitsMemoryBytes;
@@ -23,17 +23,17 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
     private String baseWorkspaceLocation;
     private String placementConstraints;
 
-    public  LabelConfiguration(){
+    public DockerSwarmAgentTemplate(){
         //For Yaml Load
     }
 
     @DataBoundConstructor
-    public LabelConfiguration(final String image, final String hostBinds,
-                              final String label,
-                              final String cacheDir,final String tmpfsDir,
-                              final String envVars,
-                              final long limitsNanoCPUs, final long limitsMemoryBytes,
-                              final long reservationsNanoCPUs, final long reservationsMemoryBytes, final String baseWorkspaceLocation, final String placementConstraints) {
+    public DockerSwarmAgentTemplate(final String image, final String hostBinds,
+                                    final String label,
+                                    final String cacheDir, final String tmpfsDir,
+                                    final String envVars,
+                                    final long limitsNanoCPUs, final long limitsMemoryBytes,
+                                    final long reservationsNanoCPUs, final long reservationsMemoryBytes, final String baseWorkspaceLocation, final String placementConstraints) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.label = label;
@@ -95,7 +95,7 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
     }
 
     @Override
-    public Descriptor<LabelConfiguration> getDescriptor() {
+    public Descriptor<DockerSwarmAgentTemplate> getDescriptor() {
         return (DescriptorImpl) Jenkins.getInstance().getDescriptor(getClass());
     }
 
@@ -108,7 +108,7 @@ public class LabelConfiguration  implements Describable<LabelConfiguration> {
     }
 
     @Extension
-    public static final class DescriptorImpl extends Descriptor<LabelConfiguration> {
+    public static final class DescriptorImpl extends Descriptor<DockerSwarmAgentTemplate> {
         @Override
         public String getDisplayName() {
             return "Docker Agent Template";

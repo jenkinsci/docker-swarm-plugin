@@ -25,7 +25,7 @@ public class OneShotProvisionQueueListener extends QueueListener {
     @Override
     public void onLeft(final Queue.LeftItem li) {
         if (li.isCancelled()) {
-            final DockerLabelAssignmentAction labelAssignmentAction = li.getAction(DockerLabelAssignmentAction.class);
+            final DockerSwarmLabelAssignmentAction labelAssignmentAction = li.getAction(DockerSwarmLabelAssignmentAction.class);
             if (labelAssignmentAction != null) {
                 final String computerName = labelAssignmentAction.getLabel().getName();
 

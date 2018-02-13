@@ -38,11 +38,11 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
 
     private void launch(final DockerSwarmComputer computer, final TaskListener listener) {
         final DockerSwarmCloud configuration = DockerSwarmCloud.get();
-        final LabelConfiguration labelConfiguration = configuration.getLabelConfiguration(this.label);
+        final DockerSwarmAgentTemplate dockerSwarmAgentTemplate = configuration.getLabelConfiguration(this.label);
 
-        setBaseWorkspaceLocation(labelConfiguration);
+        setBaseWorkspaceLocation(dockerSwarmAgentTemplate);
 
-        final String[] envVarOptions = labelConfiguration.getEnvVarsConfig();
+        final String[] envVarOptions = dockerSwarmAgentTemplate.getEnvVarsConfig();
         final String[] envVars = new String[envVarOptions.length];
         if (envVarOptions.length != 0) {
             System.arraycopy(envVarOptions, 0, envVars, 0, envVarOptions.length);
@@ -51,32 +51,32 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         final String additionalAgentOptions = "-noReconnect -workDir /tmp ";
         final String agentOptions = "-jnlpUrl " + getAgentJnlpUrl(computer, configuration) + " -secret " + getAgentSecret(computer) + " " + additionalAgentOptions;
         final String[] command = new String[]{"sh", "-cx", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getAgentJarUrl(configuration) + " && java -jar slave.jar " + agentOptions};
-        launchContainer(command,configuration, envVars, labelConfiguration, listener, computer);
+        launchContainer(command,configuration, envVars, dockerSwarmAgentTemplate, listener, computer);
     }
 
-    private void setBaseWorkspaceLocation(LabelConfiguration labelConfiguration){
-        if (this.bi.task instanceof AbstractProject && StringUtils.isNotEmpty(labelConfiguration.getBaseWorkspaceLocation())) {
+    private void setBaseWorkspaceLocation(DockerSwarmAgentTemplate dockerSwarmAgentTemplate){
+        if (this.bi.task instanceof AbstractProject && StringUtils.isNotEmpty(dockerSwarmAgentTemplate.getBaseWorkspaceLocation())) {
             try {
-                ((AbstractProject) this.bi.task).setCustomWorkspace(labelConfiguration.getBaseWorkspaceLocation());
+                ((AbstractProject) this.bi.task).setCustomWorkspace(dockerSwarmAgentTemplate.getBaseWorkspaceLocation());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    public void launchContainer(String[] commands, DockerSwarmCloud configuration, String[] envVars, LabelConfiguration labelConfiguration, TaskListener listener, DockerSwarmComputer computer) {
+    public void launchContainer(String[] commands, DockerSwarmCloud configuration, String[] envVars, DockerSwarmAgentTemplate dockerSwarmAgentTemplate, TaskListener listener, DockerSwarmComputer computer) {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-        ServiceSpec crReq = createCreateServiceRequest(commands, configuration, envVars, labelConfiguration, computer);
+        ServiceSpec crReq = createCreateServiceRequest(commands, configuration, envVars, dockerSwarmAgentTemplate, computer);
 
-        setLimitsAndReservations(labelConfiguration, crReq);
-        setHostBinds(labelConfiguration, crReq);
+        setLimitsAndReservations(dockerSwarmAgentTemplate, crReq);
+        setHostBinds(dockerSwarmAgentTemplate, crReq);
         setNetwork(configuration, crReq);
-        setCacheDirs(configuration, labelConfiguration, listener, computer, crReq);
-        setTmpfs(labelConfiguration, crReq);
-        setConstraints(labelConfiguration,crReq);
+        setCacheDirs(configuration, dockerSwarmAgentTemplate, listener, computer, crReq);
+        setTmpfs(dockerSwarmAgentTemplate, crReq);
+        setConstraints(dockerSwarmAgentTemplate,crReq);
         setLabels(crReq);
 
-        final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerAgentLauncherActor.props(listener.getLogger()), computer.getName());
+        final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerSwarmAgentLauncherActor.props(listener.getLogger()), computer.getName());
         agentLauncher.tell(crReq,ActorRef.noSender());
     }
 
@@ -84,32 +84,32 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         crReq.addLabel("ROLE","jenkins-agent");
     }
 
-    private void setConstraints(LabelConfiguration labelConfiguration, ServiceSpec crReq) {
-        crReq.TaskTemplate.setPlacementConstraints(labelConfiguration.getPlacementConstraintsConfig());
+    private void setConstraints(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        crReq.TaskTemplate.setPlacementConstraints(dockerSwarmAgentTemplate.getPlacementConstraintsConfig());
     }
 
-    private ServiceSpec createCreateServiceRequest(String[] commands, DockerSwarmCloud configuration, String[] envVars, LabelConfiguration labelConfiguration, DockerSwarmComputer computer) {
+    private ServiceSpec createCreateServiceRequest(String[] commands, DockerSwarmCloud configuration, String[] envVars, DockerSwarmAgentTemplate dockerSwarmAgentTemplate, DockerSwarmComputer computer) {
         ServiceSpec crReq;
-        if(labelConfiguration.getLabel().contains("dind")){
+        if(dockerSwarmAgentTemplate.getLabel().contains("dind")){
             commands[2]= StringUtils.isEmpty(configuration.getSwarmNetwork())?
-                    String.format("docker run --rm --privileged %s sh -xc '%s' ",labelConfiguration.getImage(), commands[2]):
-                    String.format("docker run --rm --privileged --network %s %s sh -xc '%s' ",configuration.getSwarmNetwork(), labelConfiguration.getImage(), commands[2]);
+                    String.format("docker run --rm --privileged %s sh -xc '%s' ", dockerSwarmAgentTemplate.getImage(), commands[2]):
+                    String.format("docker run --rm --privileged --network %s %s sh -xc '%s' ",configuration.getSwarmNetwork(), dockerSwarmAgentTemplate.getImage(), commands[2]);
 
             crReq = new ServiceSpec(computer.getName(),"docker:17.12" , commands, envVars);
         }else {
-            crReq = new ServiceSpec(computer.getName(), labelConfiguration.getImage(), commands, envVars);
+            crReq = new ServiceSpec(computer.getName(), dockerSwarmAgentTemplate.getImage(), commands, envVars);
         }
         return crReq;
     }
 
-    private void setTmpfs(LabelConfiguration labelConfiguration, ServiceSpec crReq) {
-        if(StringUtils.isNotEmpty(labelConfiguration.getTmpfsDir())){
-            crReq.addTmpfsMount(labelConfiguration.getTmpfsDir());
+    private void setTmpfs(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        if(StringUtils.isNotEmpty(dockerSwarmAgentTemplate.getTmpfsDir())){
+            crReq.addTmpfsMount(dockerSwarmAgentTemplate.getTmpfsDir());
         }
     }
 
-    private void setCacheDirs(DockerSwarmCloud configuration, LabelConfiguration labelConfiguration, TaskListener listener, DockerSwarmComputer computer, ServiceSpec crReq) {
-        final String[] cacheDirs = labelConfiguration.getCacheDirs();
+    private void setCacheDirs(DockerSwarmCloud configuration, DockerSwarmAgentTemplate dockerSwarmAgentTemplate, TaskListener listener, DockerSwarmComputer computer, ServiceSpec crReq) {
+        final String[] cacheDirs = dockerSwarmAgentTemplate.getCacheDirs();
         if (cacheDirs.length > 0) {
             final String cacheVolumeName = getJobName() + "-" + computer.getVolumeName();
             this.bi.getAction(DockerSwarmAgentInfo.class).setCacheVolumeName(cacheVolumeName);
@@ -124,8 +124,8 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         crReq.setNetwork(configuration.getSwarmNetwork());
     }
 
-    private void setHostBinds(LabelConfiguration labelConfiguration, ServiceSpec crReq) {
-        String[] hostBinds = labelConfiguration.getHostBindsConfig();
+    private void setHostBinds(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        String[] hostBinds = dockerSwarmAgentTemplate.getHostBindsConfig();
         for(int i = 0; i < hostBinds.length; i++){
             String hostBind = hostBinds[i];
             String[] srcDest = hostBind.split(":");
@@ -133,9 +133,9 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         }
     }
 
-    private void setLimitsAndReservations(LabelConfiguration labelConfiguration, ServiceSpec crReq) {
-        crReq.setTaskLimits(labelConfiguration.getLimitsNanoCPUs(),labelConfiguration.getLimitsMemoryBytes() );
-        crReq.setTaskReservations(labelConfiguration.getReservationsNanoCPUs(),labelConfiguration.getReservationsMemoryBytes() );
+    private void setLimitsAndReservations(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        crReq.setTaskLimits(dockerSwarmAgentTemplate.getLimitsNanoCPUs(), dockerSwarmAgentTemplate.getLimitsMemoryBytes() );
+        crReq.setTaskReservations(dockerSwarmAgentTemplate.getReservationsNanoCPUs(), dockerSwarmAgentTemplate.getReservationsMemoryBytes() );
     }
 
 
