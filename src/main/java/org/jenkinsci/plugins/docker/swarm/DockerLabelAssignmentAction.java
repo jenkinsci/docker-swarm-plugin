@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.docker.swarm;
 
 import hudson.model.Label;
+import hudson.model.Node;
 import hudson.model.labels.LabelAssignmentAction;
 import hudson.model.labels.LabelAtom;
 import hudson.model.queue.SubTask;
@@ -14,7 +15,7 @@ public class DockerLabelAssignmentAction implements LabelAssignmentAction {
     }
 
     public DockerLabelAssignmentAction(String label){
-        this(new LabelAtom(label));
+        this(new DockerSwarmAgentLabel(label));
     }
 
     @Override
@@ -39,5 +40,16 @@ public class DockerLabelAssignmentAction implements LabelAssignmentAction {
 
     public Label getLabel() {
         return label;
+    }
+
+    private static class DockerSwarmAgentLabel extends LabelAtom {
+        public DockerSwarmAgentLabel(String name) {
+            super(name);
+        }
+
+        @Override
+        public boolean contains(Node node) {
+            return this.name.equals(node.getNodeName());
+        }
     }
 }
