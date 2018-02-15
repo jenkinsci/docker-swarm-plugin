@@ -14,8 +14,8 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
-    <name>DockerSwarm</name>
-    <description>Launches one computer per build on swarm</description>
+    <name>Docker Swarm Plugin</name>
+    <description>Cloud plugin for launching single use agent as a service on docker swarm.</description>
     <licenses>
         <license>
             <name>MIT License</name>
