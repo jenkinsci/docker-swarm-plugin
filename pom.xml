@@ -33,6 +33,7 @@
         <java.level>8</java.level>
         <jackson-jaxrs.version>2.6.4</jackson-jaxrs.version>
         <slf4j-api.version>1.7.25</slf4j-api.version>
+        <findbugs.failOnError>true</findbugs.failOnError>
     </properties>
     <repositories>
         <repository>
