@@ -6,7 +6,7 @@ This allows for serviceSpec options like Limits and Reservations to be set on ag
 
 ### Configuration
 
-![configuration](https://raw.githubusercontent.com/suryagaddipati/docker-swarm-plugin/master/docs/images/configuration.png "Configuration")
+![configuration](https://raw.githubusercontent.com/jenkinsci/docker-swarm-plugin/master/docs/images/configuration.png "Configuration")
 
 ### Swarm Scheduling
 
@@ -20,4 +20,4 @@ Plugin attempts to create an agent as soon as build enters the queue. Bypasses c
 
 Follow the link on sidebar to view the status of your swarm. What is executing where, what builds are in queue for what resources ect
 
-![dashboard](https://raw.githubusercontent.com/suryagaddipati/docker-swarm-plugin/master/docs/images/dashboard.png "Dashboard")
+![dashboard](https://raw.githubusercontent.com/jenkinsci/docker-swarm-plugin/master/docs/images/dashboard.png "Dashboard")
