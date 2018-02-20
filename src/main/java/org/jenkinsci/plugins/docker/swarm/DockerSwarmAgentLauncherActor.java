@@ -13,14 +13,16 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiError;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiSuccess;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationException;
-import org.jenkinsci.plugins.docker.swarm.docker.api.service.DeleteServiceRequest;
-import scala.concurrent.duration.Duration;
-import org.jenkinsci.plugins.docker.swarm.docker.api.service.ServiceSpec;
 import org.jenkinsci.plugins.docker.swarm.docker.api.service.CreateServiceResponse;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.DeleteServiceRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.service.ServiceLogRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.ServiceSpec;
+import scala.concurrent.duration.Duration;
 
 import java.io.PrintStream;
 import java.nio.charset.Charset;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -86,12 +88,13 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
 
 
     private void createService(ServiceSpec createRequest) {
+        logger.println(String.format( "[%s] Creating Service with Name : %s" , DateFormat.getTimeInstance().format(new Date()), createRequest.Name));
         this.createRequest = createRequest;
         apiActor.tell(createRequest,getSelf());
     }
 
     private void createServiceSuccess(CreateServiceResponse createServiceResponse) {
-        logger.println("ServiceSpec created with ID : " + createServiceResponse.ID);
+        logger.println(String.format( "[%s] ServiceSpec created with ID : %s" , DateFormat.getTimeInstance().format(new Date()),  createServiceResponse.ID));
         if(StringUtils.isNotEmpty(createServiceResponse.Warning)){
             logger.println("ServiceSpec creation warning : " + createServiceResponse.Warning);
         }
