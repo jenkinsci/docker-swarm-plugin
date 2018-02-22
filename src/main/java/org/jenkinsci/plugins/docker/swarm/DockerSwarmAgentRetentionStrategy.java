@@ -21,6 +21,7 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerS
 
     private int timeout = 1;
     private transient volatile boolean terminating;
+    private boolean isTaskCompleted;
 
     @DataBoundConstructor
     public DockerSwarmAgentRetentionStrategy(int idleMinutes) {
@@ -33,10 +34,10 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerS
 
     @Override
     public long check(@Nonnull DockerSwarmComputer c) {
-        if (c.isIdle() && c.isOnline()) {
+        if (c.isIdle() && c.isOnline() && isTaskCompleted) {
             final long idleMilliseconds = System.currentTimeMillis() - c.getIdleStartMilliseconds();
             if (idleMilliseconds > MINUTES.toMillis(timeout)) {
-                LOGGER.log(Level.FINE, "Disconnecting {0}", c.getName());
+                LOGGER.log(Level.INFO, "Disconnecting due to idle {0}", c.getName());
                 done(c);
             }
         }
@@ -55,11 +56,13 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerS
 
     @Override
     public void taskCompleted(Executor executor, Queue.Task task, long durationMS) {
+        this.isTaskCompleted = true;
         done(executor);
     }
 
     @Override
     public void taskCompletedWithProblems(Executor executor, Queue.Task task, long durationMS, Throwable problems) {
+        this.isTaskCompleted = true;
         done(executor);
     }
 
