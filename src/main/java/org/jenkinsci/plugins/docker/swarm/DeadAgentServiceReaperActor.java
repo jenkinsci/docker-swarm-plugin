@@ -5,15 +5,15 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
-import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
-import scala.concurrent.duration.Duration;
 import org.jenkinsci.plugins.docker.swarm.docker.api.DockerApiRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationException;
 import org.jenkinsci.plugins.docker.swarm.docker.api.service.DeleteServiceRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.service.ListServicesRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.service.ScheduledService;
 import org.jenkinsci.plugins.docker.swarm.docker.api.task.ListTasksRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
+import scala.concurrent.duration.Duration;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;
@@ -49,13 +49,16 @@ public class DeadAgentServiceReaperActor extends AbstractActor {
                 for(ScheduledService service : (List<ScheduledService>)services ){
                     CompletionStage<Object> tasksRequest = new DockerApiRequest(as, new ListTasksRequest(dockerSwarmApiUrl, "service", service.Spec.Name)).execute();
                     List<Task> tasks = getFuture(tasksRequest, List.class);
-                    if(tasks != null && tasks.size()==1) {
-                        Task task = tasks.get(0);
-                        if(task.isComplete()){
-                            LOGGER.info("Reaping service: "+service.Spec.Name );
-                            CompletionStage<Object> deleteServiceRequest = new DockerApiRequest(as, new DeleteServiceRequest(dockerSwarmApiUrl,service.Spec.Name)).execute();
-                            getFuture(deleteServiceRequest,Object.class);
+                    if(tasks != null) {
+                        for(Task task : tasks){
+                            if(task.isComplete()){
+                                LOGGER.info("Reaping service: "+service.Spec.Name );
+                                CompletionStage<Object> deleteServiceRequest = new DockerApiRequest(as, new DeleteServiceRequest(dockerSwarmApiUrl,service.Spec.Name)).execute();
+                                getFuture(deleteServiceRequest,Object.class);
+                                break;
+                            }
                         }
+
                     }
                 }
                 return services;
