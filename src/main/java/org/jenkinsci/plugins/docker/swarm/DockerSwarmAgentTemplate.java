@@ -18,6 +18,8 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String image;
     private String hostBinds;
     private String label;
+
+
     private String cacheDir;
     private String envVars;
     private String baseWorkspaceLocation;
@@ -117,6 +119,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String getHostBinds() {
         return hostBinds;
+    }
+
+    public String getCacheDir() {
+        return cacheDir;
     }
 
 }
