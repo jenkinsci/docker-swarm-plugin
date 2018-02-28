@@ -59,6 +59,9 @@ public class Jackson {
       throw new IllegalArgumentException("Cannot unmarshal JSON as " + expectedType.getSimpleName(), e);
     }
   }
+    public static <T> T fromJSON(String json, Class<T> expectedType) {
+      return fromJSON(defaultObjectMapper,json,expectedType);
+    }
 
   private static <T> T fromJSONArray(ObjectMapper mapper, String json, Class<T> expectedType) {
     try {
@@ -88,4 +91,11 @@ public class Jackson {
   public static ObjectMapper getDefaultObjectMapper() {
     return defaultObjectMapper;
   }
+
+    public static Object fromJSON(String json, Class<?> responseClass, ResponseType responseType) {
+        if(responseType == ResponseType.CLASS){
+            return fromJSON(json,responseClass);
+        }
+        return fromJSONArray(defaultObjectMapper,json,responseClass);
+    }
 }

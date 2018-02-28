@@ -4,9 +4,7 @@ import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
-import akka.http.javadsl.model.ResponseEntity;
 import akka.japi.pf.ReceiveBuilder;
-import akka.stream.ActorMaterializer;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.docker.swarm.docker.api.DockerApiRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
@@ -21,7 +19,6 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.service.ServiceSpec;
 import scala.concurrent.duration.Duration;
 
 import java.io.PrintStream;
-import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.concurrent.CompletionStage;
@@ -57,11 +54,11 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
     }
 
     private void serviceLogResponse(ApiSuccess apiSuccess) {
-        ResponseEntity responseEntity = apiSuccess.getResponseEntity();
-        ActorMaterializer materializer = ActorMaterializer.create(getContext());
-        responseEntity.getDataBytes().runForeach(x -> {
-            logger.print(x.decodeString(Charset.defaultCharset()));
-        } , materializer);
+//        ResponseEntity responseEntity = apiSuccess.getResponseEntity();
+//        ActorMaterializer materializer = ActorMaterializer.create(getContext());
+//        responseEntity.getDataBytes().runForeach(x -> {
+//            logger.print(x.decodeString(Charset.defaultCharset()));
+//        } , materializer);
     }
 
     private void createService(ServiceSpec createRequest) {

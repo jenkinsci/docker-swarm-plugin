@@ -1,10 +1,9 @@
 package org.jenkinsci.plugins.docker.swarm.docker.api.response;
 
-import akka.http.javadsl.model.StatusCode;
 import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 
 public class ApiError {
-    public ApiError(Class<? extends ApiRequest> requestClass, StatusCode statusCode, String message) {
+    public ApiError(Class<? extends ApiRequest> requestClass, int statusCode, String message) {
         this.requestClass = requestClass;
         this.statusCode = statusCode;
         this.message = message;
@@ -14,7 +13,7 @@ public class ApiError {
         return requestClass;
     }
 
-    public StatusCode getStatusCode() {
+    public int getStatusCode() {
         return statusCode;
     }
 
@@ -23,6 +22,6 @@ public class ApiError {
     }
 
     private Class<?> requestClass;
-    private StatusCode statusCode;
+    private int statusCode;
     private String message;
 }
