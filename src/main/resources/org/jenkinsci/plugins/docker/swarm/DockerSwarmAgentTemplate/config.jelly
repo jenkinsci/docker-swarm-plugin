@@ -23,30 +23,32 @@
     <f:entry title="Tmpfs Dir" field="tmpfsDir">
         <f:textbox value="${dockerSwarmAgentTemplate.tmpfsDir}"/>
     </f:entry>
+    <f:advanced title="${%Placement}" align="left">
+        <f:section title="Placement">
+            <f:entry title="Constraints" field="placementConstraints">
+                <f:textbox value="${dockerSwarmAgentTemplate.placementConstraints}"/>
+            </f:entry>
+        </f:section>
+    </f:advanced>
+    <f:advanced title="${%Limits/Reservations}" align="left">
+        <f:section title="Limits">
+            <f:entry title="NanoCPUs" field="limitsNanoCPUs">
+                <f:number value="${dockerSwarmAgentTemplate.limitsNanoCPUs}"/>
+            </f:entry>
 
-    <f:section title="Placement">
-        <f:entry title="Constraints" field="placementConstraints">
-            <f:textbox value="${dockerSwarmAgentTemplate.placementConstraints}"/>
-        </f:entry>
-    </f:section>
+            <f:entry title="MemoryBytes" field="limitsMemoryBytes">
+                <f:number value="${dockerSwarmAgentTemplate.limitsMemoryBytes}"/>
+            </f:entry>
+        </f:section>
+        <f:section title="Reservations">
+            <f:entry title="NanoCPUs" field="reservationsNanoCPUs">
+                <f:number value="${dockerSwarmAgentTemplate.reservationsNanoCPUs}"/>
+            </f:entry>
 
-    <f:section title="Limits">
-        <f:entry title="NanoCPUs" field="limitsNanoCPUs">
-            <f:number value="${dockerSwarmAgentTemplate.limitsNanoCPUs}"/>
-        </f:entry>
-
-        <f:entry title="MemoryBytes" field="limitsMemoryBytes">
-            <f:number value="${dockerSwarmAgentTemplate.limitsMemoryBytes}"/>
-        </f:entry>
-    </f:section>
-    <f:section title="Reservations">
-        <f:entry title="NanoCPUs" field="reservationsNanoCPUs">
-            <f:number value="${dockerSwarmAgentTemplate.reservationsNanoCPUs}"/>
-        </f:entry>
-
-        <f:entry title="MemoryBytes" field="reservationsMemoryBytes">
-            <f:number value="${dockerSwarmAgentTemplate.reservationsMemoryBytes}"/>
-        </f:entry>
-    </f:section>
+            <f:entry title="MemoryBytes" field="reservationsMemoryBytes">
+                <f:number value="${dockerSwarmAgentTemplate.reservationsMemoryBytes}"/>
+            </f:entry>
+        </f:section>
+    </f:advanced>
 
 </j:jelly>

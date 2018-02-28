@@ -12,8 +12,15 @@ import hudson.model.Descriptor;
 import hudson.model.Label;
 import hudson.slaves.Cloud;
 import hudson.slaves.NodeProvisioner;
+import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.docker.swarm.docker.api.DockerApiRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.ping.PingRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiError;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -23,6 +30,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 public class DockerSwarmCloud extends Cloud {
@@ -64,6 +75,23 @@ public class DockerSwarmCloud extends Cloud {
         @Override
         public String getDisplayName() {
             return "Docker Swarm";
+        }
+        @RequirePOST
+        public FormValidation doValidateTestDockerApiConnection(@QueryParameter("dockerSwarmApiUrl") String dockerSwarmApiUrl){
+            DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
+            CompletionStage<Object> serviceCreateRequest = new DockerApiRequest(swarmPlugin.getActorSystem(), new PingRequest(dockerSwarmApiUrl)).execute();
+            try {
+                Object response = serviceCreateRequest.toCompletableFuture().get(3l, TimeUnit.SECONDS);
+                if(response instanceof ApiException){
+                    return FormValidation.error(((ApiException)response).getCause(),"Couldn't _ping docker api");
+                }
+                if(response instanceof ApiError){
+                    return FormValidation.error(((ApiError)response).getMessage());
+                }
+                return FormValidation.ok("Connection successful");
+            } catch (InterruptedException|ExecutionException|TimeoutException e) {
+                return FormValidation.error(e,"Couldn't _ping docker api");
+            }
         }
     }
 
