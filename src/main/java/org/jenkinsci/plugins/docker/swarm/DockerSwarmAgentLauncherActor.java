@@ -46,33 +46,15 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
     @Override
     public Receive createReceive() {
         ReceiveBuilder builder = receiveBuilder();
-        return serviceCreateMatchers(builder)
-
-                .match(ApiSuccess.class, apiSuccess -> apiSuccess.getRequestClass().equals(ServiceLogRequest.class), apiSuccess -> serviceLogResponse(apiSuccess) )
-                .match(ApiSuccess.class, apiSuccess -> apiSuccess.getRequestClass().equals(DeleteServiceRequest.class), apiSuccess -> serviceDeleted(apiSuccess) )
-
+        return builder
                 .match(DeleteServiceRequest.class, deleteServiceRequest -> deleteService(deleteServiceRequest))
-
-                .match(SerializationException.class, serializationException -> serializationException(serializationException))
-                .match(ApiError.class, apiError -> logApiError(apiError) )
-                .match(ApiException.class, apiException -> apiException.getCause().printStackTrace(logger) )
+                .match(ServiceSpec.class, serviceSpec -> createService(serviceSpec))
                 .build();
     }
 
-
-
-    private void serializationException(SerializationException serializationException) {
-        serializationException.getCause().printStackTrace(logger);
-        LOGGER.log(Level.SEVERE,"",serializationException.getCause());
-    }
-
-    private void serviceDeleted(ApiSuccess response) {
-        getContext().stop(getSelf());
-    }
     private void deleteService(DeleteServiceRequest deleteServiceRequest) {
-        apiRequestWithErrorHandling( deleteServiceRequest, this::serviceDeleted);
+        apiRequestWithErrorHandling( deleteServiceRequest, (ApiSuccess response) -> getContext().stop(getSelf()));
     }
-
 
     private void serviceLogResponse(ApiSuccess apiSuccess) {
         ResponseEntity responseEntity = apiSuccess.getResponseEntity();
@@ -81,13 +63,6 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
             logger.print(x.decodeString(Charset.defaultCharset()));
         } , materializer);
     }
-
-    private  ReceiveBuilder serviceCreateMatchers(ReceiveBuilder builder) {
-        return builder.match(ServiceSpec.class, serviceSpec -> createService(serviceSpec))
-                .match(CreateServiceResponse.class, createServiceResponse -> createServiceSuccess(createServiceResponse))
-                .match(ApiException.class, apiException -> apiException.getRequestClass().equals(ServiceSpec.class), apiException -> serviceCreateException(apiException) );
-    }
-
 
     private void createService(ServiceSpec createRequest) {
         logger.println(String.format( "[%s] Creating Service with Name : %s" , DateFormat.getTimeInstance().format(new Date()), createRequest.Name));
@@ -113,17 +88,9 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
         apiRequestWithErrorHandling( new ServiceLogRequest(createServiceResponse.ID), this::serviceLogResponse);
     }
 
-
-
     private void serviceCreateException(ApiException apiException) {
         apiException.getCause().printStackTrace(this.logger);
-        resechedule();
-    }
-
-
-    private void resechedule() {
-        ActorSystem system = getContext().getSystem();
-        system.scheduler().scheduleOnce(Duration.apply(12, TimeUnit.SECONDS),getSelf(),createRequest, getContext().dispatcher(), ActorRef.noSender());
+        reschedule();
     }
 
     private void apiRequest(ApiRequest request, Consumer<Object> action) {
@@ -137,7 +104,10 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
                logApiException((ApiException) result);
            }else if(result instanceof  ApiError){
                logApiError((ApiError)result);
-           }else{
+           }else if(result instanceof SerializationException){
+              logSerializationException((SerializationException) result);
+           }
+           else{
               action.accept((T)result);
            }
         } );
@@ -152,5 +122,13 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
     private void logApiException(ApiException apiException) {
         apiException.getCause().printStackTrace(logger);
     }
+    private void logSerializationException(SerializationException serializationException) {
+        serializationException.getCause().printStackTrace(logger);
+        LOGGER.log(Level.SEVERE,"",serializationException.getCause());
+    }
 
+    private void reschedule() {
+        ActorSystem system = getContext().getSystem();
+        system.scheduler().scheduleOnce(Duration.apply(12, TimeUnit.SECONDS),getSelf(),createRequest, getContext().dispatcher(), ActorRef.noSender());
+    }
 }
