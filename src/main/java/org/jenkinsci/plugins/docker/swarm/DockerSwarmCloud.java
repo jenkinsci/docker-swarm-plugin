@@ -35,13 +35,13 @@ public class DockerSwarmCloud extends Cloud {
     private List<DockerSwarmAgentTemplate> agentTemplates = new ArrayList<>();
 
     @DataBoundConstructor
-    public DockerSwarmCloud(String dockerSwarmApiUrl, String jenkinsUrl, String swarmNetwork, String cacheDriverName, List<DockerSwarmAgentTemplate> dockerSwarmAgentTemplates) {
+    public DockerSwarmCloud(String dockerSwarmApiUrl, String jenkinsUrl, String swarmNetwork, String cacheDriverName, List<DockerSwarmAgentTemplate> agentTemplates) {
         super(DOCKER_SWARM_CLOUD_NAME);
         this.dockerSwarmApiUrl = dockerSwarmApiUrl;
         this.jenkinsUrl = jenkinsUrl;
         this.swarmNetwork = swarmNetwork;
         this.cacheDriverName = cacheDriverName;
-        this.agentTemplates = dockerSwarmAgentTemplates;
+        this.agentTemplates = agentTemplates;
     }
 
     //for yaml serialization
