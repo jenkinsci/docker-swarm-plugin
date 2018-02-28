@@ -121,7 +121,7 @@ public class Dashboard {
 
     private <T> T  getFuture(final CompletionStage<Object> future,Class<T> clazz) {
         try {
-            final Object result = future.toCompletableFuture().get(5, TimeUnit.SECONDS);
+            final Object result = future.toCompletableFuture().get(50, TimeUnit.SECONDS);
             return getResult(result,clazz);
         } catch (InterruptedException|ExecutionException |TimeoutException e) {
             throw  new RuntimeException(e);

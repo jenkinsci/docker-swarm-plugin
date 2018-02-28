@@ -95,11 +95,11 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
 
     private void apiRequest(ApiRequest request, Consumer<Object> action) {
         CompletionStage<Object> serviceCreateRequest = new DockerApiRequest(getContext().getSystem(), request).execute();
-        serviceCreateRequest.thenAcceptAsync(action);
+        serviceCreateRequest.thenAccept(action);
     }
     private <T> void  apiRequestWithErrorHandling(ApiRequest request, Consumer<T> action) {
         CompletionStage<Object> serviceCreateRequest = new DockerApiRequest(getContext().getSystem(), request).execute();
-        serviceCreateRequest.thenAcceptAsync(result -> {
+        serviceCreateRequest.thenAccept(result -> {
            if(result instanceof  ApiException){
                logApiException((ApiException) result);
            }else if(result instanceof  ApiError){

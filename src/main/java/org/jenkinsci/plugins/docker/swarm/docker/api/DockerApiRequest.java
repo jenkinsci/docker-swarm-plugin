@@ -35,8 +35,8 @@ public class DockerApiRequest {
 
     public CompletionStage<Object> execute(){
         return marshall(apiRequest.getEntity())
-                .thenComposeAsync( marshallResult -> executeRequest( marshallResult, apiRequest.getHttpRequest()))
-                .thenComposeAsync( httpResponse -> marshallResponse(httpResponse))
+                .thenCompose( marshallResult -> executeRequest( marshallResult, apiRequest.getHttpRequest()))
+                .thenCompose( httpResponse -> marshallResponse(httpResponse))
                 .exceptionally(ex -> new ApiException(apiRequest.getClass(),ex));
     }
 
