@@ -5,6 +5,7 @@
         <f:entry title="Docker swarm api url" field="dockerSwarmApiUrl">
             <f:textbox/>
         </f:entry>
+        <f:validateButton method="validateTestDockerApiConnection" title="Test Connection"  with="dockerSwarmApiUrl"/>
         <f:entry title="Jenkins Url " field="jenkinsUrl">
             <f:textbox/>
         </f:entry>
