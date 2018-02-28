@@ -24,7 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DeadAgentServiceReaperActor extends AbstractActor {
-    private static final Logger LOGGER = Logger.getLogger(DockerSwarmAgentLauncherActor.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(DeadAgentServiceReaperActor.class.getName());
 
     @Override
     public Receive createReceive() {

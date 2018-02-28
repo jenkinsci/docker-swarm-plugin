@@ -172,7 +172,4 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
                 .replaceAll("\\.", "_");
     }
 
-    public Queue.BuildableItem getBi() {
-        return bi;
-    }
 }
