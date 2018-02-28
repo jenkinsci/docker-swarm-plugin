@@ -27,6 +27,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -75,6 +77,23 @@ public class DockerSwarmCloud extends Cloud {
         @Override
         public String getDisplayName() {
             return "Docker Swarm";
+        }
+        public FormValidation doCheckJenkinsUrl(@QueryParameter String jenkinsUrl) {
+            try {
+                new URL(jenkinsUrl);
+                return FormValidation.ok();
+            } catch (MalformedURLException e) {
+                return FormValidation.error(e,"Needs valid http url") ;
+            }
+        }
+
+        public FormValidation doCheckDockerSwarmApiUrl(@QueryParameter String dockerSwarmApiUrl) {
+            try {
+                new URL(dockerSwarmApiUrl);
+                return FormValidation.ok();
+            } catch (MalformedURLException e) {
+                return FormValidation.error(e,"Needs valid http url") ;
+            }
         }
         @RequirePOST
         public FormValidation doValidateTestDockerApiConnection(@QueryParameter("dockerSwarmApiUrl") String dockerSwarmApiUrl){
