@@ -4,14 +4,9 @@ package org.jenkinsci.plugins.docker.swarm;
 import com.google.common.collect.Iterables;
 import hudson.model.Executor;
 import hudson.model.Queue;
-import hudson.model.TaskListener;
-import hudson.remoting.Channel;
 import hudson.slaves.AbstractCloudComputer;
 import hudson.slaves.OfflineCause;
-import hudson.util.StreamTaskListener;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -40,22 +35,6 @@ public class DockerSwarmComputer extends AbstractCloudComputer<DockerSwarmAgent>
     @Override
     public void recordTermination() {
         //no need to record termination
-    }
-
-    @Override
-    public void setChannel(final Channel channel, final OutputStream launchLog, final Channel.Listener listener) throws IOException, InterruptedException {
-        final TaskListener taskListener = new StreamTaskListener(launchLog);
-        channel.addListener(new Channel.Listener() {
-            @Override
-            public void onClosed(final Channel channel, final IOException cause) {
-               DockerSwarmComputerLauncher launcher = (DockerSwarmComputerLauncher) getLauncher();
-                Queue.BuildableItem queueItem = launcher.getBi();
-                if(cause != null){
-                //    Jenkins.getInstance().getQueue().schedule2(queueItem.task,0, (List<Action>) queueItem.getAllActions());
-                }
-            }
-        });
-        super.setChannel(channel, launchLog, listener);
     }
 
     @Override
