@@ -1,17 +1,17 @@
 
 package org.jenkinsci.plugins.docker.swarm.docker.api.task;
 
-import akka.http.javadsl.model.HttpMethods;
+import org.jenkinsci.plugins.docker.swarm.docker.api.HttpMethod;
 import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.marshalling.ResponseType;
 
 public class ListTasksRequest extends ApiRequest {
 
     public ListTasksRequest() {
-        super(HttpMethods.GET, "/tasks", Task.class, ResponseType.LIST);
+        super(HttpMethod.GET, "/tasks", Task.class, ResponseType.LIST);
     }
     public ListTasksRequest(String dockerSwarmApiUrl, String url) {
-        super(HttpMethods.GET, dockerSwarmApiUrl, url, Task.class, ResponseType.LIST);
+        super(HttpMethod.GET, dockerSwarmApiUrl, url, Task.class, ResponseType.LIST);
     }
 
 
