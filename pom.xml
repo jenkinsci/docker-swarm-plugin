@@ -31,7 +31,6 @@
         <jenkins.version>2.76</jenkins.version>
         <java.level>8</java.level>
         <jackson-jaxrs.version>2.6.4</jackson-jaxrs.version>
-        <slf4j-api.version>1.7.25</slf4j-api.version>
     </properties>
     <repositories>
         <repository>
@@ -80,11 +79,6 @@
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-stream_2.12</artifactId>
-            <version>2.5.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-actor_2.12</artifactId>
             <version>2.5.6</version>
         </dependency>
@@ -94,16 +88,10 @@
             <version>${jackson-jaxrs.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j-api.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>durable-task</artifactId>
             <version>1.16</version>
         </dependency>
-
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
