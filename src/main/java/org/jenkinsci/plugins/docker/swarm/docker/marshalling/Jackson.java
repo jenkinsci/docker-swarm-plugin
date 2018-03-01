@@ -1,11 +1,6 @@
 
 package org.jenkinsci.plugins.docker.swarm.docker.marshalling;
 
-import akka.http.javadsl.marshalling.Marshaller;
-import akka.http.javadsl.model.HttpEntity;
-import akka.http.javadsl.model.MediaTypes;
-import akka.http.javadsl.model.RequestEntity;
-import akka.http.javadsl.unmarshalling.Unmarshaller;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -27,22 +22,7 @@ public class Jackson {
     defaultObjectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,false);
   }
 
-  public static <T> Marshaller<T, RequestEntity> marshaller(ObjectMapper mapper) {
-    return Marshaller.wrapEntity(
-            u -> toJSON(mapper, u),
-            Marshaller.stringToEntity(),
-            MediaTypes.APPLICATION_JSON
-    );
-  }
 
-  public static <T> Unmarshaller<HttpEntity, T> unmarshaller(Class<T> expectedType) {
-    return unmarshaller(defaultObjectMapper, expectedType);
-  }
-
-  public static <T> Unmarshaller<HttpEntity, T> unmarshaller(ObjectMapper mapper, Class<T> expectedType) {
-    return Unmarshaller.forMediaType(MediaTypes.APPLICATION_JSON, Unmarshaller.entityToString())
-            .thenApply(s -> fromJSON(mapper, s, expectedType));
-  }
 
   private static String toJSON(ObjectMapper mapper, Object object) {
     try {
@@ -74,15 +54,6 @@ public class Jackson {
   }
 
 
-  public static Unmarshaller<HttpEntity,?> unmarshaller(Class<?> responseClass, ResponseType responseType) {
-    if(responseType == ResponseType.CLASS){
-      return unmarshaller(responseClass);
-    }else {
-      return Unmarshaller.forMediaType(MediaTypes.APPLICATION_JSON, Unmarshaller.entityToString())
-              .thenApply(s -> fromJSONArray(defaultObjectMapper, s, responseClass));
-    }
-
-  }
 
   public static String toJson(Object object){
       return toJSON(getDefaultObjectMapper(),object);

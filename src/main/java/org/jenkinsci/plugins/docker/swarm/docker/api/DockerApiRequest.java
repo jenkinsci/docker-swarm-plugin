@@ -1,6 +1,5 @@
 package org.jenkinsci.plugins.docker.swarm.docker.api;
 
-import akka.http.javadsl.model.HttpRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -32,11 +31,10 @@ public class DockerApiRequest {
         Object result = null;
         try {
             String jsonString = Jackson.getDefaultObjectMapper().writeValueAsString(apiRequest.getEntity());
-            HttpRequest httpRequest = apiRequest.getHttpRequest();
             RequestBody body = RequestBody.create(JSON, jsonString);
-            String method = httpRequest.method().name();
+            String method = apiRequest.getMethod().name();
             Request apiCall = new Request.Builder()
-                    .url(httpRequest.getUri().toString())
+                    .url(apiRequest.getUrl())
                     .method(method, method.equals("GET")?null:body)
                     .build();
             Response  response = client.newCall(apiCall).execute();

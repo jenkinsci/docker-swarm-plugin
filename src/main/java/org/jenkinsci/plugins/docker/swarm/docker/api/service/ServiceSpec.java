@@ -1,8 +1,8 @@
 
 package org.jenkinsci.plugins.docker.swarm.docker.api.service;
 
-import akka.http.javadsl.model.HttpMethods;
 import com.google.common.base.Strings;
+import org.jenkinsci.plugins.docker.swarm.docker.api.HttpMethod;
 import org.jenkinsci.plugins.docker.swarm.docker.api.containers.ContainerSpec;
 import org.jenkinsci.plugins.docker.swarm.docker.api.network.Network;
 import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
@@ -21,13 +21,13 @@ public class ServiceSpec extends ApiRequest {
 
     public List<Network> Networks = new ArrayList<>();
     public ServiceSpec(String name, String Image, String[] Cmd, String[] Env) {
-        super(HttpMethods.POST, "/services/create",CreateServiceResponse.class, ResponseType.CLASS);
+        super(HttpMethod.POST, "/services/create",CreateServiceResponse.class, ResponseType.CLASS);
         this.Name = name;
         this.TaskTemplate = new TaskTemplate(Image,Cmd,Env);
     }
 
     public ServiceSpec(){
-        super(HttpMethods.POST, "", "/services/create",CreateServiceResponse.class, ResponseType.CLASS);
+        super(HttpMethod.POST, "", "/services/create",CreateServiceResponse.class, ResponseType.CLASS);
     }
 
     public void  addBindVolume(String source,String target){

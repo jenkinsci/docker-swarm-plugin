@@ -1,9 +1,8 @@
 package org.jenkinsci.plugins.docker.swarm.docker.api.request;
 
-import akka.http.javadsl.model.HttpMethod;
-import akka.http.javadsl.model.HttpRequest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
+import org.jenkinsci.plugins.docker.swarm.docker.api.HttpMethod;
 import org.jenkinsci.plugins.docker.swarm.docker.marshalling.Jackson;
 import org.jenkinsci.plugins.docker.swarm.docker.marshalling.ResponseType;
 
@@ -13,7 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class ApiRequest {
-
     @JsonIgnore
     private final HttpMethod method;
     @JsonIgnore
@@ -45,9 +43,12 @@ public abstract class ApiRequest {
            throw new RuntimeException(e);
         }
     }
+    public String getUrl() {
+        return url;
+    }
 
-    public HttpRequest getHttpRequest() {
-        return HttpRequest.create(url).withMethod(method);
+    public HttpMethod getMethod() {
+        return method;
     }
 
     public Class<?> getResponseClass(){
