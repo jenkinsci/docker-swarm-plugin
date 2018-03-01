@@ -41,19 +41,19 @@ public class DeadAgentServiceReaperActor extends AbstractActor {
             final DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
             final ActorSystem as = swarmPlugin.getActorSystem();
             String dockerSwarmApiUrl = DockerSwarmCloud.get().getDockerSwarmApiUrl();
-            final CompletionStage<Object> nodesStage = new DockerApiRequest(as, new ListServicesRequest(dockerSwarmApiUrl,"label","ROLE=jenkins-agent")).execute();
+            final CompletionStage<Object> nodesStage = new DockerApiRequest(new ListServicesRequest(dockerSwarmApiUrl,"label","ROLE=jenkins-agent")).execute();
             CompletionStage<Object> tasksStage = nodesStage.thenApplyAsync(services -> {
                 if(services instanceof ApiException){
                     return services;
                 }
                 for(ScheduledService service : (List<ScheduledService>)services ){
-                    CompletionStage<Object> tasksRequest = new DockerApiRequest(as, new ListTasksRequest(dockerSwarmApiUrl, "service", service.Spec.Name)).execute();
+                    CompletionStage<Object> tasksRequest = new DockerApiRequest( new ListTasksRequest(dockerSwarmApiUrl, "service", service.Spec.Name)).execute();
                     List<Task> tasks = getFuture(tasksRequest, List.class);
                     if(tasks != null) {
                         for(Task task : tasks){
                             if(task.isComplete()){
                                 LOGGER.info("Reaping service: "+service.Spec.Name );
-                                CompletionStage<Object> deleteServiceRequest = new DockerApiRequest(as, new DeleteServiceRequest(dockerSwarmApiUrl,service.Spec.Name)).execute();
+                                CompletionStage<Object> deleteServiceRequest = new DockerApiRequest(new DeleteServiceRequest(dockerSwarmApiUrl,service.Spec.Name)).execute();
                                 getFuture(deleteServiceRequest,Object.class);
                                 break;
                             }

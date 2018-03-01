@@ -24,6 +24,10 @@ public class TaskTemplate {
         this.Placement = new Placement(placementConstraints);
     }
 
+    public void setRestartAttemptCount(int restartAttemptCount) {
+        this.RestartPolicy.MaxAttempts = restartAttemptCount;
+    }
+
     public static class Placement{
         public Placement(){
            //for deseriliztion
