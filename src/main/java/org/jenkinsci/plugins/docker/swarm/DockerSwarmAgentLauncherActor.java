@@ -5,6 +5,7 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.japi.pf.ReceiveBuilder;
+import okhttp3.Response;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.docker.swarm.docker.api.DockerApiRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
@@ -18,6 +19,10 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.service.ServiceLogRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.service.ServiceSpec;
 import scala.concurrent.duration.Duration;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.text.DateFormat;
 import java.util.Date;
@@ -54,11 +59,20 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
     }
 
     private void serviceLogResponse(ApiSuccess apiSuccess) {
-//        ResponseEntity responseEntity = apiSuccess.getResponseEntity();
-//        ActorMaterializer materializer = ActorMaterializer.create(getContext());
-//        responseEntity.getDataBytes().runForeach(x -> {
-//            logger.print(x.decodeString(Charset.defaultCharset()));
-//        } , materializer);
+        Response response = apiSuccess.getResponse();
+        InputStream in = response.body().byteStream();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        try {
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                logger.println(line);
+                logger.flush();
+            }
+        }catch (IOException _){}
+        finally {
+            response.body().close();
+        }
     }
 
     private void createService(ServiceSpec createRequest) {
@@ -91,22 +105,22 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
     }
 
     private void apiRequest(ApiRequest request, Consumer<Object> action) {
-        CompletionStage<Object> serviceCreateRequest = new DockerApiRequest(getContext().getSystem(), request).execute();
+        CompletionStage<Object> serviceCreateRequest = new DockerApiRequest(request).execute();
         serviceCreateRequest.thenAccept(action);
     }
     private <T> void  apiRequestWithErrorHandling(ApiRequest request, Consumer<T> action) {
-        CompletionStage<Object> serviceCreateRequest = new DockerApiRequest(getContext().getSystem(), request).execute();
+        CompletionStage<Object> serviceCreateRequest = new DockerApiRequest(request).execute();
         serviceCreateRequest.thenAccept(result -> {
-           if(result instanceof  ApiException){
-               logApiException((ApiException) result);
-           }else if(result instanceof  ApiError){
-               logApiError((ApiError)result);
-           }else if(result instanceof SerializationException){
-              logSerializationException((SerializationException) result);
-           }
-           else{
-              action.accept((T)result);
-           }
+            if(result instanceof  ApiException){
+                logApiException((ApiException) result);
+            }else if(result instanceof  ApiError){
+                logApiError((ApiError)result);
+            }else if(result instanceof SerializationException){
+                logSerializationException((SerializationException) result);
+            }
+            else{
+                action.accept((T)result);
+            }
         } );
     }
 

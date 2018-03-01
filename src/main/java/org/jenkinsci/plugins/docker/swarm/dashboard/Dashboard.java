@@ -1,13 +1,11 @@
 package org.jenkinsci.plugins.docker.swarm.dashboard;
 
-import akka.actor.ActorSystem;
 import hudson.model.Job;
 import hudson.model.Queue;
 import hudson.model.Run;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentInfo;
-import org.jenkinsci.plugins.docker.swarm.DockerSwarmPlugin;
 import org.jenkinsci.plugins.docker.swarm.docker.api.DockerApiRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.ListNodesRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
@@ -92,13 +90,10 @@ public class Dashboard {
 
 
     private List<SwarmNode> calculateNodes() {
-        final DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-        final ActorSystem as = swarmPlugin.getActorSystem();
-
-        final CompletionStage<Object> nodesStage = new DockerApiRequest(as, new ListNodesRequest()).execute();
+        final CompletionStage<Object> nodesStage = new DockerApiRequest( new ListNodesRequest()).execute();
         final CompletionStage<Object> swarmNodesFuture = nodesStage.thenComposeAsync(nodes -> {
             if (nodes instanceof List) {
-                final CompletableFuture<Object> tasksFuture = new DockerApiRequest(as, new ListTasksRequest()).execute().toCompletableFuture();
+                final CompletableFuture<Object> tasksFuture = new DockerApiRequest(new ListTasksRequest()).execute().toCompletableFuture();
                 return tasksFuture.thenApply(tasks -> {
                     final List<Node> nodeList = (List<Node>) nodes;
                     return toSwarmNodes(getResult(tasks,List.class), nodeList);

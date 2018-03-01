@@ -1,26 +1,26 @@
 package org.jenkinsci.plugins.docker.swarm.docker.api.response;
 
 
-import akka.http.javadsl.model.ResponseEntity;
+import okhttp3.Response;
 import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 
 public class ApiSuccess {
 
     private Class<? extends ApiRequest> requestClass;
+    private Response response;
 
-
-    private ResponseEntity responseEntity;
-
-    public ApiSuccess(Class<? extends ApiRequest> requestClass, ResponseEntity responseEntity) {
+    public ApiSuccess(Class<? extends ApiRequest> requestClass, Response response) {
         this.requestClass = requestClass;
-        this.responseEntity = responseEntity;
+        this.response = response;
     }
 
     public Class<? extends ApiRequest> getRequestClass() {
         return requestClass;
     }
 
-    public ResponseEntity getResponseEntity() {
-        return responseEntity;
+    public Response getResponse() {
+        return response;
     }
+
+
 }

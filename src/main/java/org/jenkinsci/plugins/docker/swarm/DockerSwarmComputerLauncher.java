@@ -75,9 +75,14 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setTmpfs(dockerSwarmAgentTemplate, crReq);
         setConstraints(dockerSwarmAgentTemplate,crReq);
         setLabels(crReq);
+        setRestartAttemptCount(crReq);
 
         final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerSwarmAgentLauncherActor.props(listener.getLogger()), computer.getName());
         agentLauncher.tell(crReq,ActorRef.noSender());
+    }
+
+    private void setRestartAttemptCount(ServiceSpec crReq) {
+        crReq.TaskTemplate.setRestartAttemptCount(500);
     }
 
     private void setLabels(ServiceSpec crReq) {

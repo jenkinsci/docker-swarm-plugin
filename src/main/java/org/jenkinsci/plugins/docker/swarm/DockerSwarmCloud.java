@@ -97,8 +97,7 @@ public class DockerSwarmCloud extends Cloud {
         }
         @RequirePOST
         public FormValidation doValidateTestDockerApiConnection(@QueryParameter("dockerSwarmApiUrl") String dockerSwarmApiUrl){
-            DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-            CompletionStage<Object> serviceCreateRequest = new DockerApiRequest(swarmPlugin.getActorSystem(), new PingRequest(dockerSwarmApiUrl)).execute();
+            CompletionStage<Object> serviceCreateRequest = new DockerApiRequest(new PingRequest(dockerSwarmApiUrl)).execute();
             try {
                 Object response = serviceCreateRequest.toCompletableFuture().get(3l, TimeUnit.SECONDS);
                 if(response instanceof ApiException){
