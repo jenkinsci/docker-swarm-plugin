@@ -14,8 +14,6 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationExcep
 import org.jenkinsci.plugins.docker.swarm.docker.marshalling.Jackson;
 
 import java.io.IOException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 
 public class DockerApiRequest {
     private final ApiRequest apiRequest;
@@ -27,7 +25,7 @@ public class DockerApiRequest {
         this.apiRequest = request;
     }
 
-    public CompletionStage<Object> execute(){
+    public Object execute(){
         Object result = null;
         try {
             String jsonString = Jackson.getDefaultObjectMapper().writeValueAsString(apiRequest.getEntity());
@@ -50,7 +48,7 @@ public class DockerApiRequest {
             e.printStackTrace();
             result  = new ApiException(apiRequest.getClass(),e);
         }
-        return CompletableFuture.completedFuture(result);
+        return result;
     }
 
     private Object handleSuccess(Response response) throws IOException {
