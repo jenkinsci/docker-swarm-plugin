@@ -6,7 +6,6 @@ import hudson.model.Run;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentInfo;
-import org.jenkinsci.plugins.docker.swarm.docker.api.DockerApiRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.ListNodesRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
@@ -85,9 +84,9 @@ public class Dashboard {
 
 
     private List<SwarmNode> calculateNodes() {
-        final Object nodes = new DockerApiRequest(new ListNodesRequest()).execute();
+        final Object nodes = new ListNodesRequest().execute();
         final List<Node> nodeList = getResult( nodes,List.class);
-        final Object tasks = new DockerApiRequest(new ListTasksRequest()).execute();
+        final Object tasks = new ListTasksRequest().execute();
         return toSwarmNodes(getResult(tasks, List.class), nodeList);
     }
 
