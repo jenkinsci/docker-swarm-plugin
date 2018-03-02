@@ -26,9 +26,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -55,7 +53,8 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
     }
 
     private void deleteService(DeleteServiceRequest deleteServiceRequest) {
-        apiRequestWithErrorHandling( deleteServiceRequest, (ApiSuccess response) -> getContext().stop(getSelf()));
+        apiRequestWithErrorHandling( deleteServiceRequest);
+        getContext().stop(getSelf());
     }
 
     private void serviceLogResponse(ApiSuccess apiSuccess) {
@@ -78,7 +77,7 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
     private void createService(ServiceSpec createRequest) {
         logger.println(String.format( "[%s] Creating Service with Name : %s" , DateFormat.getTimeInstance().format(new Date()), createRequest.Name));
         this.createRequest = createRequest;
-        apiRequest(createRequest,this::handleServiceResponse);
+        handleServiceResponse(apiRequest(createRequest));
     }
 
     private void handleServiceResponse(Object response) {
@@ -96,7 +95,10 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
         if(StringUtils.isNotEmpty(createServiceResponse.Warning)){
             logger.println("ServiceSpec creation warning : " + createServiceResponse.Warning);
         }
-        apiRequestWithErrorHandling( new ServiceLogRequest(createServiceResponse.ID), this::serviceLogResponse);
+        Object result = apiRequestWithErrorHandling(new ServiceLogRequest(createServiceResponse.ID));
+        if(result != null){
+            serviceLogResponse((ApiSuccess) result);
+        }
     }
 
     private void serviceCreateException(ApiException apiException) {
@@ -104,24 +106,22 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
         reschedule();
     }
 
-    private void apiRequest(ApiRequest request, Consumer<Object> action) {
-        CompletionStage<Object> serviceCreateRequest = new DockerApiRequest(request).execute();
-        serviceCreateRequest.thenAccept(action);
+    private Object apiRequest(ApiRequest request) {
+        return new DockerApiRequest(request).execute();
     }
-    private <T> void  apiRequestWithErrorHandling(ApiRequest request, Consumer<T> action) {
-        CompletionStage<Object> serviceCreateRequest = new DockerApiRequest(request).execute();
-        serviceCreateRequest.thenAccept(result -> {
-            if(result instanceof  ApiException){
-                logApiException((ApiException) result);
-            }else if(result instanceof  ApiError){
-                logApiError((ApiError)result);
-            }else if(result instanceof SerializationException){
-                logSerializationException((SerializationException) result);
-            }
-            else{
-                action.accept((T)result);
-            }
-        } );
+    private  Object apiRequestWithErrorHandling(ApiRequest request) {
+        Object result = new DockerApiRequest(request).execute();
+        if(result instanceof  ApiException){
+            logApiException((ApiException) result);
+        }else if(result instanceof  ApiError){
+            logApiError((ApiError)result);
+        }else if(result instanceof SerializationException){
+            logSerializationException((SerializationException) result);
+        }
+        else{
+            return result;
+        }
+        return null;
     }
 
     private void logApiError(ApiError apiError) {

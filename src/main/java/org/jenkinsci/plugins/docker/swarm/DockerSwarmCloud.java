@@ -32,10 +32,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 public class DockerSwarmCloud extends Cloud {
@@ -97,19 +93,14 @@ public class DockerSwarmCloud extends Cloud {
         }
         @RequirePOST
         public FormValidation doValidateTestDockerApiConnection(@QueryParameter("dockerSwarmApiUrl") String dockerSwarmApiUrl){
-            CompletionStage<Object> serviceCreateRequest = new DockerApiRequest(new PingRequest(dockerSwarmApiUrl)).execute();
-            try {
-                Object response = serviceCreateRequest.toCompletableFuture().get(3l, TimeUnit.SECONDS);
-                if(response instanceof ApiException){
-                    return FormValidation.error(((ApiException)response).getCause(),"Couldn't _ping docker api");
-                }
-                if(response instanceof ApiError){
-                    return FormValidation.error(((ApiError)response).getMessage());
-                }
-                return FormValidation.ok("Connection successful");
-            } catch (InterruptedException|ExecutionException|TimeoutException e) {
-                return FormValidation.error(e,"Couldn't _ping docker api");
+            Object response = new DockerApiRequest(new PingRequest(dockerSwarmApiUrl)).execute();
+            if(response instanceof ApiException){
+                return FormValidation.error(((ApiException)response).getCause(),"Couldn't _ping docker api");
             }
+            if(response instanceof ApiError){
+                return FormValidation.error(((ApiError)response).getMessage());
+            }
+            return FormValidation.ok("Connection successful");
         }
     }
 

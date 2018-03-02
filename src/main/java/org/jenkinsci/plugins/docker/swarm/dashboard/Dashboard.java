@@ -19,11 +19,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,7 +26,7 @@ public class Dashboard {
     private final List<SwarmNode> nodes;
 
     public Dashboard(){
-       this.nodes = calculateNodes();
+        this.nodes = calculateNodes();
     }
 
     public Iterable getQueue() {
@@ -48,7 +43,7 @@ public class Dashboard {
     }
 
     public List<SwarmNode> getNodes(){
-       return this.nodes;
+        return this.nodes;
     }
 
     public String getUsage() {
@@ -90,37 +85,18 @@ public class Dashboard {
 
 
     private List<SwarmNode> calculateNodes() {
-        final CompletionStage<Object> nodesStage = new DockerApiRequest( new ListNodesRequest()).execute();
-        final CompletionStage<Object> swarmNodesFuture = nodesStage.thenComposeAsync(nodes -> {
-            if (nodes instanceof List) {
-                final CompletableFuture<Object> tasksFuture = new DockerApiRequest(new ListTasksRequest()).execute().toCompletableFuture();
-                return tasksFuture.thenApply(tasks -> {
-                    final List<Node> nodeList = (List<Node>) nodes;
-                    return toSwarmNodes(getResult(tasks,List.class), nodeList);
-                });
-            }
-            return CompletableFuture.completedFuture(nodes);
-        });
-
-        return  getFuture(swarmNodesFuture,List.class);
+        final Object nodes = new DockerApiRequest(new ListNodesRequest()).execute();
+        final List<Node> nodeList = getResult( nodes,List.class);
+        final Object tasks = new DockerApiRequest(new ListTasksRequest()).execute();
+        return toSwarmNodes(getResult(tasks, List.class), nodeList);
     }
 
-    private Object toSwarmNodes(List<Task> tasks, List<Node> nodeList) {
+    private List<SwarmNode> toSwarmNodes(List<Task> tasks, List<Node> nodeList) {
         return nodeList.stream().map(node -> {
             Stream<Task> tasksForNode = tasks.stream()
                     .filter(task -> node.ID.equals(task.NodeID));
             return    new SwarmNode(node, tasksForNode.collect(Collectors.toList()));
         }).collect(Collectors.toList());
-    }
-
-
-    private <T> T  getFuture(final CompletionStage<Object> future,Class<T> clazz) {
-        try {
-            final Object result = future.toCompletableFuture().get(50, TimeUnit.SECONDS);
-            return getResult(result,clazz);
-        } catch (InterruptedException|ExecutionException |TimeoutException e) {
-            throw  new RuntimeException(e);
-        }
     }
 
     private <T> T  getResult(Object result, Class<T> clazz){
@@ -130,7 +106,7 @@ public class Dashboard {
         if(result instanceof ApiException){
             throw new RuntimeException (((ApiException)result).getCause());
         }
-       return clazz.cast(result);
+        return clazz.cast(result);
     }
 
     private String getJobName(final Run build) {

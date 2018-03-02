@@ -16,11 +16,7 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
 import scala.concurrent.duration.Duration;
 
 import java.util.List;
-import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DeadAgentServiceReaperActor extends AbstractActor {
@@ -41,44 +37,26 @@ public class DeadAgentServiceReaperActor extends AbstractActor {
             final DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
             final ActorSystem as = swarmPlugin.getActorSystem();
             String dockerSwarmApiUrl = DockerSwarmCloud.get().getDockerSwarmApiUrl();
-            final CompletionStage<Object> nodesStage = new DockerApiRequest(new ListServicesRequest(dockerSwarmApiUrl,"label","ROLE=jenkins-agent")).execute();
-            CompletionStage<Object> tasksStage = nodesStage.thenApplyAsync(services -> {
-                if(services instanceof ApiException){
-                    return services;
-                }
-                for(ScheduledService service : (List<ScheduledService>)services ){
-                    CompletionStage<Object> tasksRequest = new DockerApiRequest( new ListTasksRequest(dockerSwarmApiUrl, "service", service.Spec.Name)).execute();
-                    List<Task> tasks = getFuture(tasksRequest, List.class);
+            final Object result = new DockerApiRequest(new ListServicesRequest(dockerSwarmApiUrl,"label","ROLE=jenkins-agent")).execute();
+                for(ScheduledService service : (List<ScheduledService>)getResult(result,List.class) ) {
+                    Object tasks = new DockerApiRequest( new ListTasksRequest(dockerSwarmApiUrl, "service", service.Spec.Name)).execute();
                     if(tasks != null) {
-                        for(Task task : tasks){
+                        for(Task task : (List<Task>)getResult(tasks,List.class)){
                             if(task.isComplete()){
                                 LOGGER.info("Reaping service: "+service.Spec.Name );
-                                CompletionStage<Object> deleteServiceRequest = new DockerApiRequest(new DeleteServiceRequest(dockerSwarmApiUrl,service.Spec.Name)).execute();
-                                getFuture(deleteServiceRequest,Object.class);
+                                new DockerApiRequest(new DeleteServiceRequest(dockerSwarmApiUrl,service.Spec.Name)).execute();
                                 break;
                             }
                         }
-
                     }
-                }
-                return services;
-            });
-            Object o = getFuture(tasksStage,Object.class);
-            if(o instanceof  ApiException){
-                LOGGER.log(Level.INFO,"Reaper failed with ",((ApiException)o).getCause());
-            }}finally {
+
+            }
+        }finally {
             resechedule();
         }
 
     }
-    private <T> T  getFuture(final CompletionStage<Object> future,Class<T> clazz) {
-        try {
-            final Object result = future.toCompletableFuture().get(5, TimeUnit.SECONDS);
-            return getResult(result,clazz);
-        } catch (InterruptedException|ExecutionException |TimeoutException e) {
-            throw  new RuntimeException(e);
-        }
-    }
+
     private <T> T  getResult(Object result, Class<T> clazz){
         if(result instanceof SerializationException){
             throw new RuntimeException (((SerializationException)result).getCause());
