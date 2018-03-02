@@ -1,10 +1,8 @@
 package org.jenkinsci.plugins.docker.swarm.docker.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiError;
@@ -17,8 +15,6 @@ import java.io.IOException;
 
 public class DockerApiRequest {
     private final ApiRequest apiRequest;
-    public static final MediaType JSON
-            = MediaType.parse("application/json; charset=utf-8");
     private  static final OkHttpClient client = new OkHttpClient();
 
     public DockerApiRequest(ApiRequest request) {
@@ -26,29 +22,15 @@ public class DockerApiRequest {
     }
 
     public Object execute(){
-        Object result = null;
         try {
-            String jsonString = Jackson.getDefaultObjectMapper().writeValueAsString(apiRequest.getEntity());
-            RequestBody body = RequestBody.create(JSON, jsonString);
-            String method = apiRequest.getMethod().name();
-            Request apiCall = new Request.Builder()
-                    .url(apiRequest.getUrl())
-                    .method(method, method.equals("GET")?null:body)
-                    .build();
+            Request apiCall = apiRequest.toOkHttpRequest();
             Response  response = client.newCall(apiCall).execute();
-            if(response.isSuccessful()){
-                result = handleSuccess(response);
-            }else {
-                result = handleFailure(response);
-            }
-
+            return response.isSuccessful()? handleSuccess(response): handleFailure(response);
         } catch (JsonProcessingException e) {
-            result = new SerializationException(e);
+            return new SerializationException(e);
         } catch (IOException e) {
-            e.printStackTrace();
-            result  = new ApiException(apiRequest.getClass(),e);
+            return new ApiException(apiRequest.getClass(),e);
         }
-        return result;
     }
 
     private Object handleSuccess(Response response) throws IOException {

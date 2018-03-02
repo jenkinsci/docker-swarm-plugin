@@ -96,7 +96,7 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
             logger.println("ServiceSpec creation warning : " + createServiceResponse.Warning);
         }
         Object result = apiRequestWithErrorHandling(new ServiceLogRequest(createServiceResponse.ID));
-        if(result != null){
+        if(result instanceof  ApiSuccess){
             serviceLogResponse((ApiSuccess) result);
         }
     }
@@ -118,10 +118,7 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
         }else if(result instanceof SerializationException){
             logSerializationException((SerializationException) result);
         }
-        else{
-            return result;
-        }
-        return null;
+        return result;
     }
 
     private void logApiError(ApiError apiError) {

@@ -1,6 +1,10 @@
 package org.jenkinsci.plugins.docker.swarm.docker.api.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
 import org.jenkinsci.plugins.docker.swarm.docker.api.HttpMethod;
 import org.jenkinsci.plugins.docker.swarm.docker.marshalling.Jackson;
@@ -20,6 +24,7 @@ public abstract class ApiRequest {
     private Class<?> responseClass;
     @JsonIgnore
     private ResponseType responseType;
+    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     public ApiRequest(HttpMethod method, String dockerApiUrl, String url, Class<?> responseClass , ResponseType responseType) {
         this.responseClass = responseClass;
@@ -43,11 +48,11 @@ public abstract class ApiRequest {
            throw new RuntimeException(e);
         }
     }
-    public String getUrl() {
+    private String getUrl() {
         return url;
     }
 
-    public HttpMethod getMethod() {
+    private HttpMethod getMethod() {
         return method;
     }
 
@@ -62,4 +67,13 @@ public abstract class ApiRequest {
         return responseType;
     }
 
+    public Request toOkHttpRequest() throws JsonProcessingException {
+        String jsonString = Jackson.toJson(getEntity());
+        RequestBody body = RequestBody.create(JSON, jsonString);
+        String method = getMethod().name();
+        return new Request.Builder()
+                .url(getUrl())
+                .method(method, method.equals("GET")?null:body)
+                .build();
+    }
 }
