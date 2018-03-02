@@ -14,7 +14,6 @@ import hudson.slaves.Cloud;
 import hudson.slaves.NodeProvisioner;
 import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.docker.swarm.docker.api.DockerApiRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.ping.PingRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiError;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
@@ -93,7 +92,7 @@ public class DockerSwarmCloud extends Cloud {
         }
         @RequirePOST
         public FormValidation doValidateTestDockerApiConnection(@QueryParameter("dockerSwarmApiUrl") String dockerSwarmApiUrl){
-            Object response = new DockerApiRequest(new PingRequest(dockerSwarmApiUrl)).execute();
+            Object response = new PingRequest(dockerSwarmApiUrl).execute();
             if(response instanceof ApiException){
                 return FormValidation.error(((ApiException)response).getCause(),"Couldn't _ping docker api");
             }

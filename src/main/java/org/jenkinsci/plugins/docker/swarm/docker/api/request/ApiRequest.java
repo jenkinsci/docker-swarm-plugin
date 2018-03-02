@@ -3,13 +3,21 @@ package org.jenkinsci.plugins.docker.swarm.docker.api.request;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
 import org.jenkinsci.plugins.docker.swarm.docker.api.HttpMethod;
+import org.jenkinsci.plugins.docker.swarm.docker.api.error.ErrorMessage;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiError;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiSuccess;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationException;
 import org.jenkinsci.plugins.docker.swarm.docker.marshalling.Jackson;
 import org.jenkinsci.plugins.docker.swarm.docker.marshalling.ResponseType;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
@@ -24,7 +32,11 @@ public abstract class ApiRequest {
     private Class<?> responseClass;
     @JsonIgnore
     private ResponseType responseType;
+
+    @JsonIgnore
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    @JsonIgnore
+    private  static final OkHttpClient client = new OkHttpClient();
 
     public ApiRequest(HttpMethod method, String dockerApiUrl, String url, Class<?> responseClass , ResponseType responseType) {
         this.responseClass = responseClass;
@@ -67,7 +79,7 @@ public abstract class ApiRequest {
         return responseType;
     }
 
-    public Request toOkHttpRequest() throws JsonProcessingException {
+    private Request toOkHttpRequest() throws JsonProcessingException {
         String jsonString = Jackson.toJson(getEntity());
         RequestBody body = RequestBody.create(JSON, jsonString);
         String method = getMethod().name();
@@ -75,5 +87,36 @@ public abstract class ApiRequest {
                 .url(getUrl())
                 .method(method, method.equals("GET")?null:body)
                 .build();
+    }
+
+    public Object execute(){
+        try {
+            Request apiCall = toOkHttpRequest();
+            Response response = client.newCall(apiCall).execute();
+            return response.isSuccessful()? handleSuccess(response): handleFailure(response);
+        } catch (JsonProcessingException e) {
+            return new SerializationException(e);
+        } catch (IOException e) {
+            return new ApiException(responseClass,e);
+        }
+    }
+    private Object handleSuccess(Response response) throws IOException {
+        if(getResponseClass() != null){
+            return Jackson.fromJSON(response.body().string(), getResponseClass(), getResponseType());
+        }else{
+            return new ApiSuccess(getClass(), response);
+        }
+    }
+
+    private Object handleFailure(Response response) throws IOException {
+        Object result;
+        if(response.code() == 500 ) {
+            result = new ApiError(getClass(), response.code(), response.message()) ;
+        }else{
+            String responseBody = response.body().string();
+            ErrorMessage errorMessage = Jackson.fromJSON(responseBody, ErrorMessage.class);
+            result = new ApiError(getClass(), response.code(), errorMessage.message) ;
+        }
+        return result;
     }
 }

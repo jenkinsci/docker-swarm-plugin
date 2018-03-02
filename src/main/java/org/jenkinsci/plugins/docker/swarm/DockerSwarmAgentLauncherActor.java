@@ -7,7 +7,6 @@ import akka.actor.Props;
 import akka.japi.pf.ReceiveBuilder;
 import okhttp3.Response;
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.plugins.docker.swarm.docker.api.DockerApiRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiError;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
@@ -77,7 +76,7 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
     private void createService(ServiceSpec createRequest) {
         logger.println(String.format( "[%s] Creating Service with Name : %s" , DateFormat.getTimeInstance().format(new Date()), createRequest.Name));
         this.createRequest = createRequest;
-        handleServiceResponse(apiRequest(createRequest));
+        handleServiceResponse(createRequest.execute());
     }
 
     private void handleServiceResponse(Object response) {
@@ -106,11 +105,9 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
         reschedule();
     }
 
-    private Object apiRequest(ApiRequest request) {
-        return new DockerApiRequest(request).execute();
-    }
+
     private  Object apiRequestWithErrorHandling(ApiRequest request) {
-        Object result = new DockerApiRequest(request).execute();
+        Object result =  request.execute();
         if(result instanceof  ApiException){
             logApiException((ApiException) result);
         }else if(result instanceof  ApiError){
