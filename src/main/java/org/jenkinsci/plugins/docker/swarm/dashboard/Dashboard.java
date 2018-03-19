@@ -93,7 +93,7 @@ public class Dashboard {
     private List<SwarmNode> toSwarmNodes(List<Task> tasks, List<Node> nodeList) {
         return nodeList.stream().map(node -> {
             Stream<Task> tasksForNode = tasks.stream()
-                    .filter(task -> !task.isComplete())
+                    .filter(task -> !task.Status.isRunning())
                     .filter(task -> node.ID.equals(task.NodeID));
             return    new SwarmNode(node, tasksForNode.collect(Collectors.toList()));
         }).collect(Collectors.toList());
