@@ -11,6 +11,7 @@ import org.jenkinsci.plugins.durabletask.executors.ContinuableExecutable;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
+import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,13 +58,18 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerS
     @Override
     public void taskCompleted(Executor executor, Queue.Task task, long durationMS) {
         this.isTaskCompleted = true;
+        getLogger(executor).println("Task completed: " + task.getFullDisplayName());
         done(executor);
+    }
+
+    private PrintStream getLogger(Executor executor) {
+        final DockerSwarmComputer c = (DockerSwarmComputer) executor.getOwner();
+        return c.getListener().getLogger();
     }
 
     @Override
     public void taskCompletedWithProblems(Executor executor, Queue.Task task, long durationMS, Throwable problems) {
-        this.isTaskCompleted = true;
-        done(executor);
+        taskCompleted(executor,task,durationMS);
     }
 
     private void done(Executor executor) {
