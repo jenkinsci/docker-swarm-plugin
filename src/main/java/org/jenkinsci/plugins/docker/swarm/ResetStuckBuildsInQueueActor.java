@@ -15,7 +15,8 @@ import java.util.logging.Logger;
 
 public class ResetStuckBuildsInQueueActor extends AbstractActor {
     private static final Logger LOGGER = Logger.getLogger(ResetStuckBuildsInQueueActor.class.getName());
-    public static final int RESET_MINUTES = 1;
+    public static final int RESET_MINUTES = 5;
+    public static final int CHECK_INTERVAL = 1;
 
     @Override
     public Receive createReceive() {
@@ -39,6 +40,7 @@ public class ResetStuckBuildsInQueueActor extends AbstractActor {
                         final String computerName = lblAssignmentAction.getLabel().getName();
                         final Node provisionedNode = Jenkins.getInstance().getNode(computerName);
                         if(provisionedNode!= null){
+                            LOGGER.info(String.format("Rescheduling %s and Deleting %s computer ",item, computerName));
                             BuildScheduler.scheduleBuild((Queue.BuildableItem) item);
                             ((DockerSwarmAgent)provisionedNode).terminate();
                         }
@@ -53,6 +55,6 @@ public class ResetStuckBuildsInQueueActor extends AbstractActor {
 
     private void resechedule() {
         ActorSystem system = getContext().getSystem();
-        system.scheduler().scheduleOnce(Duration.apply(30, TimeUnit.SECONDS),getSelf(),"restart", getContext().dispatcher(), ActorRef.noSender());
+        system.scheduler().scheduleOnce(Duration.apply(CHECK_INTERVAL, TimeUnit.MINUTES),getSelf(),"restart", getContext().dispatcher(), ActorRef.noSender());
     }
 }
