@@ -161,6 +161,13 @@ public class DockerSwarmCloud extends Cloud {
             }
         }
         scheduleReaperActor();
+        scheduleResetStuckBuildsActor();
+    }
+
+    private static void scheduleResetStuckBuildsActor() {
+        DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
+        final ActorRef resetStuckBuildsActor = swarmPlugin.getActorSystem().actorOf(ResetStuckBuildsInQueueActor.props(), "reset-stuck-builds-actor");
+        resetStuckBuildsActor.tell("start",ActorRef.noSender());
     }
 
     private static void scheduleReaperActor() {
