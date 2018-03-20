@@ -6,12 +6,16 @@ import hudson.model.labels.LabelAssignmentAction;
 import hudson.model.labels.LabelAtom;
 import hudson.model.queue.SubTask;
 
+import java.util.Date;
+
 public class DockerSwarmLabelAssignmentAction implements LabelAssignmentAction {
 
     private final Label label;
+    private final long provisionedTime;
 
     public DockerSwarmLabelAssignmentAction(Label label) {
         this.label = label;
+        this.provisionedTime = new Date().getTime();
     }
 
     public DockerSwarmLabelAssignmentAction(String label){
@@ -51,5 +55,8 @@ public class DockerSwarmLabelAssignmentAction implements LabelAssignmentAction {
         public boolean contains(Node node) {
             return this.name.equals(node.getNodeName());
         }
+    }
+    public long getProvisionedTime() {
+        return provisionedTime;
     }
 }
