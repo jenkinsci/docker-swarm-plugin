@@ -7,8 +7,6 @@ import akka.actor.Props;
 import hudson.model.Node;
 import hudson.model.Queue;
 import jenkins.model.Jenkins;
-import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
-import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationException;
 import scala.concurrent.duration.Duration;
 
 import java.util.Date;
@@ -51,16 +49,6 @@ public class ResetStuckBuildsInQueueActor extends AbstractActor {
             resechedule();
         }
 
-    }
-
-    private <T> T  getResult(Object result, Class<T> clazz){
-        if(result instanceof SerializationException){
-            throw new RuntimeException (((SerializationException)result).getCause());
-        }
-        if(result instanceof ApiException){
-            throw new RuntimeException (((ApiException)result).getCause());
-        }
-        return clazz.cast(result);
     }
 
     private void resechedule() {
