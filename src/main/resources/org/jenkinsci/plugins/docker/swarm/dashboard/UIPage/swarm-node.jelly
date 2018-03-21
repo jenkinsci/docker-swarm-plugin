@@ -56,7 +56,7 @@
                 <j:forEach items="${node.unknownRunningTasks}" var="task">
                     <li class="mdl-list__item">
                         <span class="mdl-list__item-primary-content">
-                            ${task.serviceID}
+                            ${task.service.Spec.Name}
                         </span>
                     </li>
                 </j:forEach>

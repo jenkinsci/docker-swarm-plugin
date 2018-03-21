@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.docker.swarm.docker.api.task;
 
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.ScheduledService;
+
 public class Task {
     public TaskTemplate Spec;
     public String NodeID;
@@ -11,7 +13,7 @@ public class Task {
     public long getReservedCpus() {
         return Spec.Resources.Reservations.NanoCPUs/ 1000000000;
     }
-
+    public ScheduledService service;
     public boolean isComplete() {
         return Status.isComplete();
     }
