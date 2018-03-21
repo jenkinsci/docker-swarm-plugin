@@ -6,10 +6,13 @@ import hudson.model.Run;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentInfo;
+import org.jenkinsci.plugins.docker.swarm.Util;
 import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.ListNodesRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationException;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.ListServicesRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.ScheduledService;
 import org.jenkinsci.plugins.docker.swarm.docker.api.task.ListTasksRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
 
@@ -84,18 +87,23 @@ public class Dashboard {
 
 
     private List<SwarmNode> calculateNodes() {
-        final Object nodes = new ListNodesRequest().execute();
-        final List<Node> nodeList = getResult( nodes,List.class);
+        final List<Node> nodeList = getResult(new ListNodesRequest().execute(),List.class);
+        final List services = getResult(new ListServicesRequest().execute(),List.class);
         final Object tasks = new ListTasksRequest().execute();
-        return toSwarmNodes(getResult(tasks, List.class), nodeList);
+        return toSwarmNodes(services,getResult(tasks, List.class), nodeList);
     }
 
-    private List<SwarmNode> toSwarmNodes(List<Task> tasks, List<Node> nodeList) {
+    private List<SwarmNode> toSwarmNodes(List<ScheduledService> services, List<Task> tasks, List<Node> nodeList) {
         return nodeList.stream().map(node -> {
             Stream<Task> tasksForNode = tasks.stream()
-                    .filter(task -> !task.isComplete())
+                    .filter(task -> task.Status.isRunning())
                     .filter(task -> node.ID.equals(task.NodeID));
-            return    new SwarmNode(node, tasksForNode.collect(Collectors.toList()));
+            Stream<Task> tasksWithServices = tasksForNode.map(task -> {
+                ScheduledService taskService = services.stream().filter(service -> service.ID.equals(task.getServiceID())).collect(Util.singletonCollector());
+                task.service = taskService;
+                return task;
+            });
+            return    new SwarmNode(node, tasksWithServices.collect(Collectors.toList()));
         }).collect(Collectors.toList());
     }
 
