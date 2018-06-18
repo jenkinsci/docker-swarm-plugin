@@ -2,22 +2,38 @@
 <j:jelly xmlns:j="jelly:core"
          xmlns:f="/lib/form">
     <f:entry title="Label" field="label">
-        <f:textbox value="${dockerSwarmAgentTemplate.label}"/>
+        <f:textbox value="${dockerSwarmAgentTemplate.label}" default="docker-slave"/>
     </f:entry>
 
     <f:entry title="Image" field="image">
-        <f:textbox value="${dockerSwarmAgentTemplate.image}"/>
+        <f:textbox value="${dockerSwarmAgentTemplate.image}" default="java:8"/>
     </f:entry>
-    <f:entry title="Env (space-separated)" field="envVars">
-        <f:textbox value="${dockerSwarmAgentTemplate.envVars}"/>
+    <f:entry title="Command" field="command">
+        <f:textarea value="${dockerSwarmAgentTemplate.command}" default="sh&#10;-cx&#10;curl --connect-timeout 20 --max-time 60 -o slave.jar $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL &amp;&amp; java -jar slave.jar -jnlpUrl $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL -secret $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET -noReconnect -workDir /tmp"/>
     </f:entry>
-    <f:entry title="Host Binds (space-separated)"
+    <f:entry title="Working Directory" field="workingDir">
+        <f:textbox value="${dockerSwarmAgentTemplate.workingDir}" default="/tmp"/>
+    </f:entry>
+    <f:entry title="User" field="user">
+        <f:textbox value="${dockerSwarmAgentTemplate.user}" default="root"/>
+    </f:entry>
+    <f:entry title="Env (newline-separated)" field="envVars">
+        <f:expandableTextbox value="${dockerSwarmAgentTemplate.envVars}"/>
+    </f:entry>
+    <f:entry title="Host Binds (newline-separated)"
              field="hostBinds">
-        <f:textbox value="${dockerSwarmAgentTemplate.hostBinds}"/>
+        <f:expandableTextbox value="${dockerSwarmAgentTemplate.hostBinds}"/>
     </f:entry>
-
-    <f:entry title="Cache Dir" field="cacheDir">
-        <f:textbox value="${dockerSwarmAgentTemplate.cacheDir}"/>
+    <f:entry title="Secrets (newline-separated)"
+             field="secrets">
+        <f:expandableTextbox value="${dockerSwarmAgentTemplate.secrets}"/>
+    </f:entry>
+    <f:entry title="Configs (newline-separated)"
+             field="configs">
+        <f:expandableTextbox value="${dockerSwarmAgentTemplate.configs}"/>
+    </f:entry>
+    <f:entry title="Cache Dirs (newline-separated)" field="cacheDir">
+        <f:expandableTextbox value="${dockerSwarmAgentTemplate.cacheDir}"/>
     </f:entry>
 
     <f:entry title="Tmpfs Dir" field="tmpfsDir">

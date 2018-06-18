@@ -1,13 +1,22 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core"
-         xmlns:l="/lib/layout" xmlns:f="/lib/form"
->
+         xmlns:l="/lib/layout" xmlns:f="/lib/form" >
     <l:layout>
         <l:main-panel>
             <div class="main">
+                <p><b>Agent Label</b>: ${it.agentLabel}
+                </p>
                 <p><b>Docker Image Used</b>: ${it.dockerImage}
                 </p>
+                <p><b>Limits: Nano CPUs</b>: ${it.limitsNanoCPUs}
+                </p>
+                <p><b>Reservations: Nano CPUs</b>: ${it.reservationsNanoCPUs}
+                </p>
+                <p><b>Reservations: Memory Bytes</b>: ${it.reservationsMemoryBytes}
+                </p>
                 <p><b>Cache Volume</b>: ${it.cacheVolumeName}
+                </p>
+                <p><b>Service Request JSON</b>: ${it.serviceRequestJson}
                 </p>
             </div>
         </l:main-panel>

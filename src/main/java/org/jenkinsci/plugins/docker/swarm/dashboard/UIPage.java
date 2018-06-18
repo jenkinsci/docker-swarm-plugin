@@ -3,11 +3,13 @@ package org.jenkinsci.plugins.docker.swarm.dashboard;
 import hudson.Extension;
 import hudson.model.RootAction;
 
+import java.io.IOException;
+
 @Extension
 public class UIPage implements RootAction {
     @Override
     public String getIconFileName() {
-        return "/plugin/docker-swarm/images/24x24/docker.png";
+        return "/plugin/docker-swarm-tls/images/24x24/docker.png";
     }
 
     @Override
@@ -23,7 +25,7 @@ public class UIPage implements RootAction {
 
 
 
-    public Dashboard getDashboard(){
+    public Dashboard getDashboard() throws IOException {
        return new Dashboard();
     }
 

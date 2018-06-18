@@ -9,6 +9,7 @@ import hudson.model.Queue;
 import jenkins.model.Jenkins;
 import scala.concurrent.duration.Duration;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -28,7 +29,7 @@ public class ResetStuckBuildsInQueueActor extends AbstractActor {
         return Props.create(ResetStuckBuildsInQueueActor.class, () -> new ResetStuckBuildsInQueueActor());
     }
 
-    private void resetStuckBuildsInQueue() {
+    private void resetStuckBuildsInQueue() throws IOException {
         try{
             final Queue.Item[] items = Jenkins.getInstance().getQueue().getItems();
             for (int i = items.length - 1; i >= 0; i--) { //reverse order
