@@ -51,6 +51,9 @@ public class SwarmQueueItem {
         return this.labelConfig;
     }
 
+    public String getLabelConfigLabel() {
+        return this.labelConfig.getLabel();
+    }
     public String getInQueueSince() {
         return this.inQueueSince;
     }

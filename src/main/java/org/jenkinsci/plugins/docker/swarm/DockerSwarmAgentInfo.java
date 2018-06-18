@@ -8,7 +8,11 @@ public class DockerSwarmAgentInfo implements RunAction2 {
     private String cacheVolumeName;
     private String dockerImage;
     private boolean provisioningInProgress;
-
+    private long limitsNanoCPUs;
+    private long reservationsNanoCPUs;
+    private long reservationsMemoryBytes;
+    private String agentLabel;
+    private String serviceRequestJson;
 
     public DockerSwarmAgentInfo(final boolean provisioningInProgress) {
         this.provisioningInProgress = provisioningInProgress;
@@ -16,7 +20,7 @@ public class DockerSwarmAgentInfo implements RunAction2 {
 
     @Override
     public String getIconFileName() {
-        return "/plugin/docker-swarm-plugin/images/24x24/docker.png";
+        return "/plugin/docker-swarm-tls/images/24x24/docker.png";
     }
 
     @Override
@@ -49,6 +53,38 @@ public class DockerSwarmAgentInfo implements RunAction2 {
         this.dockerImage = dockerImage;
     }
 
+    public long getLimitsNanoCPUs() { return this.limitsNanoCPUs; }
+
+    public void setLimitsNanoCPUs(final long limitsNanoCPUs) {
+        this.limitsNanoCPUs = limitsNanoCPUs;
+    }
+
+    public long getReservationsNanoCPUs() { return this.reservationsNanoCPUs; }
+
+    public void setReservationsNanoCPUs(final long reservationsNanoCPUs) {
+        this.reservationsNanoCPUs = reservationsNanoCPUs;
+    }
+
+    public long getReservationsMemoryBytes() { return this.reservationsMemoryBytes; }
+
+    public void setReservationsMemoryBytes(final long reservationsMemoryBytes) {
+        this.reservationsMemoryBytes = reservationsMemoryBytes;
+    }
+
+    public String getAgentLabel() { return this.agentLabel; }
+
+    public void setAgentLabel(final String agentLabel) {
+        this.agentLabel = agentLabel;
+    }
+
+    public String getServiceRequestJson() {
+        return serviceRequestJson;
+    }
+
+    public void setServiceRequestJson(String serviceRequestJson) {
+        this.serviceRequestJson = serviceRequestJson;
+    }
+
     @Override
     public void onAttached(Run<?, ?> run) {
 
@@ -58,4 +94,5 @@ public class DockerSwarmAgentInfo implements RunAction2 {
     public void onLoad(Run<?, ?> run) {
 
     }
+
 }

@@ -1,5 +1,7 @@
 package org.jenkinsci.plugins.docker.swarm;
 
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import akka.actor.ActorRef;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -14,12 +16,20 @@ import hudson.slaves.Cloud;
 import hudson.slaves.NodeProvisioner;
 import hudson.util.FormValidation;
 import jenkins.model.Jenkins;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.ItemGroup;
+import hudson.security.ACL;
+import hudson.security.AccessControlled;
+import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
+
 import org.jenkinsci.plugins.docker.swarm.docker.api.ping.PingRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiError;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
+import org.kohsuke.stapler.AncestorInPath;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -27,24 +37,38 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.Socket;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
+import org.jenkinsci.plugins.docker.commons.credentials.DockerServerCredentials;
+import org.jenkinsci.plugins.docker.commons.credentials.DockerServerEndpoint;
+
+import static com.cloudbees.plugins.credentials.CredentialsMatchers.firstOrNull;
+import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials;
+import static com.cloudbees.plugins.credentials.CredentialsMatchers.withId;
+import com.github.dockerjava.core.SSLConfig;
+
+import javax.net.ssl.SSLContext;
 
 public class DockerSwarmCloud extends Cloud {
-    private static final String DOCKER_SWARM_CLOUD_NAME = "Docker Swarm";
+    private static final String DOCKER_SWARM_CLOUD_NAME = "Docker Swarm TLS";
     private static final Logger LOGGER = Logger.getLogger(DockerSwarmCloud.class.getName());
-    String dockerSwarmApiUrl;
     private String jenkinsUrl;
     private String swarmNetwork;
     private String cacheDriverName;
     private String tunnel;
     private List<DockerSwarmAgentTemplate> agentTemplates = new ArrayList<>();
 
+    private DockerServerEndpoint dockerHost;
+
     @DataBoundConstructor
     public DockerSwarmCloud(
+            DockerServerEndpoint dockerHost,
             String dockerSwarmApiUrl,
             String jenkinsUrl,
             String swarmNetwork,
@@ -52,12 +76,12 @@ public class DockerSwarmCloud extends Cloud {
             String tunnel,
             List<DockerSwarmAgentTemplate> agentTemplates) {
         super(DOCKER_SWARM_CLOUD_NAME);
-        this.dockerSwarmApiUrl = dockerSwarmApiUrl;
         this.jenkinsUrl = jenkinsUrl;
         this.swarmNetwork = swarmNetwork;
         this.cacheDriverName = cacheDriverName;
         this.tunnel = tunnel;
         this.agentTemplates = agentTemplates;
+        this.dockerHost = dockerHost;
     }
 
     //for yaml serialization
@@ -75,11 +99,26 @@ public class DockerSwarmCloud extends Cloud {
         return getLabels().contains(label.getName());
     }
 
+    public DockerServerEndpoint getDockerHost() {
+        return dockerHost;
+    }
+
     @Extension
     public static class DescriptorImpl extends Descriptor<Cloud> {
+
+        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath ItemGroup context, @QueryParameter String value) {
+            AccessControlled ac = (context instanceof AccessControlled ? (AccessControlled) context : Jenkins.getInstance());
+            if (!ac.hasPermission(Jenkins.ADMINISTER)) {
+                return new StandardListBoxModel().includeCurrentValue(value);
+            }
+            return new StandardListBoxModel().includeAs(
+                    ACL.SYSTEM, context, DockerServerCredentials.class,
+                    Collections.<DomainRequirement>emptyList());
+        }
+
         @Override
         public String getDisplayName() {
-            return "Docker Swarm";
+            return "Docker Swarm - TLS";
         }
         public FormValidation doCheckJenkinsUrl(@QueryParameter String jenkinsUrl) {
             try {
@@ -90,19 +129,16 @@ public class DockerSwarmCloud extends Cloud {
             }
         }
 
-        public FormValidation doCheckDockerSwarmApiUrl(@QueryParameter String dockerSwarmApiUrl) {
-            try {
-                new URL(dockerSwarmApiUrl);
-                return FormValidation.ok();
-            } catch (MalformedURLException e) {
-                return FormValidation.error(e,"Needs valid http url") ;
-            }
-        }
         @RequirePOST
-        public FormValidation doValidateTestDockerApiConnection(@QueryParameter("dockerSwarmApiUrl") String dockerSwarmApiUrl){
-            Object response = new PingRequest(dockerSwarmApiUrl).execute();
+        public FormValidation doValidateTestDockerApiConnection(
+                @QueryParameter("uri") String uri,
+                @QueryParameter("credentialsId") String credentialsId) throws IOException {
+            if (uri.endsWith("/")) {
+                return FormValidation.error("URI must not have trailing /");
+            }
+            Object response = new PingRequest(uri).execute();
             if(response instanceof ApiException){
-                return FormValidation.error(((ApiException)response).getCause(),"Couldn't _ping docker api");
+                return FormValidation.error(((ApiException)response).getCause(),"Couldn't ping docker api: " + uri + "/_ping");
             }
             if(response instanceof ApiError){
                 return FormValidation.error(((ApiError)response).getMessage());
@@ -112,8 +148,35 @@ public class DockerSwarmCloud extends Cloud {
     }
 
     public String getDockerSwarmApiUrl() {
-        return dockerSwarmApiUrl;
+        return dockerHost.getUri();
     }
+
+    private static SSLConfig toSSlConfig(String credentialsId) {
+        if (credentialsId == null) return null;
+
+        DockerServerCredentials credentials = firstOrNull(
+                lookupCredentials(
+                        DockerServerCredentials.class,
+                        Jenkins.getInstance(),
+                        ACL.SYSTEM,
+                        Collections.<DomainRequirement>emptyList()),
+                withId(credentialsId));
+        return credentials == null ? null :
+                new DockerServerCredentialsSSLConfig(credentials);
+    }
+
+    public SSLContext getSSLContext() throws IOException {
+        try {
+            final SSLConfig sslConfig = toSSlConfig(dockerHost.getCredentialsId());
+            if (sslConfig != null) {
+                return sslConfig.getSSLContext();
+            }
+        } catch (Exception e) {
+            throw new IOException("Failed to create SSL Config ", e);
+        }
+        return null;
+    }
+
 
     public String getJenkinsUrl() {
         return jenkinsUrl;
