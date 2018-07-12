@@ -26,7 +26,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String baseWorkspaceLocation;
     private String placementConstraints;
 
-    public DockerSwarmAgentTemplate(){
+    public DockerSwarmAgentTemplate() {
         //For Yaml Load
     }
 
@@ -75,6 +75,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     public String[] getEnvVarsConfig() {
         return StringUtils.isEmpty(this.envVars) ? new String[]{} : this.envVars.split(" ");
     }
+
     public long getLimitsNanoCPUs() {
         return limitsNanoCPUs;
     }
@@ -98,6 +99,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     public String getTmpfsDir() {
         return tmpfsDir;
     }
+
     public String getEnvVars() {
         return envVars;
     }

@@ -15,33 +15,37 @@ import java.util.List;
 import java.util.Map;
 
 public class ServiceSpec extends ApiRequest {
-    public org.jenkinsci.plugins.docker.swarm.docker.api.task.TaskTemplate TaskTemplate ;
+    public org.jenkinsci.plugins.docker.swarm.docker.api.task.TaskTemplate TaskTemplate;
     public String Name;
-    public Map<String,String> Labels = new HashMap<>();
+    public Map<String, String> Labels = new HashMap<>();
 
     public List<Network> Networks = new ArrayList<>();
+
     public ServiceSpec(String name, String Image, String[] Cmd, String[] Env) {
-        super(HttpMethod.POST, "/services/create",CreateServiceResponse.class, ResponseType.CLASS);
+        super(HttpMethod.POST, "/services/create", CreateServiceResponse.class, ResponseType.CLASS);
         this.Name = name;
-        this.TaskTemplate = new TaskTemplate(Image,Cmd,Env);
+        this.TaskTemplate = new TaskTemplate(Image, Cmd, Env);
     }
 
-    public ServiceSpec(){
-        super(HttpMethod.POST, "", "/services/create",CreateServiceResponse.class, ResponseType.CLASS);
+    public ServiceSpec() {
+        super(HttpMethod.POST, "", "/services/create", CreateServiceResponse.class, ResponseType.CLASS);
     }
 
-    public void  addBindVolume(String source,String target){
+    public void addBindVolume(String source, String target) {
         ContainerSpec.Mount mount = ContainerSpec.Mount.bindMount(source, target);
         this.TaskTemplate.ContainerSpec.Mounts.add(mount);
     }
-    public void addDnsIp(String dnsIp){
+
+    public void addDnsIp(String dnsIp) {
         System.out.println("DNS IP " + dnsIp);
         this.TaskTemplate.ContainerSpec.DNSConfig.addNameserver(dnsIp);
     }
+
     public void addCacheVolume(String cacheVolumeName, String target, String cacheDriverName) {
-        ContainerSpec.Mount mount = ContainerSpec.Mount.cacheMount(cacheVolumeName, target,cacheDriverName);
+        ContainerSpec.Mount mount = ContainerSpec.Mount.cacheMount(cacheVolumeName, target, cacheDriverName);
         this.TaskTemplate.ContainerSpec.Mounts.add(mount);
     }
+
     public void addTmpfsMount(String tmpfsDir) {
         ContainerSpec.Mount mount = ContainerSpec.Mount.tmpfsMount(tmpfsDir);
         this.TaskTemplate.ContainerSpec.Mounts.add(mount);
@@ -58,11 +62,12 @@ public class ServiceSpec extends ApiRequest {
     }
 
     public void setNetwork(String network) {
-        if(!Strings.isNullOrEmpty(network)){
+        if (!Strings.isNullOrEmpty(network)) {
             Networks.add(new Network(network));
         }
     }
-    public  void addLabel(String key, String value){
-        this.Labels.put(key,value);
+
+    public void addLabel(String key, String value) {
+        this.Labels.put(key, value);
     }
 }
