@@ -8,6 +8,7 @@ public class ContainerSpec {
     public final String Image;
     public final String[] Command;
     public final String[] Env;
+    public DNSConfig DNSConfig;
     public List<Mount> Mounts = new ArrayList<>();
 
     public ContainerSpec(){
@@ -18,6 +19,30 @@ public class ContainerSpec {
         this.Image = image;
         this.Command = cmd;
         this.Env  = env;
+        this.DNSConfig = new DNSConfig();
+    }
+
+    public static class DNSConfig {
+        List<String> Nameservers = new ArrayList<>();
+        List<String> Search = new ArrayList<>();
+        List<String> Options = new ArrayList<>();
+        public DNSConfig() {
+            // For deserialization
+        }
+        public DNSConfig(String nameserver, String search, String option) {
+            if (nameserver != null && !nameserver.isEmpty()) {
+                this.Nameservers.add(nameserver);
+            }
+            if (search != null && !search.isEmpty()) {
+                this.Search.add(search);
+            }
+            if (option != null && !option.isEmpty()) {
+                this.Options.add(option);
+            }
+        }
+        public void addNameserver(String nameserver) {
+            this.Nameservers.add(nameserver);
+        }
     }
 
 

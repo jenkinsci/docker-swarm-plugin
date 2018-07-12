@@ -34,6 +34,10 @@ public class ServiceSpec extends ApiRequest {
         ContainerSpec.Mount mount = ContainerSpec.Mount.bindMount(source, target);
         this.TaskTemplate.ContainerSpec.Mounts.add(mount);
     }
+    public void addDnsIp(String dnsIp){
+        System.out.println("DNS IP " + dnsIp);
+        this.TaskTemplate.ContainerSpec.DNSConfig.addNameserver(dnsIp);
+    }
     public void addCacheVolume(String cacheVolumeName, String target, String cacheDriverName) {
         ContainerSpec.Mount mount = ContainerSpec.Mount.cacheMount(cacheVolumeName, target,cacheDriverName);
         this.TaskTemplate.ContainerSpec.Mounts.add(mount);

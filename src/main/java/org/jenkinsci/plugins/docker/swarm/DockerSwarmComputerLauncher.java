@@ -76,6 +76,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setConstraints(dockerSwarmAgentTemplate,crReq);
         setLabels(crReq);
         setRestartAttemptCount(crReq);
+        setDnsIps(dockerSwarmAgentTemplate, crReq);
 
         final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerSwarmAgentLauncherActor.props(listener.getLogger()), computer.getName());
         agentLauncher.tell(crReq,ActorRef.noSender());
@@ -135,6 +136,13 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
             String hostBind = hostBinds[i];
             String[] srcDest = hostBind.split(":");
             crReq.addBindVolume(srcDest[0],srcDest[1]);
+        }
+    }
+
+    private void setDnsIps(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        String[] dnsIps = dockerSwarmAgentTemplate.getDnsIpsConfig();
+        for (String dnsIp : dnsIps) {
+            crReq.addDnsIp(dnsIp);
         }
     }
 

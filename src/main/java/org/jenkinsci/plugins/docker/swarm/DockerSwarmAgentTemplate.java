@@ -17,6 +17,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private long reservationsMemoryBytes;
     private String image;
     private String hostBinds;
+    private String dnsIps;
     private String label;
 
 
@@ -31,13 +32,14 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     @DataBoundConstructor
     public DockerSwarmAgentTemplate(final String image, final String hostBinds,
-                                    final String label,
+                                    final String dnsIps, final String label,
                                     final String cacheDir, final String tmpfsDir,
-                                    final String envVars,
-                                    final long limitsNanoCPUs, final long limitsMemoryBytes,
-                                    final long reservationsNanoCPUs, final long reservationsMemoryBytes, final String baseWorkspaceLocation, final String placementConstraints) {
+                                    final String envVars, final long limitsNanoCPUs, final long limitsMemoryBytes,
+                                    final long reservationsNanoCPUs, final long reservationsMemoryBytes,
+                                    final String baseWorkspaceLocation, final String placementConstraints) {
         this.image = image;
         this.hostBinds = hostBinds;
+        this.dnsIps = dnsIps;
         this.label = label;
         this.cacheDir = cacheDir;
         this.tmpfsDir = tmpfsDir;
@@ -64,6 +66,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String[] getHostBindsConfig() {
         return StringUtils.isEmpty(this.hostBinds) ? new String[]{} : this.hostBinds.split(" ");
+    }
+
+    public String[] getDnsIpsConfig() {
+        return StringUtils.isEmpty(this.dnsIps) ? new String[]{} : this.dnsIps.split(" ");
     }
 
     public String[] getEnvVarsConfig() {
@@ -119,6 +125,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String getHostBinds() {
         return hostBinds;
+    }
+
+    public String getDnsIps() {
+        return dnsIps;
     }
 
     public String getCacheDir() {
