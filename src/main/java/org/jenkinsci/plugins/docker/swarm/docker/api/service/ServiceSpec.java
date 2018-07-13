@@ -37,7 +37,6 @@ public class ServiceSpec extends ApiRequest {
     }
 
     public void addDnsIp(String dnsIp) {
-        System.out.println("DNS IP " + dnsIp);
         this.TaskTemplate.ContainerSpec.DNSConfig.addNameserver(dnsIp);
     }
 
