@@ -2,11 +2,7 @@ package org.jenkinsci.plugins.docker.swarm.docker.api.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.*;
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
 import org.jenkinsci.plugins.docker.swarm.docker.api.HttpMethod;
 import org.jenkinsci.plugins.docker.swarm.docker.api.error.ErrorMessage;
@@ -32,20 +28,26 @@ public abstract class ApiRequest {
     private Class<?> responseClass;
     @JsonIgnore
     private ResponseType responseType;
+    @JsonIgnore
+    private Map<String, String> headers;
 
     @JsonIgnore
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     @JsonIgnore
     private  static final OkHttpClient client = new OkHttpClient();
 
-    public ApiRequest(HttpMethod method, String dockerApiUrl, String url, Class<?> responseClass , ResponseType responseType) {
+    public ApiRequest(HttpMethod method, String dockerApiUrl, String url, Class<?> responseClass, ResponseType responseType, Map<String, String> headers) {
         this.responseClass = responseClass;
         this.responseType = responseType;
         this.method = method;
+        if (headers == null) {
+            headers = new HashMap<>();
+        }
+        this.headers = headers;
         this.url = dockerApiUrl+url;
     }
     public ApiRequest(HttpMethod method, String url, Class<?> responseClass , ResponseType responseType) {
-        this(method, DockerSwarmCloud.get().getDockerSwarmApiUrl(),url,responseClass,responseType);
+        this(method, DockerSwarmCloud.get().getDockerSwarmApiUrl(),url,responseClass,responseType, null);
     }
     public ApiRequest(HttpMethod method, String url){
        this(method,url,null,null) ;
@@ -79,12 +81,22 @@ public abstract class ApiRequest {
         return responseType;
     }
 
+    public void addHeader(String key, String value) {
+        this.headers.put(key, value);
+    }
+
     private Request toOkHttpRequest() throws JsonProcessingException {
         String jsonString = Jackson.toJson(getEntity());
         RequestBody body = RequestBody.create(JSON, jsonString);
         String method = getMethod().name();
+        Headers.Builder headersBuilder = new Headers.Builder();
+        for (Map.Entry<String, String> entry: this.headers.entrySet()) {
+            headersBuilder.add(entry.getKey(), entry.getValue());
+        }
+        Headers headers = headersBuilder.build();
         return new Request.Builder()
                 .url(getUrl())
+                .headers(headers)
                 .method(method, method.equals("GET")?null:body)
                 .build();
     }

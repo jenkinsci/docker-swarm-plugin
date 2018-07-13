@@ -11,7 +11,7 @@ public class ListTasksRequest extends ApiRequest {
         super(HttpMethod.GET, "/tasks", Task.class, ResponseType.LIST);
     }
     public ListTasksRequest(String dockerSwarmApiUrl, String url) {
-        super(HttpMethod.GET, dockerSwarmApiUrl, url, Task.class, ResponseType.LIST);
+        super(HttpMethod.GET, dockerSwarmApiUrl, url, Task.class, ResponseType.LIST, null);
     }
 
 

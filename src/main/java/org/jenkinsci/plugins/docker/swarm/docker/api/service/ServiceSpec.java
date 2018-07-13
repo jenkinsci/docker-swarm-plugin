@@ -1,6 +1,8 @@
 
 package org.jenkinsci.plugins.docker.swarm.docker.api.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import org.jenkinsci.plugins.docker.swarm.docker.api.HttpMethod;
 import org.jenkinsci.plugins.docker.swarm.docker.api.containers.ContainerSpec;
@@ -9,10 +11,7 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.task.TaskTemplate;
 import org.jenkinsci.plugins.docker.swarm.docker.marshalling.ResponseType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ServiceSpec extends ApiRequest {
     public org.jenkinsci.plugins.docker.swarm.docker.api.task.TaskTemplate TaskTemplate ;
@@ -27,7 +26,7 @@ public class ServiceSpec extends ApiRequest {
     }
 
     public ServiceSpec(){
-        super(HttpMethod.POST, "", "/services/create",CreateServiceResponse.class, ResponseType.CLASS);
+        super(HttpMethod.POST, "", "/services/create", CreateServiceResponse.class, ResponseType.CLASS, null);
     }
 
     public void  addBindVolume(String source,String target){
@@ -60,5 +59,31 @@ public class ServiceSpec extends ApiRequest {
     }
     public  void addLabel(String key, String value){
         this.Labels.put(key,value);
+    }
+
+    public void setAuthHeader(String username, String password, String email, String serverAddress) {
+        Map<String, String> authMap = new HashMap<>();
+        if (!username.isEmpty()) {
+            authMap.put("username", username);
+        }
+        if (!password.isEmpty()) {
+            authMap.put("password", password);
+        }
+        if (!email.isEmpty()) {
+            authMap.put("email", email);
+        }
+        if (!serverAddress.isEmpty()) {
+            authMap.put("serverAddress", serverAddress);
+        }
+        String authJson = "";
+        try {
+            authJson = new ObjectMapper().writeValueAsString(authMap);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        if (!authJson.isEmpty()) {
+            String authBase64 = Base64.getEncoder().encodeToString(authJson.getBytes());
+            this.addHeader("X-Registry-Auth", authBase64);
+        }
     }
 }

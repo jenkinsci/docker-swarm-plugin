@@ -24,6 +24,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String envVars;
     private String baseWorkspaceLocation;
     private String placementConstraints;
+    private String username;
+    private String password;
+    private String email;
+    private String serverAddress;
 
     public DockerSwarmAgentTemplate(){
         //For Yaml Load
@@ -33,9 +37,11 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     public DockerSwarmAgentTemplate(final String image, final String hostBinds,
                                     final String label,
                                     final String cacheDir, final String tmpfsDir,
-                                    final String envVars,
-                                    final long limitsNanoCPUs, final long limitsMemoryBytes,
-                                    final long reservationsNanoCPUs, final long reservationsMemoryBytes, final String baseWorkspaceLocation, final String placementConstraints) {
+                                    final String envVars, final long limitsNanoCPUs, final long limitsMemoryBytes,
+                                    final long reservationsNanoCPUs, final long reservationsMemoryBytes,
+                                    final String baseWorkspaceLocation, final String placementConstraints,
+                                    final String username, final String password, final String email,
+                                    final String serverAddress) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.label = label;
@@ -48,6 +54,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         this.envVars = envVars;
         this.baseWorkspaceLocation = baseWorkspaceLocation;
         this.placementConstraints = placementConstraints;
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.serverAddress = serverAddress;
     }
 
     public String[] getCacheDirs() {
@@ -125,4 +135,19 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         return cacheDir;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getServerAddress() {
+        return serverAddress;
+    }
 }
