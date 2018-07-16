@@ -17,6 +17,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private long reservationsMemoryBytes;
     private String image;
     private String hostBinds;
+    private String dnsIps;
     private String label;
 
 
@@ -29,13 +30,13 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String email;
     private String serverAddress;
 
-    public DockerSwarmAgentTemplate(){
+    public DockerSwarmAgentTemplate() {
         //For Yaml Load
     }
 
     @DataBoundConstructor
     public DockerSwarmAgentTemplate(final String image, final String hostBinds,
-                                    final String label,
+                                    final String dnsIps, final String label,
                                     final String cacheDir, final String tmpfsDir,
                                     final String envVars, final long limitsNanoCPUs, final long limitsMemoryBytes,
                                     final long reservationsNanoCPUs, final long reservationsMemoryBytes,
@@ -44,6 +45,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
                                     final String serverAddress) {
         this.image = image;
         this.hostBinds = hostBinds;
+        this.dnsIps = dnsIps;
         this.label = label;
         this.cacheDir = cacheDir;
         this.tmpfsDir = tmpfsDir;
@@ -76,9 +78,14 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         return StringUtils.isEmpty(this.hostBinds) ? new String[]{} : this.hostBinds.split(" ");
     }
 
+    public String[] getDnsIpsConfig() {
+        return StringUtils.isEmpty(this.dnsIps) ? new String[]{} : this.dnsIps.split(" ");
+    }
+
     public String[] getEnvVarsConfig() {
         return StringUtils.isEmpty(this.envVars) ? new String[]{} : this.envVars.split(" ");
     }
+
     public long getLimitsNanoCPUs() {
         return limitsNanoCPUs;
     }
@@ -102,6 +109,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     public String getTmpfsDir() {
         return tmpfsDir;
     }
+
     public String getEnvVars() {
         return envVars;
     }
@@ -129,6 +137,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String getHostBinds() {
         return hostBinds;
+    }
+
+    public String getDnsIps() {
+        return dnsIps;
     }
 
     public String getCacheDir() {
