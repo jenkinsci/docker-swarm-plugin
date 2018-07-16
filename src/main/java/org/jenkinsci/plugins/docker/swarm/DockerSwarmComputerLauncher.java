@@ -76,6 +76,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setConstraints(dockerSwarmAgentTemplate,crReq);
         setLabels(crReq);
         setRestartAttemptCount(crReq);
+        setAuthHeaders(dockerSwarmAgentTemplate, crReq);
 
         final ActorRef agentLauncher = swarmPlugin.getActorSystem().actorOf(DockerSwarmAgentLauncherActor.props(listener.getLogger()), computer.getName());
         agentLauncher.tell(crReq,ActorRef.noSender());
@@ -136,6 +137,15 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
             String[] srcDest = hostBind.split(":");
             crReq.addBindVolume(srcDest[0],srcDest[1]);
         }
+    }
+
+    private void setAuthHeaders(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        crReq.setAuthHeader(
+                dockerSwarmAgentTemplate.getUsername(),
+                dockerSwarmAgentTemplate.getPassword(),
+                dockerSwarmAgentTemplate.getEmail(),
+                dockerSwarmAgentTemplate.getServerAddress()
+        );
     }
 
     private void setLimitsAndReservations(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {

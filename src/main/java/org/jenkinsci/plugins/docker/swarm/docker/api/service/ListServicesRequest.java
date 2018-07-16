@@ -12,7 +12,7 @@ public class ListServicesRequest extends ApiRequest {
     }
 
     public ListServicesRequest(String dockerApiUrl, String url) {
-        super(HttpMethod.GET, dockerApiUrl, url, ScheduledService.class, ResponseType.LIST);
+        super(HttpMethod.GET, dockerApiUrl, url, ScheduledService.class, ResponseType.LIST, null);
     }
     public ListServicesRequest() {
         this("/services");
