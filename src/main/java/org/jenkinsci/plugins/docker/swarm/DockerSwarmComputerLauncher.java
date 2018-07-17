@@ -51,7 +51,6 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         String interpreter;
         String interpreterOptions;
         String fetchAndLaunchCommand;
-        System.out.println("os windows ? " + dockerSwarmAgentTemplate.isOsWindows());
         if (dockerSwarmAgentTemplate.isOsWindows()) {
             interpreter = "powershell.exe";
             interpreterOptions = "";
