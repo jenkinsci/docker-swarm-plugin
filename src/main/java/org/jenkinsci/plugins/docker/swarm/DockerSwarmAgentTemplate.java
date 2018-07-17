@@ -19,6 +19,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String hostBinds;
     private String dnsIps;
     private String label;
+    private boolean osWindows;
 
 
     private String cacheDir;
@@ -40,7 +41,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
                                     final String cacheDir, final String tmpfsDir,
                                     final String envVars, final long limitsNanoCPUs, final long limitsMemoryBytes,
                                     final long reservationsNanoCPUs, final long reservationsMemoryBytes,
-                                    final String baseWorkspaceLocation, final String placementConstraints,
+                                    final boolean osWindows, final String baseWorkspaceLocation, final String placementConstraints,
                                     final String username, final String password, final String email,
                                     final String serverAddress) {
         this.image = image;
@@ -54,6 +55,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         this.reservationsNanoCPUs = reservationsNanoCPUs;
         this.reservationsMemoryBytes = reservationsMemoryBytes;
         this.envVars = envVars;
+        this.osWindows = osWindows;
         this.baseWorkspaceLocation = baseWorkspaceLocation;
         this.placementConstraints = placementConstraints;
         this.username = username;
@@ -125,6 +127,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String[] getPlacementConstraintsConfig() {
         return StringUtils.isEmpty(this.placementConstraints) ? new String[]{} : this.placementConstraints.split(";");
+    }
+
+    public boolean isOsWindows() {
+        return osWindows;
     }
 
     @Extension
