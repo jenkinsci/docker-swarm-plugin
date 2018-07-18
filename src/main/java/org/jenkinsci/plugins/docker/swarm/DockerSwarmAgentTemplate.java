@@ -18,6 +18,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String image;
     private String hostBinds;
     private String dnsIps;
+    private String dnsSearchs;
     private String label;
     private boolean osWindows;
 
@@ -37,7 +38,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     @DataBoundConstructor
     public DockerSwarmAgentTemplate(final String image, final String hostBinds,
-                                    final String dnsIps, final String label,
+                                    final String dnsIps, final String dnsSearchs, final String label,
                                     final String cacheDir, final String tmpfsDir,
                                     final String envVars, final long limitsNanoCPUs, final long limitsMemoryBytes,
                                     final long reservationsNanoCPUs, final long reservationsMemoryBytes,
@@ -47,6 +48,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         this.image = image;
         this.hostBinds = hostBinds;
         this.dnsIps = dnsIps;
+        this.dnsSearchs = dnsSearchs;
         this.label = label;
         this.cacheDir = cacheDir;
         this.tmpfsDir = tmpfsDir;
@@ -82,6 +84,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String[] getDnsIpsConfig() {
         return StringUtils.isEmpty(this.dnsIps) ? new String[]{} : this.dnsIps.split(" ");
+    }
+
+    public String[] getDnsSearchsConfig() {
+        return StringUtils.isEmpty(this.dnsSearchs) ? new String[]{} : this.dnsSearchs.split(" ");
     }
 
     public String[] getEnvVarsConfig() {
@@ -147,6 +153,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String getDnsIps() {
         return dnsIps;
+    }
+
+    public String getDnsSearchs() {
+        return dnsSearchs;
     }
 
     public String getCacheDir() {
