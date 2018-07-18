@@ -46,6 +46,9 @@ public class ContainerSpec {
         public void addNameserver(String nameserver) {
             this.Nameservers.add(nameserver);
         }
+        public void addSearch(String search) {
+            this.Search.add(search);
+        }
     }
 
 

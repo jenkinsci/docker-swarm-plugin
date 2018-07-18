@@ -14,6 +14,9 @@
     <f:entry title="DNS IP (space-separated)" field="dnsIps">
         <f:textbox value="${dockerSwarmAgentTemplate.dnsIps}"/>
     </f:entry>
+    <f:entry title="DNS Search (space-separated)" field="dnsSearchs">
+        <f:textbox value="${dockerSwarmAgentTemplate.dnsSearchs}"/>
+    </f:entry>
     <f:entry title="Host Binds (space-separated)"
              field="hostBinds">
         <f:textbox value="${dockerSwarmAgentTemplate.hostBinds}"/>

@@ -40,6 +40,10 @@ public class ServiceSpec extends ApiRequest {
         this.TaskTemplate.ContainerSpec.DNSConfig.addNameserver(dnsIp);
     }
 
+    public void addDnsSearch(String dnsSearch) {
+        this.TaskTemplate.ContainerSpec.DNSConfig.addSearch(dnsSearch);
+    }
+
     public void addCacheVolume(String cacheVolumeName, String target, String cacheDriverName) {
         ContainerSpec.Mount mount = ContainerSpec.Mount.cacheMount(cacheVolumeName, target, cacheDriverName);
         this.TaskTemplate.ContainerSpec.Mounts.add(mount);
