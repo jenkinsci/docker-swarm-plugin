@@ -31,6 +31,9 @@
             <f:entry title="Constraints" field="placementConstraints">
                 <f:textbox value="${dockerSwarmAgentTemplate.placementConstraints}"/>
             </f:entry>
+            <f:entry title="Windows Container" field="osWindows">
+                <f:checkbox checked="${dockerSwarmAgentTemplate.osWindows}"/>
+            </f:entry>
         </f:section>
     </f:advanced>
     <f:advanced title="${%Limits/Reservations}" align="left">
