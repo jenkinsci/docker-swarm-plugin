@@ -47,10 +47,21 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         if (envVarOptions.length != 0) {
             System.arraycopy(envVarOptions, 0, envVars, 0, envVarOptions.length);
         }
-
-        final String additionalAgentOptions = "-noReconnect -workDir /tmp ";
-        final String agentOptions = "-jnlpUrl " + getAgentJnlpUrl(computer, configuration) + " -secret " + getAgentSecret(computer) + " " + additionalAgentOptions;
-        final String[] command = new String[]{"sh", "-cx", "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getAgentJarUrl(configuration) + " && java -jar slave.jar " + agentOptions};
+        final String agentOptions = String.join(" ", "-jnlpUrl", getAgentJnlpUrl(computer, configuration), "-secret", getAgentSecret(computer), "-noReconnect -workDir /tmp");
+        String interpreter;
+        String interpreterOptions;
+        String fetchAndLaunchCommand;
+        if (dockerSwarmAgentTemplate.isOsWindows()) {
+            interpreter = "powershell.exe";
+            interpreterOptions = "";
+            fetchAndLaunchCommand = "& { Invoke-WebRequest -TimeoutSec 20 -OutFile slave.jar " + getAgentJarUrl(configuration) + "; if($?) { java -jar slave.jar " + agentOptions + " } }";
+        }
+        else {
+            interpreter = "sh";
+            interpreterOptions = "-cx";
+            fetchAndLaunchCommand = "curl --connect-timeout 20  --max-time 60 -o slave.jar " + getAgentJarUrl(configuration) + " && java -jar slave.jar " + agentOptions;
+        }
+        final String[] command = new String[]{interpreter, interpreterOptions, fetchAndLaunchCommand};
         launchContainer(command,configuration, envVars, dockerSwarmAgentTemplate, listener, computer);
     }
 
