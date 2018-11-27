@@ -15,6 +15,9 @@
         <f:entry title="Cache driver name" field="cacheDriverName">
             <f:textbox/>
         </f:entry>
+        <f:entry title="Tunnel" field="tunnel">
+            <f:textbox/>
+        </f:entry>
 
     </f:section>
     <f:advanced title="${%Docker Agent templates}" align="left">
