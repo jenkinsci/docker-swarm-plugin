@@ -26,6 +26,9 @@
     <f:entry title="Workspace Location" field="baseWorkspaceLocation">
         <f:textbox value="${dockerSwarmAgentTemplate.baseWorkspaceLocation}"/>
     </f:entry>
+    <f:entry title="Working directory" field="workingDir">
+        <f:textbox value="${dockerSwarmAgentTemplate.workingDir}"/>
+    </f:entry>
     <f:advanced title="${%Placement}" align="left">
         <f:section title="Placement">
             <f:entry title="Constraints" field="placementConstraints">
