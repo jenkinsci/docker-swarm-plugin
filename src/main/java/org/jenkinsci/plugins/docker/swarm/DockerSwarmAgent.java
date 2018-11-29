@@ -29,7 +29,7 @@ public class DockerSwarmAgent extends AbstractCloudSlave implements EphemeralNod
                 labelString,
                 "Docker swarm agent for building " + bi.task.getFullDisplayName(),
                 DockerSwarmCloud.get()
-                                .getLabelConfiguration(labelString)
+                                .getLabelConfiguration(bi.task.getAssignedLabel().getName())
                                 .getWorkingDir(),
                 1,
                 Mode.EXCLUSIVE,
