@@ -19,7 +19,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String hostBinds;
     private String label;
     private boolean osWindows;
-
+    private String workingDir;
 
     private String cacheDir;
     private String envVars;
@@ -35,8 +35,14 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
                                     final String label,
                                     final String cacheDir, final String tmpfsDir,
                                     final String envVars,
-                                    final long limitsNanoCPUs, final long limitsMemoryBytes,
-                                    final long reservationsNanoCPUs, final long reservationsMemoryBytes, final boolean osWindows, final String baseWorkspaceLocation, final String placementConstraints) {
+                                    final long limitsNanoCPUs,
+                                    final long limitsMemoryBytes,
+                                    final long reservationsNanoCPUs,
+                                    final long reservationsMemoryBytes,
+                                    final boolean osWindows,
+                                    String workingDir,
+                                    final String baseWorkspaceLocation,
+                                    final String placementConstraints) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.label = label;
@@ -48,6 +54,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         this.reservationsMemoryBytes = reservationsMemoryBytes;
         this.envVars = envVars;
         this.osWindows = osWindows;
+        this.workingDir = workingDir;
         this.baseWorkspaceLocation = baseWorkspaceLocation;
         this.placementConstraints = placementConstraints;
     }
@@ -113,6 +120,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public boolean isOsWindows() {
         return osWindows;
+    }
+    
+    public String getWorkingDir() {
+        return workingDir == null ? "/home/jenkins" : workingDir;
     }
 
     @Extension
