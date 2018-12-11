@@ -40,15 +40,23 @@ public class DockerSwarmCloud extends Cloud {
     private String jenkinsUrl;
     private String swarmNetwork;
     private String cacheDriverName;
+    private String tunnel;
     private List<DockerSwarmAgentTemplate> agentTemplates = new ArrayList<>();
 
     @DataBoundConstructor
-    public DockerSwarmCloud(String dockerSwarmApiUrl, String jenkinsUrl, String swarmNetwork, String cacheDriverName, List<DockerSwarmAgentTemplate> agentTemplates) {
+    public DockerSwarmCloud(
+            String dockerSwarmApiUrl,
+            String jenkinsUrl,
+            String swarmNetwork,
+            String cacheDriverName,
+            String tunnel,
+            List<DockerSwarmAgentTemplate> agentTemplates) {
         super(DOCKER_SWARM_CLOUD_NAME);
         this.dockerSwarmApiUrl = dockerSwarmApiUrl;
         this.jenkinsUrl = jenkinsUrl;
         this.swarmNetwork = swarmNetwork;
         this.cacheDriverName = cacheDriverName;
+        this.tunnel = tunnel;
         this.agentTemplates = agentTemplates;
     }
 
@@ -117,6 +125,10 @@ public class DockerSwarmCloud extends Cloud {
 
     public String getCacheDriverName() {
         return cacheDriverName;
+    }
+    
+    public String getTunnel() {
+        return tunnel;
     }
 
     public List<DockerSwarmAgentTemplate> getAgentTemplates() {

@@ -9,6 +9,7 @@ import hudson.model.TaskListener;
 import hudson.slaves.JNLPLauncher;
 import hudson.slaves.SlaveComputer;
 import jenkins.model.Jenkins;
+import jenkins.slaves.RemotingWorkDirSettings;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.docker.swarm.docker.api.service.ServiceSpec;
 
@@ -22,6 +23,16 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
 
 
     public DockerSwarmComputerLauncher(final Queue.BuildableItem bi) {
+        super(
+                DockerSwarmCloud.get().getTunnel(),
+                null,
+                new RemotingWorkDirSettings(
+                        false,
+                        "/tmp",
+                        null,
+                        false
+                )
+        );
         this.bi = bi;
         this.label = bi.task.getAssignedLabel().getName();
         this.jobName = bi.task instanceof AbstractProject ? ((AbstractProject) bi.task).getFullName() : bi.task.getName();
@@ -47,7 +58,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         if (envVarOptions.length != 0) {
             System.arraycopy(envVarOptions, 0, envVars, 0, envVarOptions.length);
         }
-        final String agentOptions = String.join(" ", "-jnlpUrl", getAgentJnlpUrl(computer, configuration), "-secret", getAgentSecret(computer), "-noReconnect -workDir /tmp");
+        final String agentOptions = String.join(" ", "-jnlpUrl", getAgentJnlpUrl(computer, configuration), "-secret", getAgentSecret(computer), "-noReconnect");
         String interpreter;
         String interpreterOptions;
         String fetchAndLaunchCommand;
