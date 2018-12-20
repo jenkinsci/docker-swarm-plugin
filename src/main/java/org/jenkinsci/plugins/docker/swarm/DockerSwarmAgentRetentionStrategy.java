@@ -11,6 +11,7 @@ import org.jenkinsci.plugins.durabletask.executors.ContinuableExecutable;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -93,7 +94,10 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerS
             Queue.withLock( () -> {
                  DockerSwarmAgent node = c.getNode();
                 if (node != null) {
-                    node.terminate();
+                    try {
+                        node.terminate();
+                    }
+                    catch (IOException e) {}
                 }
             });
         });

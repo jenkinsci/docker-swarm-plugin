@@ -15,8 +15,8 @@ public class TaskTemplate {
        //for reading from api
     }
 
-    public TaskTemplate(String image, String[] cmd, String[] env) {
-        this.ContainerSpec = new ContainerSpec(image,cmd,env);
+    public TaskTemplate(String image, String[] cmd, String[] env, String dir, String user) {
+        this.ContainerSpec = new ContainerSpec(image,cmd,env,dir,user);
 
     }
 
@@ -45,14 +45,15 @@ public class TaskTemplate {
 
         public static class Resource{
             public long  NanoCPUs;
-            public long   MemoryBytes;
+            public long  MemoryBytes;
         }
     }
 
     public  static class RestartPolicy {
-        public String  Condition = "on-failure";
-//        public int  Delay = 10;
-        public int  MaxAttempts = 4;
+        // One-shot container: https://blog.alexellis.io/containers-on-swarm/
+        public String Condition = "none";
+        // public int  Delay = 10;
+        public int  MaxAttempts = 0;
     }
 
     private  static Pattern computerName = Pattern.compile("(agent-)(\\d+)");

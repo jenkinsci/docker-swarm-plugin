@@ -3,6 +3,8 @@ package org.jenkinsci.plugins.docker.swarm.dashboard;
 import hudson.Extension;
 import hudson.model.RootAction;
 
+import java.io.IOException;
+
 @Extension
 public class UIPage implements RootAction {
     @Override
@@ -23,7 +25,7 @@ public class UIPage implements RootAction {
 
 
 
-    public Dashboard getDashboard(){
+    public Dashboard getDashboard() throws IOException {
        return new Dashboard();
     }
 
