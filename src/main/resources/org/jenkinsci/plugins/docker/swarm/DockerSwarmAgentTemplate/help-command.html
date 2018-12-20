@@ -1,0 +1,16 @@
+<div>
+    <p>Command to run and initiate the slave connection. Each line represents a different argument.</p>
+    <p>The following environment variables are available:<p>
+    <ul>
+        <li>$DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET</li>
+        <li>$DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL</li>
+        <li>$DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL</li>
+    </ul>
+    <p>A Jenkins slave should be started and connected to $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL</p>
+    <p>The default command downloads and starts the slave using curl:</p>
+    <code>
+        sh<br>
+        -cx<br>
+        curl --connect-timeout 20  --max-time 60 -o slave.jar $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL && java -jar slave.jar -jnlpUrl $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL -secret $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET -noReconnect -workDir /tmp
+    </code>
+</div>

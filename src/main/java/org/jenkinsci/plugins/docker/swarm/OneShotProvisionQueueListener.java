@@ -7,10 +7,15 @@ import hudson.model.Queue;
 import hudson.model.queue.QueueListener;
 import jenkins.model.Jenkins;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Extension
 public class OneShotProvisionQueueListener extends QueueListener {
+
+    private static final Logger LOGGER = Logger.getLogger(OneShotProvisionQueueListener.class.getName());
 
     @Override
     public void onEnterBuildable(final Queue.BuildableItem bi) {
@@ -31,7 +36,12 @@ public class OneShotProvisionQueueListener extends QueueListener {
 
                 final Node node = Jenkins.getInstance().getNode(computerName);
                 Computer.threadPoolForRemoting.submit(() -> {
-                        ((DockerSwarmAgent)node).terminate();
+                    try {
+                        ((DockerSwarmAgent) node).terminate();
+                    }
+                    catch (IOException e) {
+                        LOGGER.log(Level.WARNING, "Failed to terminate agent.", e);
+                    }
                 });
             }
         }

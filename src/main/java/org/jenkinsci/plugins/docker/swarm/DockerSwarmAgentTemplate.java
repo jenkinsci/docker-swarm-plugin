@@ -17,8 +17,12 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private long reservationsMemoryBytes;
     private String image;
     private String hostBinds;
+    private String secrets;
+    private String configs;
     private String label;
     private boolean osWindows;
+    private String command;
+    private String user;
     private String workingDir;
 
     private String cacheDir;
@@ -32,6 +36,11 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     @DataBoundConstructor
     public DockerSwarmAgentTemplate(final String image, final String hostBinds,
+                                    final String command,
+                                    final String user,
+                                    final String workingDir,
+                                    final String secrets,
+                                    final String configs,
                                     final String label,
                                     final String cacheDir, final String tmpfsDir,
                                     final String envVars,
@@ -40,11 +49,15 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
                                     final long reservationsNanoCPUs,
                                     final long reservationsMemoryBytes,
                                     final boolean osWindows,
-                                    String workingDir,
                                     final String baseWorkspaceLocation,
                                     final String placementConstraints) {
         this.image = image;
         this.hostBinds = hostBinds;
+        this.command = command;
+        this.user = user;
+        this.workingDir = workingDir;
+        this.secrets = secrets;
+        this.configs = configs;
         this.label = label;
         this.cacheDir = cacheDir;
         this.tmpfsDir = tmpfsDir;
@@ -54,13 +67,12 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         this.reservationsMemoryBytes = reservationsMemoryBytes;
         this.envVars = envVars;
         this.osWindows = osWindows;
-        this.workingDir = workingDir;
         this.baseWorkspaceLocation = baseWorkspaceLocation;
         this.placementConstraints = placementConstraints;
     }
 
     public String[] getCacheDirs() {
-        return StringUtils.isEmpty(this.cacheDir) ? new String[]{} : this.cacheDir.split(" ");
+        return StringUtils.isEmpty(this.cacheDir) ? new String[]{} : this.cacheDir.split("[\\r\\n ]+");
     }
 
     public String getLabel() {
@@ -72,12 +84,25 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     public String[] getHostBindsConfig() {
-        return StringUtils.isEmpty(this.hostBinds) ? new String[]{} : this.hostBinds.split(" ");
+        return StringUtils.isEmpty(this.hostBinds) ? new String[]{} : this.hostBinds.split("[\\r\\n ]+");
+    }
+
+    public String[] getSecretsConfig() {
+        return StringUtils.isEmpty(this.secrets) ? new String[]{} : this.secrets.split("[\\r\\n ]+");
+    }
+
+    public String[] getConfigsConfig() {
+        return StringUtils.isEmpty(this.configs) ? new String[]{} : this.configs.split("[\\r\\n ]+");
     }
 
     public String[] getEnvVarsConfig() {
-        return StringUtils.isEmpty(this.envVars) ? new String[]{} : this.envVars.split(" ");
+        return StringUtils.isEmpty(this.envVars) ? new String[]{} : this.envVars.split("[\\r\\n ]+");
     }
+
+    public String[] getCommandConfig() {
+        return StringUtils.isEmpty(this.command) ? new String[]{} : this.command.split("[\\r\\n]+");
+    }
+
     public long getLimitsNanoCPUs() {
         return limitsNanoCPUs;
     }
@@ -121,7 +146,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     public boolean isOsWindows() {
         return osWindows;
     }
-    
+
     public String getWorkingDir() {
         return workingDir == null ? "/home/jenkins" : workingDir;
     }
@@ -134,12 +159,11 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         }
     }
 
-    public String getHostBinds() {
-        return hostBinds;
-    }
-
-    public String getCacheDir() {
-        return cacheDir;
-    }
+    public String getHostBinds() { return hostBinds; }
+    public String getSecrets() { return secrets; }
+    public String getConfigs() { return configs; }
+    public String getCommand() { return command; }
+    public String getCacheDir() { return cacheDir;  }
+    public String getUser() { return user; }
 
 }

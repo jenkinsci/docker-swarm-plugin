@@ -36,8 +36,8 @@ public class DockerSwarmAgent extends AbstractCloudSlave implements EphemeralNod
                 labelString,
                 new DockerSwarmComputerLauncher(bi),
                 new DockerSwarmAgentRetentionStrategy(1),
-                Collections.emptyList()
-        );
+                Collections.emptyList());
+        LOGGER.log(Level.FINE, "Created docker swarm agent: {0}", labelString);
     }
 
     public DockerSwarmComputer createComputer() {
@@ -70,7 +70,7 @@ public class DockerSwarmAgent extends AbstractCloudSlave implements EphemeralNod
         return labels;
     }
 
-    public void terminate() {
+    public void terminate() throws IOException {
         try {
             DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
             ActorRef agentLauncherRef = swarmPlugin.getActorSystem().actorFor("/user/" + getComputer().getName());
