@@ -118,7 +118,7 @@ public class DockerSwarmCloud extends Cloud {
 
         @Override
         public String getDisplayName() {
-            return "Docker Swarm - TLS";
+            return "Docker Swarm";
         }
         public FormValidation doCheckJenkinsUrl(@QueryParameter String jenkinsUrl) {
             try {

@@ -49,7 +49,6 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
                                     final long reservationsNanoCPUs,
                                     final long reservationsMemoryBytes,
                                     final boolean osWindows,
-                                    String workingDir,
                                     final String baseWorkspaceLocation,
                                     final String placementConstraints) {
         this.image = image;
@@ -68,7 +67,6 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         this.reservationsMemoryBytes = reservationsMemoryBytes;
         this.envVars = envVars;
         this.osWindows = osWindows;
-        this.workingDir = workingDir;
         this.baseWorkspaceLocation = baseWorkspaceLocation;
         this.placementConstraints = placementConstraints;
     }
@@ -148,7 +146,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     public boolean isOsWindows() {
         return osWindows;
     }
-    
+
     public String getWorkingDir() {
         return workingDir == null ? "/home/jenkins" : workingDir;
     }
@@ -166,7 +164,6 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     public String getConfigs() { return configs; }
     public String getCommand() { return command; }
     public String getCacheDir() { return cacheDir;  }
-    public String getWorkingDir() { return workingDir; }
     public String getUser() { return user; }
 
 }

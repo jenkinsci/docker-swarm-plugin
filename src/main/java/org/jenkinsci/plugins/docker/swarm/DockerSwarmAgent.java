@@ -36,9 +36,8 @@ public class DockerSwarmAgent extends AbstractCloudSlave implements EphemeralNod
                 labelString,
                 new DockerSwarmComputerLauncher(bi),
                 new DockerSwarmAgentRetentionStrategy(1),
-                Collections.emptyList()
-                LOGGER.log(Level.FINE, "Created docker swarm agent: {0}", labelString);
-        );
+                Collections.emptyList());
+        LOGGER.log(Level.FINE, "Created docker swarm agent: {0}", labelString);
     }
 
     public DockerSwarmComputer createComputer() {

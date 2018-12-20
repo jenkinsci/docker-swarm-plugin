@@ -94,7 +94,8 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
             interpreterOptions = "";
             fetchAndLaunchCommand = "& { Invoke-WebRequest -TimeoutSec 20 -OutFile slave.jar " + getAgentJarUrl(configuration) + "; if($?) { java -jar slave.jar " + agentOptions + " } }";
             final String[] command = new String[]{interpreter, interpreterOptions, fetchAndLaunchCommand};
-            launchContainer(command,configuration, envVars, dockerSwarmAgentTemplate, listener, computer);
+            launchContainer(command,configuration, envVars, dockerSwarmAgentTemplate.getWorkingDir(), 
+                    dockerSwarmAgentTemplate.getUser(), dockerSwarmAgentTemplate, listener, computer);
         }
         else {
             launchContainer(dockerSwarmAgentTemplate.getCommandConfig(),configuration, envVars,
