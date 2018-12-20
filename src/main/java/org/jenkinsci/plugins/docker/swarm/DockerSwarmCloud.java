@@ -56,7 +56,7 @@ import com.github.dockerjava.core.SSLConfig;
 import javax.net.ssl.SSLContext;
 
 public class DockerSwarmCloud extends Cloud {
-    private static final String DOCKER_SWARM_CLOUD_NAME = "Docker Swarm TLS";
+    private static final String DOCKER_SWARM_CLOUD_NAME = "Docker Swarm";
     private static final Logger LOGGER = Logger.getLogger(DockerSwarmCloud.class.getName());
     private String jenkinsUrl;
     private String swarmNetwork;

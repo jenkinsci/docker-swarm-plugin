@@ -8,11 +8,11 @@
         <relativePath />
     </parent>
     <groupId>org.jenkins-ci.plugins</groupId>
-    <artifactId>docker-swarm-tls</artifactId>
+    <artifactId>docker-swarm</artifactId>
     <version>1.6-SMHC-SNAPSHOT</version>
     <packaging>hpi</packaging>
 
-    <name>Docker Swarm Plugin - TLS</name>
+    <name>Docker Swarm Plugin</name>
     <description>Cloud plugin for launching single use agent as a service on docker swarm.</description>
     <url>https://wiki.jenkins.io/display/JENKINS/Docker+Swarm+Plugin</url>
     <licenses>
