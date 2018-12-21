@@ -7,7 +7,7 @@
         <j:forEach items="${dbrd.queue}" var="item">
             <li class="mdl-list__item mdl-list__item--three-line">
                 <span class="mdl-list__item-primary-content">
-                    <span>${item.name}</span>
+                    <span>${item.name} (${item.labelConfigLabel})</span>
                     <span class="mdl-list__item-text-body">
                         ${item.inQueueSince} - Provisioning:
                         ${item.agentInfo.provisioningInProgress}

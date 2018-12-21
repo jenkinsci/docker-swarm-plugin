@@ -16,6 +16,7 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.service.ScheduledService;
 import org.jenkinsci.plugins.docker.swarm.docker.api.task.ListTasksRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,7 +28,7 @@ import java.util.stream.Stream;
 public class Dashboard {
     private final List<SwarmNode> nodes;
 
-    public Dashboard(){
+    public Dashboard() throws IOException {
         this.nodes = calculateNodes();
     }
 
@@ -48,7 +49,7 @@ public class Dashboard {
         return this.nodes;
     }
 
-    public String getUsage() {
+    public String getUsage() throws IOException {
 
         final ArrayList<Object> usage = new ArrayList<>();
         usage.add(Arrays.asList("Job", "cpu"));
@@ -86,7 +87,7 @@ public class Dashboard {
     }
 
 
-    private List<SwarmNode> calculateNodes() {
+    private List<SwarmNode> calculateNodes() throws IOException {
         final List<Node> nodeList = getResult(new ListNodesRequest().execute(),List.class);
         final List services = getResult(new ListServicesRequest().execute(),List.class);
         final Object tasks = new ListTasksRequest().execute();

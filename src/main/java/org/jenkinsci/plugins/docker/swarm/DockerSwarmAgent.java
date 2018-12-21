@@ -25,11 +25,19 @@ public class DockerSwarmAgent extends AbstractCloudSlave implements EphemeralNod
     private static final Logger LOGGER = Logger.getLogger(DockerSwarmAgent.class.getName());
 
     public DockerSwarmAgent(final Queue.BuildableItem bi, final String labelString) throws Descriptor.FormException, IOException {
-        super(labelString, "Docker swarm agent for building " + bi.task.getFullDisplayName(),
-                "/home/jenkins", 1, Mode.EXCLUSIVE, labelString,
+        super(
+                labelString,
+                "Docker swarm agent for building " + bi.task.getFullDisplayName(),
+                DockerSwarmCloud.get()
+                                .getLabelConfiguration(bi.task.getAssignedLabel().getName())
+                                .getWorkingDir(),
+                1,
+                Mode.EXCLUSIVE,
+                labelString,
                 new DockerSwarmComputerLauncher(bi),
                 new DockerSwarmAgentRetentionStrategy(1),
                 Collections.emptyList());
+        LOGGER.log(Level.FINE, "Created docker swarm agent: {0}", labelString);
     }
 
     public DockerSwarmComputer createComputer() {
@@ -62,7 +70,7 @@ public class DockerSwarmAgent extends AbstractCloudSlave implements EphemeralNod
         return labels;
     }
 
-    public void terminate() {
+    public void terminate() throws IOException {
         try {
             DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
             ActorRef agentLauncherRef = swarmPlugin.getActorSystem().actorFor("/user/" + getComputer().getName());

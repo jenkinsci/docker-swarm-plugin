@@ -19,9 +19,13 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String hostBinds;
     private String dnsIps;
     private String dnsSearchs;
+    private String secrets;
+    private String configs;
     private String label;
     private boolean osWindows;
-
+    private String command;
+    private String user;
+    private String workingDir;
 
     private String cacheDir;
     private String envVars;
@@ -38,17 +42,36 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     @DataBoundConstructor
     public DockerSwarmAgentTemplate(final String image, final String hostBinds,
-                                    final String dnsIps, final String dnsSearchs, final String label,
+                                    final String dnsIps,
+                                    final String dnsSearchs,
+                                    final String command,
+                                    final String user,
+                                    final String workingDir,
+                                    final String secrets,
+                                    final String configs,
+                                    final String label,
                                     final String cacheDir, final String tmpfsDir,
-                                    final String envVars, final long limitsNanoCPUs, final long limitsMemoryBytes,
-                                    final long reservationsNanoCPUs, final long reservationsMemoryBytes,
-                                    final boolean osWindows, final String baseWorkspaceLocation, final String placementConstraints,
-                                    final String username, final String password, final String email,
-                                    final String serverAddress) {
+                                    final String envVars,
+                                    final long limitsNanoCPUs,
+                                    final long limitsMemoryBytes,
+                                    final long reservationsNanoCPUs,
+                                    final long reservationsMemoryBytes,
+                                    final String username,
+                                    final String password,
+                                    final String email,
+                                    final String serverAddress,
+                                    final boolean osWindows,
+                                    final String baseWorkspaceLocation,
+                                    final String placementConstraints) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.dnsIps = dnsIps;
         this.dnsSearchs = dnsSearchs;
+        this.command = command;
+        this.user = user;
+        this.workingDir = workingDir;
+        this.secrets = secrets;
+        this.configs = configs;
         this.label = label;
         this.cacheDir = cacheDir;
         this.tmpfsDir = tmpfsDir;
@@ -67,7 +90,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     public String[] getCacheDirs() {
-        return StringUtils.isEmpty(this.cacheDir) ? new String[]{} : this.cacheDir.split(" ");
+        return StringUtils.isEmpty(this.cacheDir) ? new String[]{} : this.cacheDir.split("[\\r\\n ]+");
     }
 
     public String getLabel() {
@@ -79,7 +102,15 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     public String[] getHostBindsConfig() {
-        return StringUtils.isEmpty(this.hostBinds) ? new String[]{} : this.hostBinds.split(" ");
+        return StringUtils.isEmpty(this.hostBinds) ? new String[]{} : this.hostBinds.split("[\\r\\n ]+");
+    }
+
+    public String[] getSecretsConfig() {
+        return StringUtils.isEmpty(this.secrets) ? new String[]{} : this.secrets.split("[\\r\\n ]+");
+    }
+
+    public String[] getConfigsConfig() {
+        return StringUtils.isEmpty(this.configs) ? new String[]{} : this.configs.split("[\\r\\n ]+");
     }
 
     public String[] getDnsIpsConfig() {
@@ -91,7 +122,11 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     public String[] getEnvVarsConfig() {
-        return StringUtils.isEmpty(this.envVars) ? new String[]{} : this.envVars.split(" ");
+        return StringUtils.isEmpty(this.envVars) ? new String[]{} : this.envVars.split("[\\r\\n ]+");
+    }
+
+    public String[] getCommandConfig() {
+        return StringUtils.isEmpty(this.command) ? new String[]{} : this.command.split("[\\r\\n]+");
     }
 
     public long getLimitsNanoCPUs() {
@@ -139,6 +174,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         return osWindows;
     }
 
+    public String getWorkingDir() {
+        return workingDir == null ? "/home/jenkins" : workingDir;
+    }
+
     @Extension
     public static final class DescriptorImpl extends Descriptor<DockerSwarmAgentTemplate> {
         @Override
@@ -147,35 +186,17 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         }
     }
 
-    public String getHostBinds() {
-        return hostBinds;
-    }
+    public String getHostBinds() { return hostBinds; }
+    public String getSecrets() { return secrets; }
+    public String getConfigs() { return configs; }
+    public String getCommand() { return command; }
+    public String getCacheDir() { return cacheDir;  }
+    public String getUser() { return user; }
+    public String getUsername() { return username; }
+    public String getPassword() { return password; }
+    public String getEmail() { return email; }
+    public String getServerAddress() { return serverAddress; }
+    public String getDnsIps() { return dnsIps; }
+    public String getDnsSearchs() { return dnsSearchs; }
 
-    public String getDnsIps() {
-        return dnsIps;
-    }
-
-    public String getDnsSearchs() {
-        return dnsSearchs;
-    }
-
-    public String getCacheDir() {
-        return cacheDir;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getServerAddress() {
-        return serverAddress;
-    }
 }

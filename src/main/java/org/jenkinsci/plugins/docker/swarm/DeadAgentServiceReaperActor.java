@@ -14,6 +14,7 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.task.ListTasksRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
 import scala.concurrent.duration.Duration;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -31,7 +32,7 @@ public class DeadAgentServiceReaperActor extends AbstractActor {
         return Props.create(DeadAgentServiceReaperActor.class, () -> new DeadAgentServiceReaperActor());
     }
 
-    private void reapDeadAgentServices() {
+    private void reapDeadAgentServices() throws IOException {
         try{
             final DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
             final ActorSystem as = swarmPlugin.getActorSystem();

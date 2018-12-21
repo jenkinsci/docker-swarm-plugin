@@ -11,6 +11,7 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.task.TaskTemplate;
 import org.jenkinsci.plugins.docker.swarm.docker.marshalling.ResponseType;
 
+import java.io.IOException;
 import java.util.*;
 
 public class ServiceSpec extends ApiRequest {
@@ -20,13 +21,13 @@ public class ServiceSpec extends ApiRequest {
 
     public List<Network> Networks = new ArrayList<>();
 
-    public ServiceSpec(String name, String Image, String[] Cmd, String[] Env) {
+    public ServiceSpec(String name, String Image, String[] Cmd, String[] Env, String Dir, String User) throws IOException {
         super(HttpMethod.POST, "/services/create", CreateServiceResponse.class, ResponseType.CLASS);
         this.Name = name;
-        this.TaskTemplate = new TaskTemplate(Image, Cmd, Env);
+        this.TaskTemplate = new TaskTemplate(Image, Cmd, Env, Dir, User);
     }
 
-    public ServiceSpec() {
+    public ServiceSpec() throws IOException {
         super(HttpMethod.POST, "", "/services/create", CreateServiceResponse.class, ResponseType.CLASS, null);
     }
 
@@ -41,6 +42,16 @@ public class ServiceSpec extends ApiRequest {
 
     public void addDnsSearch(String dnsSearch) {
         this.TaskTemplate.ContainerSpec.DNSConfig.addSearch(dnsSearch);
+    }
+
+    public void addSecret(String secretId, String secretName, String fileName) {
+        ContainerSpec.Secret secret = ContainerSpec.Secret.createSecret(secretId, secretName, fileName);
+        this.TaskTemplate.ContainerSpec.Secrets.add(secret);
+    }
+
+    public void addConfig(String configId, String configName, String fileName) {
+        ContainerSpec.Config config = ContainerSpec.Config.createConfig(configId, configName, fileName);
+        this.TaskTemplate.ContainerSpec.Configs.add(config);
     }
 
     public void addCacheVolume(String cacheVolumeName, String target, String cacheDriverName) {
