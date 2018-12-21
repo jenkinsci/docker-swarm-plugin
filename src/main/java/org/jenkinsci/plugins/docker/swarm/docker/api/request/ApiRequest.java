@@ -67,6 +67,10 @@ public abstract class ApiRequest {
     public ApiRequest(HttpMethod method, String url, Class<?> responseClass , ResponseType responseType) throws IOException  {
         this(method, DockerSwarmCloud.get().getDockerSwarmApiUrl(),url,responseClass,responseType, null);
     }
+
+    public ApiRequest(HttpMethod method, String dockerApiUrl, String url, Class<?> responseClass, ResponseType responseType) throws IOException {
+        this(method, dockerApiUrl, url, responseClass, responseType, null);
+    }
     public ApiRequest(HttpMethod method, String url) throws IOException  {
        this(method,url,null,null) ;
     }
