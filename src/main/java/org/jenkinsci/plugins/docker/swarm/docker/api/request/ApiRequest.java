@@ -50,7 +50,7 @@ public abstract class ApiRequest {
             headers = new HashMap<>();
         }
         this.headers = headers;
-        this.url = dockerApiUrl+url;
+        this.url = dockerApiUrl + url;
         String dockerCredentialsId = null;
         if (DockerSwarmCloud.get().getDockerHost() != null) {
             dockerCredentialsId = DockerSwarmCloud.get().getDockerHost().getCredentialsId();
@@ -64,26 +64,29 @@ public abstract class ApiRequest {
             ApiRequest.credentialsId = dockerCredentialsId;
         }
     }
-    public ApiRequest(HttpMethod method, String url, Class<?> responseClass , ResponseType responseType) throws IOException  {
-        this(method, DockerSwarmCloud.get().getDockerSwarmApiUrl(),url,responseClass,responseType, null);
+
+    public ApiRequest(HttpMethod method, String url, Class<?> responseClass, ResponseType responseType) throws IOException {
+        this(method, DockerSwarmCloud.get().getDockerSwarmApiUrl(), url, responseClass, responseType, null);
     }
 
     public ApiRequest(HttpMethod method, String dockerApiUrl, String url, Class<?> responseClass, ResponseType responseType) throws IOException {
         this(method, dockerApiUrl, url, responseClass, responseType, null);
     }
-    public ApiRequest(HttpMethod method, String url) throws IOException  {
-       this(method,url,null,null) ;
+
+    public ApiRequest(HttpMethod method, String url) throws IOException {
+        this(method, url, null, null);
     }
 
     protected static String encodeJsonFilter(String filterKey, String filterValue) {
-        Map<Object,Object> filter = new HashMap<>();
-        filter.put(filterKey,new String[]{filterValue});
+        Map<Object, Object> filter = new HashMap<>();
+        filter.put(filterKey, new String[]{filterValue});
         try {
-            return URLEncoder.encode( Jackson.toJson(filter),"UTF-8");
+            return URLEncoder.encode(Jackson.toJson(filter), "UTF-8");
         } catch (UnsupportedEncodingException e) {
-           throw new RuntimeException(e);
+            throw new RuntimeException(e);
         }
     }
+
     private String getUrl() {
         return url;
     }
@@ -92,9 +95,10 @@ public abstract class ApiRequest {
         return method;
     }
 
-    public Class<?> getResponseClass(){
+    public Class<?> getResponseClass() {
         return responseClass;
     }
+
     public Object getEntity() {
         return this;
     }
@@ -113,55 +117,56 @@ public abstract class ApiRequest {
 
     private Request toOkHttpRequest() throws JsonProcessingException {
         String jsonString = toJsonString();
-        LOGGER.log(Level.FINE,"JSON Request: {0}, {1}", new Object[]{getUrl(), jsonString});
+        LOGGER.log(Level.FINE, "JSON Request: {0}, {1}", new Object[]{getUrl(), jsonString});
         RequestBody body = RequestBody.create(JSON, jsonString);
         String method = getMethod().name();
         Headers.Builder headersBuilder = new Headers.Builder();
-        for (Map.Entry<String, String> entry: this.headers.entrySet()) {
+        for (Map.Entry<String, String> entry : this.headers.entrySet()) {
             headersBuilder.add(entry.getKey(), entry.getValue());
         }
         Headers headers = headersBuilder.build();
         return new Request.Builder()
                 .url(getUrl())
                 .headers(headers)
-                .method(method, method.equals("GET")?null:body)
+                .method(method, method.equals("GET") ? null : body)
                 .build();
     }
 
-    public Object execute(){
+    public Object execute() {
         try {
             Request apiCall = toOkHttpRequest();
             Response response = client.newCall(apiCall).execute();
-            return response.isSuccessful()? handleSuccess(response): handleFailure(response);
+            return response.isSuccessful() ? handleSuccess(response) : handleFailure(response);
         } catch (JsonProcessingException e) {
-            LOGGER.log(Level.WARNING,"Serialisation exception", e);
+            LOGGER.log(Level.WARNING, "Serialisation exception", e);
             return new SerializationException(e);
         } catch (IOException e) {
-            LOGGER.log(Level.WARNING,"Execute IO exception", e);
-            return new ApiException(responseClass,e);
+            LOGGER.log(Level.WARNING, "Execute IO exception", e);
+            return new ApiException(responseClass, e);
         }
     }
+
     private Object handleSuccess(Response response) throws IOException {
-        if(getResponseClass() != null){
+        if (getResponseClass() != null) {
             String responseBody = response.body().string();
-            LOGGER.log(Level.FINE,"API Request response success: {0}", responseBody);
+            LOGGER.log(Level.FINE, "API Request response success: {0}", responseBody);
             return Jackson.fromJSON(responseBody, getResponseClass(), getResponseType());
-        }else{
-            LOGGER.log(Level.FINE,"API Request response success");
+        } else {
+            LOGGER.log(Level.FINE, "API Request response success");
             return new ApiSuccess(getClass(), response);
         }
     }
 
     private Object handleFailure(Response response) throws IOException {
         Object result;
-        if(response.code() == 500 ) {
-            LOGGER.log(Level.WARNING,"API Request response status 500. Message: {0}", response.message());
-            result = new ApiError(getClass(), response.code(), response.message()) ;
-        }else{
+        if (response.code() == 500) {
+            LOGGER.log(Level.WARNING, "API Request response status 500. Message: {0}", response.message());
+            result = new ApiError(getClass(), response.code(), response.message());
+        } else {
             String responseBody = response.body().string();
-            LOGGER.log(Level.WARNING,"API Request response fail: {0}", responseBody);
+            LOGGER.log(Level.WARNING, "API Request response fail: {0}", responseBody);
             ErrorMessage errorMessage = Jackson.fromJSON(responseBody, ErrorMessage.class);
-            result = new ApiError(getClass(), response.code(), errorMessage.message) ;
+            result = new ApiError(getClass(), response.code(), errorMessage.message);
         }
         return result;
     }
