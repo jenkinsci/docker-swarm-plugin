@@ -39,19 +39,11 @@ public class BuildScheduler {
 
     private static DockerSwarmLabelAssignmentAction createLabelAssignmentAction(String taskName) {
 
-        try {
-            Thread.sleep(5, 10);
-        } catch (final InterruptedException e) {
-            LOGGER.log(Level.INFO,"couldn't add agent", e);
-        }
         taskName = taskName.replaceAll("[^a-zA-Z0-9]", "_");
-        if (taskName.length() > 30) {
-            taskName = taskName.substring(taskName.length() - 30);
+        if (taskName.length() > 15) {
+            taskName = taskName.substring(taskName.length() - 15);
         }
-        String truncatedTime = Long.toString(System.nanoTime());
-        truncatedTime = truncatedTime.substring(truncatedTime.length() - 10);
-
-        return new DockerSwarmLabelAssignmentAction("agent-" + taskName + "-" +
-                truncatedTime + "-" + BuildScheduler.counter.incrementAndGet());
+        return new DockerSwarmLabelAssignmentAction("agt-" + taskName + "-" +
+                BuildScheduler.counter.incrementAndGet() % 9999999);
     }
 }
