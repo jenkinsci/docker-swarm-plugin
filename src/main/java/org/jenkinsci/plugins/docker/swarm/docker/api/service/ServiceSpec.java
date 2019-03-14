@@ -21,10 +21,10 @@ public class ServiceSpec extends ApiRequest {
     public Map<String,String> Labels = new HashMap<>();
 
     public List<Network> Networks = new ArrayList<>();
-    public ServiceSpec(String name, String Image, String[] Cmd, String[] Env, String Dir, String User) throws IOException {
+    public ServiceSpec(String name, String Image, String[] Cmd, String[] Env, String Dir, String User, String[] Hosts) throws IOException {
         super(HttpMethod.POST, "/services/create",CreateServiceResponse.class, ResponseType.CLASS);
         this.Name = name;
-        this.TaskTemplate = new TaskTemplate(Image,Cmd,Env,Dir,User);
+        this.TaskTemplate = new TaskTemplate(Image, Cmd, Env, Dir, User, Hosts);
     }
 
     public ServiceSpec() throws IOException {
