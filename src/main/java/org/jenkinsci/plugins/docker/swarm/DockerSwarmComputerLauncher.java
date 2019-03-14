@@ -94,12 +94,13 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
             interpreterOptions = "";
             fetchAndLaunchCommand = "& { Invoke-WebRequest -TimeoutSec 20 -OutFile slave.jar " + getAgentJarUrl(configuration) + "; if($?) { java -jar slave.jar " + agentOptions + " } }";
             final String[] command = new String[]{interpreter, interpreterOptions, fetchAndLaunchCommand};
-            launchContainer(command,configuration, envVars, dockerSwarmAgentTemplate.getWorkingDir(), 
-                    dockerSwarmAgentTemplate.getUser(), dockerSwarmAgentTemplate, listener, computer);
+            launchContainer(command,configuration, envVars, dockerSwarmAgentTemplate.getWorkingDir(),
+                    dockerSwarmAgentTemplate.getUser(), dockerSwarmAgentTemplate, listener, computer, dockerSwarmAgentTemplate.getHostsConfig());
         }
         else {
             launchContainer(dockerSwarmAgentTemplate.getCommandConfig(),configuration, envVars,
-                   dockerSwarmAgentTemplate.getWorkingDir(),  dockerSwarmAgentTemplate.getUser(), dockerSwarmAgentTemplate, listener, computer);
+                   dockerSwarmAgentTemplate.getWorkingDir(),  dockerSwarmAgentTemplate.getUser(),
+                    dockerSwarmAgentTemplate, listener, computer, dockerSwarmAgentTemplate.getHostsConfig());
         }
     }
 
@@ -114,9 +115,9 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
     }
 
     public void launchContainer(String[] commands, DockerSwarmCloud configuration, String[] envVars, String dir, String user,
-                                DockerSwarmAgentTemplate dockerSwarmAgentTemplate, TaskListener listener, DockerSwarmComputer computer) throws IOException {
+                                DockerSwarmAgentTemplate dockerSwarmAgentTemplate, TaskListener listener, DockerSwarmComputer computer, String[] hosts) throws IOException {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-        ServiceSpec crReq = createCreateServiceRequest(commands, configuration, envVars, dir, user, dockerSwarmAgentTemplate, computer);
+        ServiceSpec crReq = createCreateServiceRequest(commands, configuration, envVars, dir, user, dockerSwarmAgentTemplate, computer, hosts);
 
         setLimitsAndReservations(dockerSwarmAgentTemplate, crReq);
         setHostBinds(dockerSwarmAgentTemplate, crReq);
@@ -148,16 +149,16 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
     }
 
     private ServiceSpec createCreateServiceRequest(String[] commands, DockerSwarmCloud configuration, String[] envVars, String dir, String user,
-                                                   DockerSwarmAgentTemplate dockerSwarmAgentTemplate, DockerSwarmComputer computer) throws IOException {
+                                                   DockerSwarmAgentTemplate dockerSwarmAgentTemplate, DockerSwarmComputer computer, String[] hosts) throws IOException {
         ServiceSpec crReq;
         if(dockerSwarmAgentTemplate.getLabel().contains("dind")){
             commands[2]= StringUtils.isEmpty(configuration.getSwarmNetwork())?
                     String.format("docker run --rm --privileged %s sh -xc '%s' ", dockerSwarmAgentTemplate.getImage(), commands[2]):
                     String.format("docker run --rm --privileged --network %s %s sh -xc '%s' ",configuration.getSwarmNetwork(), dockerSwarmAgentTemplate.getImage(), commands[2]);
 
-            crReq = new ServiceSpec(computer.getName(),"docker:17.12" , commands, envVars, dir, user);
+            crReq = new ServiceSpec(computer.getName(),"docker:17.12" , commands, envVars, dir, user, hosts);
         }else {
-            crReq = new ServiceSpec(computer.getName(), dockerSwarmAgentTemplate.getImage(), commands, envVars, dir, user);
+            crReq = new ServiceSpec(computer.getName(), dockerSwarmAgentTemplate.getImage(), commands, envVars, dir, user, hosts);
         }
         return crReq;
     }
