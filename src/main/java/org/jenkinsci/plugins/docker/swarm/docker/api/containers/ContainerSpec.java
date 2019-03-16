@@ -11,19 +11,21 @@ public class ContainerSpec {
     public final String Dir;
     public final String User;
     public List<Mount> Mounts = new ArrayList<>();
+    public final String[] Hosts;
     public List<Secret> Secrets = new ArrayList<>();
     public List<Config> Configs = new ArrayList<>();
 
     public ContainerSpec() {
-        this(null, null, null, null, null);
+        this(null, null, null, null, null, null);
     }
 
-    public ContainerSpec(String image, String[] cmd, String[] env, String dir, String user) {
+    public ContainerSpec(String image, String[] cmd, String[] env, String dir, String user, String[] hosts) {
         this.Image = image;
         this.Command = cmd;
         this.Env = env;
         this.Dir = dir;
         this.User = user;
+        this.Hosts = hosts;
     }
 
     public static class Secret {
