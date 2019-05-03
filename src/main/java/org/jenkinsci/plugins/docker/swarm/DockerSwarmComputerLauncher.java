@@ -172,7 +172,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
     private void setCacheDirs(DockerSwarmCloud configuration, DockerSwarmAgentTemplate dockerSwarmAgentTemplate, TaskListener listener, DockerSwarmComputer computer, ServiceSpec crReq) {
         final String[] cacheDirs = dockerSwarmAgentTemplate.getCacheDirs();
         if (cacheDirs.length > 0) {
-            final String cacheVolumeName = getJobName().replaceAll("\\W", "0") + "-" + computer.getVolumeName();
+            final String cacheVolumeName = getJobName().replaceAll("\\W", "0") + "-" + computer.getVolumeName().replaceAll("\\W", "0");
             
             this.bi.getAction(DockerSwarmAgentInfo.class).setCacheVolumeName(cacheVolumeName);
             for (int i = 0; i < cacheDirs.length; i++) {
