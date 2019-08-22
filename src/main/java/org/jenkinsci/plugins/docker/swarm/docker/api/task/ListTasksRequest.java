@@ -13,9 +13,8 @@ public class ListTasksRequest extends ApiRequest {
         super(HttpMethod.GET, "/tasks", Task.class, ResponseType.LIST);
     }
     public ListTasksRequest(String dockerSwarmApiUrl, String url) throws IOException {
-        super(HttpMethod.GET, dockerSwarmApiUrl, url, Task.class, ResponseType.LIST);
+        super(HttpMethod.GET, dockerSwarmApiUrl, url, Task.class, ResponseType.LIST, null);
     }
-
 
     public  ListTasksRequest(String dockerApiUrl, String filterKey, String filterValue) throws IOException{
         this(dockerApiUrl, "/tasks?filters="+encodeJsonFilter(filterKey,filterValue));

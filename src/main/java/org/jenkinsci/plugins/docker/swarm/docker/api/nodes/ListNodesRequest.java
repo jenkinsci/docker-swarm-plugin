@@ -13,6 +13,6 @@ public class ListNodesRequest extends ApiRequest {
         super(HttpMethod.GET, "/nodes", Node.class, ResponseType.LIST);
     }
     public ListNodesRequest(String dockerSwarmApiUrl) throws IOException {
-        super(HttpMethod.GET, dockerSwarmApiUrl, "/nodes", Node.class, ResponseType.LIST);
+        super(HttpMethod.GET, dockerSwarmApiUrl, "/nodes", Node.class, ResponseType.LIST, null);
     }
 }
