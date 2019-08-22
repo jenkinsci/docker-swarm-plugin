@@ -14,7 +14,7 @@ public class ListServicesRequest extends ApiRequest {
     }
 
     public ListServicesRequest(String dockerApiUrl, String url) throws IOException {
-        super(HttpMethod.GET, dockerApiUrl, url, ScheduledService.class, ResponseType.LIST);
+        super(HttpMethod.GET, dockerApiUrl, url, ScheduledService.class, ResponseType.LIST, null);
     }
     public ListServicesRequest() throws IOException {
         this("/services");
