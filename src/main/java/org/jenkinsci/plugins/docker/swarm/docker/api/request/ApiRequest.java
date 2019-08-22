@@ -3,11 +3,7 @@ package org.jenkinsci.plugins.docker.swarm.docker.api.request;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import hudson.model.Api;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.*;
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
 import org.jenkinsci.plugins.docker.swarm.docker.api.HttpMethod;
 import org.jenkinsci.plugins.docker.swarm.docker.api.error.ErrorMessage;
@@ -38,16 +34,23 @@ public abstract class ApiRequest {
     @JsonIgnore
     private ResponseType responseType;
     @JsonIgnore
+    private Map<String, String> headers;
+
+    @JsonIgnore
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     @JsonIgnore
     private static OkHttpClient client;
     @JsonIgnore
     private static final Logger LOGGER = Logger.getLogger(ApiRequest.class.getName());
 
-    public ApiRequest(HttpMethod method, String dockerApiUrl, String url, Class<?> responseClass , ResponseType responseType) throws IOException {
+    public ApiRequest(HttpMethod method, String dockerApiUrl, String url, Class<?> responseClass, ResponseType responseType, Map<String, String> headers) throws IOException {
         this.responseClass = responseClass;
         this.responseType = responseType;
         this.method = method;
+        if (headers == null) {
+            headers = new HashMap<>();
+        }
+        this.headers = headers;
         this.url = dockerApiUrl+url;
         String dockerCredentialsId = null;
         if (DockerSwarmCloud.get().getDockerHost() != null) {
@@ -62,8 +65,8 @@ public abstract class ApiRequest {
             ApiRequest.credentialsId = dockerCredentialsId;
         }
     }
-    public ApiRequest(HttpMethod method, String url, Class<?> responseClass , ResponseType responseType) throws IOException  {
-        this(method, DockerSwarmCloud.get().getDockerSwarmApiUrl(),url,responseClass,responseType);
+    public ApiRequest(HttpMethod method, String url, Class<?> responseClass , ResponseType responseType) throws IOException {
+        this(method, DockerSwarmCloud.get().getDockerSwarmApiUrl(),url,responseClass,responseType, null);
     }
     public ApiRequest(HttpMethod method, String url) throws IOException  {
        this(method,url,null,null) ;
@@ -101,13 +104,23 @@ public abstract class ApiRequest {
         return Jackson.toJson(getEntity());
     }
 
+    public void addHeader(String key, String value) {
+        this.headers.put(key, value);
+    }
+
     private Request toOkHttpRequest() {
         String jsonString = toJsonString();
         LOGGER.log(Level.FINE,"JSON Request: {0}, {1}", new Object[]{getUrl(), jsonString});
         RequestBody body = RequestBody.create(JSON, jsonString);
         String method = getMethod().name();
+        Headers.Builder headersBuilder = new Headers.Builder();
+        for (Map.Entry<String, String> entry: this.headers.entrySet()) {
+            headersBuilder.add(entry.getKey(), entry.getValue());
+        }
+        Headers headers = headersBuilder.build();
         return new Request.Builder()
                 .url(getUrl())
+                .headers(headers)
                 .method(method, method.equals("GET")?null:body)
                 .build();
     }

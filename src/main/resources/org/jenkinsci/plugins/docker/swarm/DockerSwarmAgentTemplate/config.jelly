@@ -45,6 +45,22 @@
     <f:entry title="Workspace Location" field="baseWorkspaceLocation">
         <f:textbox value="${dockerSwarmAgentTemplate.baseWorkspaceLocation}"/>
     </f:entry>
+    <f:advanced title="${%Registry Authentication}" align="left">
+        <f:section title="Registry Authentication">
+            <f:entry title="Username" field="username">
+                <f:textbox value="${dockerSwarmAgentTemplate.username}"/>
+            </f:entry>
+            <f:entry title="Password" field="password">
+                <f:password value="${dockerSwarmAgentTemplate.password}"/>
+            </f:entry>
+            <f:entry title="Email" field="email">
+                <f:textbox value="${dockerSwarmAgentTemplate.email}"/>
+            </f:entry>
+            <f:entry title="Server address" field="serverAddress">
+                <f:textbox value="${dockerSwarmAgentTemplate.serverAddress}"/>
+            </f:entry>
+        </f:section>
+    </f:advanced>
     <f:advanced title="${%Placement}" align="left">
         <f:section title="Placement">
             <f:entry title="Constraints" field="placementConstraints">

@@ -129,6 +129,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setConstraints(dockerSwarmAgentTemplate,crReq);
         setLabels(crReq);
         setRestartAttemptCount(crReq);
+        setAuthHeaders(dockerSwarmAgentTemplate, crReq);
 
         this.agentInfo.setServiceRequestJson(crReq.toJsonString());
 
@@ -252,6 +253,15 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
             throw new RuntimeException (((ApiException)result).getCause());
         }
         return clazz.cast(result);
+    }
+
+    private void setAuthHeaders(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        crReq.setAuthHeader(
+                dockerSwarmAgentTemplate.getUsername(),
+                dockerSwarmAgentTemplate.getPassword(),
+                dockerSwarmAgentTemplate.getEmail(),
+                dockerSwarmAgentTemplate.getServerAddress()
+        );
     }
 
     private void setLimitsAndReservations(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {

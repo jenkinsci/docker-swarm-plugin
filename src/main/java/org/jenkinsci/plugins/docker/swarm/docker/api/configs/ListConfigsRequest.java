@@ -15,7 +15,7 @@ public class ListConfigsRequest extends ApiRequest {
     }
 
     public ListConfigsRequest(String dockerApiUrl, String url) throws IOException {
-        super(HttpMethod.GET, dockerApiUrl, url, ScheduledService.class, ResponseType.LIST);
+        super(HttpMethod.GET, dockerApiUrl, url, ScheduledService.class, ResponseType.LIST, null);
     }
     public ListConfigsRequest() throws IOException {
         this("/configs");

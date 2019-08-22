@@ -30,6 +30,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String envVars;
     private String baseWorkspaceLocation;
     private String placementConstraints;
+    private String username;
+    private String password;
+    private String email;
+    private String serverAddress;
 
     public DockerSwarmAgentTemplate(){
         //For Yaml Load
@@ -52,7 +56,11 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
                                     final long reservationsMemoryBytes,
                                     final boolean osWindows,
                                     final String baseWorkspaceLocation,
-                                    final String placementConstraints) {
+                                    final String placementConstraints,
+                                    final String username,
+                                    final String password,
+                                    final String email,
+                                    final String serverAddress) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.command = command;
@@ -72,6 +80,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         this.osWindows = osWindows;
         this.baseWorkspaceLocation = baseWorkspaceLocation;
         this.placementConstraints = placementConstraints;
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.serverAddress = serverAddress;
     }
 
     public String[] getCacheDirs() {
@@ -174,4 +186,19 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     public String getCacheDir() { return cacheDir;  }
     public String getUser() { return user; }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getServerAddress() {
+        return serverAddress;
+    }
 }
