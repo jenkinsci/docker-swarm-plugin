@@ -20,6 +20,8 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.secrets.Secret;
 import org.jenkinsci.plugins.docker.swarm.docker.api.service.ServiceSpec;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.logging.Level;
@@ -76,13 +78,12 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setBaseWorkspaceLocation(dockerSwarmAgentTemplate);
 
         final String[] envVarOptions = dockerSwarmAgentTemplate.getEnvVarsConfig();
-        final String[] envVars = new String[envVarOptions.length + 3];
-        if (envVarOptions.length != 0) {
-            System.arraycopy(envVarOptions, 0, envVars, 0, envVarOptions.length);
-        }
-        envVars[envVarOptions.length]   = "DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET=" + getAgentSecret(computer);
-        envVars[envVarOptions.length+1] = "DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL=" + getAgentJarUrl(configuration);
-        envVars[envVarOptions.length+2] = "DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL=" + getAgentJnlpUrl(computer, configuration);
+        final ArrayList<String> envVarsList = new ArrayList<>(Arrays.asList(envVarOptions));
+        envVarsList.add("DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET=" + getAgentSecret(computer));
+        envVarsList.add("DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL=" + getAgentJarUrl(configuration));
+        envVarsList.add("DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL=" + getAgentJnlpUrl(computer, configuration));
+        envVarsList.add("DOCKER_SWARM_PLUGIN_JENKINS_AGENT_NAME=" + getAgentName(computer));
+        final String[] envVars = envVarsList.toArray(new String[0]);
 
         if (dockerSwarmAgentTemplate.isOsWindows()) {
             // On windows use hard-coded command. TODO: Use configured command if configured.
@@ -271,7 +272,10 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
 
     private String getAgentSecret(final Computer computer) {
         return ((DockerSwarmComputer) computer).getJnlpMac();
+    }
 
+    private String getAgentName(final Computer computer) {
+        return ((DockerSwarmComputer) computer).getName();
     }
 
     private String getJenkinsUrl(final DockerSwarmCloud configuration) {
