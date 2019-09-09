@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.Iterables;
+
 public class Dashboard {
     private final List<SwarmNode> nodes;
 
@@ -32,7 +34,7 @@ public class Dashboard {
         this.nodes = calculateNodes();
     }
 
-    public Iterable getQueue() {
+    public Iterable<SwarmQueueItem> getQueue() {
         final List<SwarmQueueItem> queue = new ArrayList<>();
         final Queue.Item[] items = Jenkins.getInstance().getQueue().getItems();
         for (int i = items.length - 1; i >= 0; i--) { //reverse order
@@ -45,21 +47,24 @@ public class Dashboard {
         return queue;
     }
 
-    public List<SwarmNode> getNodes(){
+    public Boolean isQueueEmpty() {
+        return Iterables.isEmpty(getQueue());
+    }
+
+    public List<SwarmNode> getNodes() {
         return this.nodes;
     }
 
-    public String getUsage() throws IOException {
-
+    public String getCpuUsage() throws IOException {
         final ArrayList<Object> usage = new ArrayList<>();
         usage.add(Arrays.asList("Job", "cpu"));
 
         final Map<String, Long> usagePerJob = new HashMap<>();
         final List<SwarmNode> nodes = calculateNodes();
-        final long totalCpus = nodes.stream().map(node -> node.getTotalCPUs()).reduce(0l, Long::sum );
-        final long totalReservedCpus = nodes.stream().map(node -> node.getReservedCPUs()).reduce(0l, Long::sum);
+        final long totalAvailable = nodes.stream().map(node -> node.getTotalCPUs()).reduce(0l, Long::sum);
+        final long totalReserved = nodes.stream().map(node -> node.getReservedCPUs()).reduce(0l, Long::sum);
 
-        for (final SwarmNode node : calculateNodes()) {
+        for (final SwarmNode node : nodes) {
             final Map<Task, Run> map = node.getTaskRunMap();
             for (final Task task : map.keySet()) {
                 final String jobName = getJobName(map.get(task));
@@ -73,19 +78,52 @@ public class Dashboard {
                 usagePerJob.put(task.getServiceID(), task.getReservedCpus());
             }
         }
-        usagePerJob.put("Available ", totalCpus - totalReservedCpus);
+        usagePerJob.put("Free ", totalAvailable - totalReserved);
 
         for (final String jobName : usagePerJob.keySet()) {
             final Long jobUsage = usagePerJob.get(jobName);
             usage.add(Arrays.asList(jobName + " - " + jobUsage, jobUsage));
         }
 
-
         final JSONArray mJSONArray = new JSONArray();
         mJSONArray.addAll(usage);
         return mJSONArray.toString();
     }
 
+    public String getMemoryUsage() throws IOException {
+        final ArrayList<Object> usage = new ArrayList<>();
+        usage.add(Arrays.asList("Job", "memory"));
+
+        final Map<String, Long> usagePerJob = new HashMap<>();
+        final List<SwarmNode> nodes = calculateNodes();
+        final long totalAvailable = nodes.stream().map(node -> node.getTotalMemory()).reduce(0l, Long::sum);
+        final long totalReserved = nodes.stream().map(node -> node.getReservedMemory()).reduce(0l, Long::sum);
+
+        for (final SwarmNode node : nodes) {
+            final Map<Task, Run> map = node.getTaskRunMap();
+            for (final Task task : map.keySet()) {
+                final String jobName = getJobName(map.get(task));
+                if (usagePerJob.containsKey(jobName)) {
+                    usagePerJob.put(jobName, usagePerJob.get(jobName) + (Long) task.getReservedMemory());
+                } else {
+                    usagePerJob.put(jobName, task.getReservedMemory());
+                }
+            }
+            for (final Task task : node.getUnknownRunningTasks()) {
+                usagePerJob.put(task.getServiceID(), task.getReservedMemory());
+            }
+        }
+        usagePerJob.put("Free ", totalAvailable - totalReserved);
+
+        for (final String jobName : usagePerJob.keySet()) {
+            final Long jobUsage = usagePerJob.get(jobName);
+            usage.add(Arrays.asList(jobName + " - " + jobUsage, jobUsage));
+        }
+
+        final JSONArray mJSONArray = new JSONArray();
+        mJSONArray.addAll(usage);
+        return mJSONArray.toString();
+    }
 
     private List<SwarmNode> calculateNodes() throws IOException {
         final List<Node> nodeList = getResult(new ListNodesRequest().execute(),List.class);

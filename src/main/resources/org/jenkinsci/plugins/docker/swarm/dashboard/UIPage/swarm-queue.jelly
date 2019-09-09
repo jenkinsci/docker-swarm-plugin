@@ -2,24 +2,33 @@
 <j:jelly xmlns:j="jelly:core">
     <j:new var="h" className="hudson.Functions"/>
     ${h.initPageVariables(context)}
-    <h4>Queue</h4>
-    <ul class="mdl-list">
-        <j:forEach items="${dbrd.queue}" var="item">
-            <li class="mdl-list__item mdl-list__item--three-line">
-                <span class="mdl-list__item-primary-content">
-                    <span>${item.name} (${item.labelConfigLabel})</span>
-                    <span class="mdl-list__item-text-body">
-                        ${item.inQueueSince} - Provisioning:
-                        ${item.agentInfo.provisioningInProgress}
-                        <j:if test='${item.provisionedComputer != null}'>
-                            <a href="${rootURL}/${item.provisionedComputer.url}">
-                                ${item.provisionedComputer.displayName}
-                            </a>
-                        </j:if>
-                    </span>
-                </span>
-            </li>
-        </j:forEach>
-    </ul>
 
+    <div class="card info-block">
+        <div class="card-header">
+            Queue
+        </div>
+        <div class="card-block">
+            <div class="card-text">
+                <j:if test='${dbrd.isQueueEmpty()}'>
+                    Empty
+                </j:if>
+                <ul class="list-unstyled">
+                    <j:forEach items="${dbrd.queue}" var="item">
+                        <li>
+                            <div class="p2">${item.name} (${item.labelConfigLabel})</div>
+                            <span class="p3">
+                                ${item.inQueueSince} - Provisioning:
+                                ${item.agentInfo.provisioningInProgress}
+                                <j:if test='${item.provisionedComputer != null}'>
+                                    <a href="${rootURL}/${item.provisionedComputer.url}">
+                                        ${item.provisionedComputer.displayName}
+                                    </a>
+                                </j:if>
+                            </span>
+                        </li>
+                    </j:forEach>
+                </ul>
+            </div>
+        </div>
+    </div>
 </j:jelly>

@@ -1,66 +1,91 @@
 <?jelly escape-by-default='false'?>
-<j:jelly xmlns:j="jelly:core"
->
-    <div class="mdl-card mdl-shadow--2dp node">
-        <div class="mdl-card__title">
-            <i class="material-icons mdl-list__item-avatar  mdl-badge mdl-badge--overlap"
-               data-badge="${node.computerCount}">computer
-            </i>
-            <div class="mdl-layout-spacer"></div>
-            <h2 class="mdl-card__title-text ${node.full?'node-full':'node-empty'} ">
-                ${node.name}
-                <span>
-                    <div id="cpu${node.name}" style="height: 80px;width: 40px;"/>
-                </span>
-                <span>
-                    <div id="memory${node.name}" style="height: 80px;width: 40px;"/>
-                </span>
-            </h2>
+<j:jelly xmlns:j="jelly:core">
+
+    <div class="card info-block node">
+        <div class="card-header">
+            <div class="clr-row">
+                <div class="clr-col-auto">
+                    <clr-icon shape="${node.role=='manager'?'cluster':'node'}" size="36"></clr-icon>
+                    <span class="badge badge-blue">${node.computerCount}</span>
+                </div>
+                <div class="clr-col">
+                    ${node.name} (${node.role})
+                </div>
+                <div class="clr-col-auto flex">
+                    <span class="chart-small-container">
+                        <div id="cpu${node.name}"></div>
+                        <span class="chart-small-text">CPU</span>
+                    </span>
+                    <span class="chart-small-container">
+                        <div id="memory${node.name}"></div>
+                        <span class="chart-small-text">Memory</span>
+                    </span>
+                </div>
+            </div>
         </div>
+        <div class="card-block">
+            <div class="card-text">
 
-        <div class="mdl-card__supporting-text">
+                <script defer="true">
+                    (function() {
+                        google.charts.load('current', {'packages':['corechart']});
+                        google.charts.setOnLoadCallback(drawCharts);
 
-            <script defer="true">
+                        function drawCharts() {
+                            drawMemoryChart();
+                            drawCpuChart();
+                        }
 
-                (function() {
-                google.charts.setOnLoadCallback(drawMemory);
-                google.charts.setOnLoadCallback(drawCpu);
-                function drawMemory(){
-                var memoryData = google.visualization.arrayToDataTable(${node.memoryUsageJson});
+                        function buildChartOptions(title) {
+                            return {
+                                title: title,
+                                titlePosition: 'none',
+                                legend: { position: 'none' },
+                                enableInteractivity: false,
+                                width: 30,
+                                height: 30,
+                                theme: 'maximized',
+                                colors:['grey', 'red'],
+                                backgroundColor: { fill:'transparent' }
+                            };
+                        }
 
-                var memoryChart = new google.visualization.PieChart(document.getElementById('memory${node.name}'));
-                memoryChart.draw(memoryData, { title: 'memory',legend:{position:'none'}, colors:['grey','#7F7F7F','red','#004411']});
-                }
-                function drawCpu(){
-                var cpuData = google.visualization.arrayToDataTable(${node.cpuUsageJson});
+                        function drawMemoryChart() {
+                            var memoryData = google.visualization.arrayToDataTable(${node.memoryUsageJson});
+                            var memoryChart = new google.visualization.PieChart(document.getElementById('memory${node.name}'));
+                            var options = buildChartOptions('memory');
+                            memoryChart.draw(memoryData, options);
+                        }
+                        
+                        function drawCpuChart() {
+                            var cpuData = google.visualization.arrayToDataTable(${node.cpuUsageJson});
+                            var cpuChart = new google.visualization.PieChart(document.getElementById('cpu${node.name}'));
+                            var options = buildChartOptions('cpu');
+                            cpuChart.draw(cpuData, options);
+                        }
+                    })()
+                </script>
 
-                var cpuChart = new google.visualization.PieChart(document.getElementById('cpu${node.name}'));
-                cpuChart.draw(cpuData, {title:'cpu',legend:{position:'none'}, colors:['grey','red']});
-                }
-                })()
+                <ul class="list-unstyled">
+                    <j:if test='${node.isIdle()}'>
+                        Idle
+                    </j:if>
 
-
-            </script>
-
-            <ul class="mdl-list">
-                <j:forEach items="${node.currentBuilds}" var="build">
-                    <li class="mdl-list__item">
-                        <span class="mdl-list__item-primary-content">
+                    <j:forEach items="${node.currentBuilds}" var="build">
+                        <li>
                             <a href="${build.absoluteUrl}">
                                 ${build.fullDisplayName}
                             </a>
-                        </span>
-                    </li>
-                </j:forEach>
-
-                <j:forEach items="${node.unknownRunningTasks}" var="task">
-                    <li class="mdl-list__item">
-                        <span class="mdl-list__item-primary-content">
+                        </li>
+                    </j:forEach>
+    
+                    <j:forEach items="${node.unknownRunningTasks}" var="task">
+                        <li>
                             ${task.service.Spec.Name}
-                        </span>
-                    </li>
-                </j:forEach>
-            </ul>
+                        </li>
+                    </j:forEach>
+                </ul>
+            </div>
         </div>
     </div>
 </j:jelly>
