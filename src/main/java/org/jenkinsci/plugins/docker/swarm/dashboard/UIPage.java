@@ -14,7 +14,7 @@ public class UIPage implements RootAction {
 
     @Override
     public String getDisplayName() {
-        return "Swarm Dashboard";
+        return "Docker Swarm Dashboard";
     }
 
     @Override
@@ -22,21 +22,8 @@ public class UIPage implements RootAction {
         return "swarm-dashboard";
     }
 
-
-
-
     public Dashboard getDashboard() throws IOException {
-       return new Dashboard();
+        return new Dashboard();
     }
 
-
-
-
-
-
-
-
-
-
 }
-
