@@ -1,15 +1,20 @@
 package org.jenkinsci.plugins.docker.swarm;
 
 
-import akka.actor.ActorRef;
-import hudson.model.AbstractProject;
-import hudson.model.Computer;
-import hudson.model.Queue;
-import hudson.model.TaskListener;
-import hudson.slaves.JNLPLauncher;
-import hudson.slaves.SlaveComputer;
-import jenkins.model.Jenkins;
-import jenkins.slaves.RemotingWorkDirSettings;
+import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.domains.DomainRequirement;
+
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.docker.swarm.docker.api.configs.Config;
 import org.jenkinsci.plugins.docker.swarm.docker.api.configs.ListConfigsRequest;
@@ -19,12 +24,17 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.secrets.ListSecretsRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.secrets.Secret;
 import org.jenkinsci.plugins.docker.swarm.docker.api.service.ServiceSpec;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Logger;
-import java.util.logging.Level;
+import akka.actor.ActorRef;
+import hudson.model.AbstractProject;
+import hudson.model.Computer;
+import hudson.model.Item;
+import hudson.model.Queue;
+import hudson.model.TaskListener;
+import hudson.security.ACL;
+import hudson.slaves.JNLPLauncher;
+import hudson.slaves.SlaveComputer;
+import jenkins.model.Jenkins;
+import jenkins.slaves.RemotingWorkDirSettings;
 
 public class DockerSwarmComputerLauncher extends JNLPLauncher {
 
@@ -130,6 +140,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setConstraints(dockerSwarmAgentTemplate,crReq);
         setLabels(crReq);
         setRestartAttemptCount(crReq);
+        setAuthHeaders(dockerSwarmAgentTemplate, crReq);
 
         this.agentInfo.setServiceRequestJson(crReq.toJsonString());
 
@@ -253,6 +264,29 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
             throw new RuntimeException (((ApiException)result).getCause());
         }
         return clazz.cast(result);
+    }
+
+    private void setAuthHeaders(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        String credentialsId = dockerSwarmAgentTemplate.getPullCredentialsId();
+
+        // Exit if no credentials are provided
+        if (credentialsId == null || credentialsId.length() == 0)
+        {
+            return;
+        }
+
+        // Get the credentials
+        StandardUsernamePasswordCredentials credentials = CredentialsMatchers.firstOrNull(
+            lookupCredentials(StandardUsernamePasswordCredentials.class, (Item) null, ACL.SYSTEM, Collections.<DomainRequirement>emptyList()),
+            CredentialsMatchers.withId(credentialsId));
+
+        // Add the credentials to the header
+        crReq.setAuthHeader(
+            credentials.getUsername(),
+            credentials.getPassword().getPlainText(),
+            dockerSwarmAgentTemplate.getEmail(),
+            dockerSwarmAgentTemplate.getServerAddress()
+        );
     }
 
     private void setLimitsAndReservations(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {

@@ -15,7 +15,7 @@ public class ListSecretsRequest extends ApiRequest {
     }
 
     public ListSecretsRequest(String dockerApiUrl, String url) throws IOException {
-        super(HttpMethod.GET, dockerApiUrl, url, ScheduledService.class, ResponseType.LIST);
+        super(HttpMethod.GET, dockerApiUrl, url, ScheduledService.class, ResponseType.LIST, null);
     }
     public ListSecretsRequest() throws IOException {
         this("/secrets");

@@ -7,7 +7,6 @@ import java.io.IOException;
 
 public class PingRequest extends ApiRequest {
     public PingRequest(String dockerApiUrl) throws IOException {
-        super(HttpMethod.GET, dockerApiUrl, "/_ping",null,null);
-
+        super(HttpMethod.GET, dockerApiUrl, "/_ping",null,null, null);
     }
 }

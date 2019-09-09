@@ -1,12 +1,20 @@
 package org.jenkinsci.plugins.docker.swarm;
 
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import org.apache.commons.lang.StringUtils;
+import org.jenkinsci.plugins.docker.commons.credentials.DockerRegistryEndpoint;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+
 import hudson.Extension;
 import hudson.model.Describable;
 import hudson.model.Descriptor;
+import hudson.model.Item;
+import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.DataBoundConstructor;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTemplate> {
@@ -30,6 +38,9 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String envVars;
     private String baseWorkspaceLocation;
     private String placementConstraints;
+    private String email;
+    private String serverAddress;
+    private String pullCredentialsId;
 
     public DockerSwarmAgentTemplate(){
         //For Yaml Load
@@ -52,7 +63,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
                                     final long reservationsMemoryBytes,
                                     final boolean osWindows,
                                     final String baseWorkspaceLocation,
-                                    final String placementConstraints) {
+                                    final String placementConstraints,
+                                    final String email,
+                                    final String serverAddress,
+                                    final String pullCredentialsId) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.command = command;
@@ -72,6 +86,9 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         this.osWindows = osWindows;
         this.baseWorkspaceLocation = baseWorkspaceLocation;
         this.placementConstraints = placementConstraints;
+        this.email = email;
+        this.serverAddress = serverAddress;
+        this.pullCredentialsId = pullCredentialsId;
     }
 
     public String[] getCacheDirs() {
@@ -164,6 +181,19 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         public String getDisplayName() {
             return "Docker Agent Template";
         }
+
+        public ListBoxModel doFillPullCredentialsIdItems(@AncestorInPath Item item,
+            @QueryParameter String pullCredentialsId) {
+            if (item == null && !Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER) ||
+                item != null && !item.hasPermission(Item.EXTENDED_READ)) {
+                return new StandardListBoxModel();
+            }
+
+            final DockerRegistryEndpoint.DescriptorImpl descriptor =
+                    (DockerRegistryEndpoint.DescriptorImpl)
+                    Jenkins.getInstance().getDescriptorOrDie(DockerRegistryEndpoint.class);
+            return descriptor.doFillCredentialsIdItems(item);
+        }
     }
 
     public String getHostBinds() { return hostBinds; }
@@ -174,4 +204,15 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     public String getCacheDir() { return cacheDir;  }
     public String getUser() { return user; }
 
+    public String getEmail() {
+        return email;
+    }
+
+    public String getServerAddress() {
+        return serverAddress;
+    }
+
+    public String getPullCredentialsId() {
+        return pullCredentialsId;
+    }
 }
