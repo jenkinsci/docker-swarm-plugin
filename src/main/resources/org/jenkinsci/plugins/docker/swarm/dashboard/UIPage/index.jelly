@@ -2,88 +2,133 @@
 <!DOCTYPE html>
 <html lang="en">
     <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
-             xmlns:l="/lib/layout"
-    >
+             xmlns:l="/lib/layout">
         <head>
             <st:contentType value="text/html;charset=UTF-8"/>
             <meta charset="utf-8"/>
             <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-            <meta name="description" content="Swarm status"/>
-            <meta name="viewport"
-                  content="width=device-width, initial-scale=1.0, minimum-scale=1.0"/>
-            <title>Swarm Status</title>
+            <meta name="description" content="Docker Swarm Status"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0"/>
+            <title>Docker Swarm Status</title>
 
             <meta name="mobile-web-app-capable" content="yes"/>
             <meta name="apple-mobile-web-app-capable" content="yes"/>
             <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
-            <meta name="apple-mobile-web-app-title" content="Swarm status"/>
+            <meta name="apple-mobile-web-app-title" content="Docker Swarm Status"/>
             <meta name="msapplication-TileColor" content="#3372DF"/>
             <j:set var="dbrd" value="${it.dashboard}" />
 
+            <link rel="stylesheet" href="https://unpkg.com/@clr/ui/clr-ui.min.css" />
+            <link rel="stylesheet" href="https://unpkg.com/@clr/icons/clr-icons.min.css" />
+            <script src="https://unpkg.com/@webcomponents/custom-elements/custom-elements.min.js"></script>
+            <script src="https://unpkg.com/@clr/icons/clr-icons.min.js"></script>
 
-
-            <link rel="stylesheet"
-                  href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en"/>
-            <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
-            <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css"/>
-            <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
             <style>
-
-
                 #main-panel {
-                margin-left: 0px !important;
+                    margin-left: 0px !important;
+                    padding: 0px !important;
                 }
                 #side-panel {
-                width: 0px !important;
+                    width: 0px !important;
                 }
-                footer{
-                visibility: hidden ;
+                footer {
+                    visibility: hidden;
                 }
 
+                .info-block .card-header {
+                    background-color: #DDDDDD;
+                }
+                .flex {
+                    display: flex;
+                }
                 .node {
-                margin-left: 10px;
-                margin-right: 10px;
+                    width: 350px;
+                    margin: 5px;
+                    display: inline-block;
                 }
-                .queue{
-                margin-right: 10px;
+                .chart-small-container {
+                    text-align: center;
                 }
-
+                .chart-small-text {
+                    font-size: 0.5em;
+                }
+                /* Fix to remove the margin of the first entry in the queue */
+                .list-unstyled > li:first-child > div {
+                    margin-top: 0 !important;
+                }
+                .goog-tooltip {
+                    z-index: 1000;
+                }
             </style>
             <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
             <script>
                 google.charts.load('current', {'packages':['corechart']});
-                google.charts.setOnLoadCallback(drawChart);
-                function drawChart() {
-
-                var data = google.visualization.arrayToDataTable(${dbrd.usage});
-
-                var options = {
-                title: 'CPU Usage'
-                };
-
-                var chart = new
-                google.visualization.PieChart(document.getElementById('piechart'));
-
-                chart.draw(data, options);
+                google.charts.setOnLoadCallback(drawCharts);
+                function drawCharts() {
+                    drawCpuChart();
+                    drawMemoryChart();
                 }
+                function drawCpuChart() {
+                    var data = google.visualization.arrayToDataTable(${dbrd.cpuUsage});
+                    var options = {
+                        title: 'CPU Usage',
+                        width: '100%',
+                        legend: { position: 'top', alignment: 'start', maxLines: '4' }
+                    };
+                    var chart = new
+                        google.visualization.PieChart(document.getElementById('cpu-usage-chart'));
+                    chart.draw(data, options);
+                }
+                function drawMemoryChart() {
+                    var data = google.visualization.arrayToDataTable(${dbrd.memoryUsage});
+                    var options = {
+                        title: 'Memory Usage',
+                        width: '100%',
+                        legend: { position: 'top', alignment: 'start', maxLines: '4' }
+                    };
+                    var chart = new
+                        google.visualization.PieChart(document.getElementById('mem-usage-chart'));
+                    chart.draw(data, options);
+                }
+
+                window.addEventListener("resize", function(){
+                    drawCpuChart();
+                    drawMemoryChart();
+                });
             </script>
         </head>
         <body>
             <l:layout>
                 <l:main-panel>
-                    <div class="mdl-grid">
-                        <div id="queue"
-                             class="mdl-cell mdl-cell--4-col mdl-color--grey-100 ">
-                            <div id="piechart" style="height: 500px;"></div>
-                            <st:include page="swarm-queue.jelly"/>
+                    <div class="clr-row">
+                        <div class="clr-col-4">
+                            <div class="card info-block">
+                                <div class="card-header">
+                                    System Overview
+                                </div>
+                                <div class="card-block">
+                                    <div class="card-text">
+                                        <div class="clr-row">
+                                            <div class="clr-col-6">
+                                                <div id="cpu-usage-chart" style="min-height: 250px;"></div>
+                                            </div>
+                                            <div class="clr-col-6">
+                                                <div id="mem-usage-chart" style="min-height: 250px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <st:include page="swarm-queue.jelly"/>
+                            </div>
                         </div>
-                        <div class="mdl-cell mdl-cell--8-col">
+                        <div class="clr-col-8">
                             <st:include page="swarm-status.jelly"/>
                         </div>
                     </div>
                 </l:main-panel>
             </l:layout>
-
         </body>
     </j:jelly>
 </html>
