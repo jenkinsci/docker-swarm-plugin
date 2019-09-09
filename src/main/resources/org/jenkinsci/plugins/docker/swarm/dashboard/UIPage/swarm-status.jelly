@@ -1,10 +1,15 @@
 <?jelly escape-by-default='false'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
->
-    <h4>Nodes</h4>
-    <div class="mdl-grid">
-        <j:forEach items="${dbrd.nodes}" var="node">
-            <st:include page="swarm-node.jelly"/>
-        </j:forEach>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
+    <div class="card info-block">
+        <div class="card-header">
+            Nodes
+        </div>
+        <div class="card-block">
+            <div class="card-text">
+                <j:forEach items="${dbrd.nodes}" var="node">
+                    <st:include page="swarm-node.jelly"/>
+                </j:forEach>
+            </div>
+        </div>
     </div>
 </j:jelly>
