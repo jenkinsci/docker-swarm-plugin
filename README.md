@@ -23,4 +23,4 @@ Plugin attempts to create an agent as soon as build enters the queue. Bypasses c
 
 Follow the link on sidebar to view the status of your swarm. What is executing where, what builds are in queue for what resources ect
 
-![dashboard](https://raw.githubusercontent.com/smhc/docker-swarm-plugin-tls/master/docs/images/dashboard.png "Dashboard")
+![dashboard](/docs/images/dashboard.png?raw=true "Dashboard")
