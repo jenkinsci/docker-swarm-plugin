@@ -1,12 +1,12 @@
 # Jenkins Docker Swarm plugin
 
 ## Description
-This plugin allows to add a Docker Swarm as a cloud agent provider. This allows to dynamicalls spin up single use Jenkins agents inside the Docker Swarm from a given Docker image. The creation is done with a [Docker Agent serviceSpec](https://docs.docker.com/engine/swarm/how-swarm-mode-works/services/) which allows options like Limits and Reservations to be set on agent containers.
+This plugin allows to add a Docker Swarm as a cloud agent provider. This allows to dynamically spin up single use Jenkins agents inside the Docker Swarm from a given Docker image. The creation is done with a [Docker Agent serviceSpec](https://docs.docker.com/engine/swarm/how-swarm-mode-works/services/) which allows options like Limits and Reservations to be set on agent containers.
 
 ## Configuration
 The configuration options can be found at `/configure` (Configure System).
 
-In the `Cloud` section, click `Add a new cloud` and select `Docker Swarm`. Then the connection to the swarm needs to be configured. Make sure that your swarm correctly exposes the API. The API is not exposed by default, so you will likely need to take manual actions to expose it. Depending on your OS the method may vary but you basically need to add the `-H tcp://0.0.0.0:<port>` option at Docker startup. Failing to do so will result in a `Failed to _ping` error. This can for example be done in the `daemon.json` file which could then look like the following when the API is exposed on port 2375:
+In the `Cloud` section, click `Add a new cloud` and select `Docker Swarm`. Then the connection to the swarm needs to be configured. Make sure that your swarm correctly exposes the API. The API is not exposed by default, so you will likely need to take manual actions to expose it. Depending on your OS the method may vary but you basically need to add the `-H tcp://0.0.0.0:<port>` option at Docker startup. Failing to do so will result in a `Failed to _ping` error. One way to to this is to create/edit the `daemon.json` file which could then look like the following on Windows when the API should be exposed on port 2375:
 ```
 {
     "hosts": ["tcp://0.0.0.0:2375","npipe://"]
