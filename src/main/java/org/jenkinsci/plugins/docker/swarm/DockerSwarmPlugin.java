@@ -1,13 +1,13 @@
 package org.jenkinsci.plugins.docker.swarm;
 
-import akka.actor.ActorSystem;
 import com.typesafe.config.ConfigFactory;
+
+import akka.actor.ActorSystem;
 import hudson.Extension;
 import hudson.Plugin;
 
 @Extension
 public class DockerSwarmPlugin extends Plugin {
-
 
     private ActorSystem actorSystem;
 

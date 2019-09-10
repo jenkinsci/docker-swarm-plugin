@@ -1,8 +1,8 @@
 package org.jenkinsci.plugins.docker.swarm.docker.api.response;
 
+import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 
 import okhttp3.Response;
-import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 
 public class ApiSuccess {
 
@@ -21,6 +21,5 @@ public class ApiSuccess {
     public Response getResponse() {
         return response;
     }
-
 
 }

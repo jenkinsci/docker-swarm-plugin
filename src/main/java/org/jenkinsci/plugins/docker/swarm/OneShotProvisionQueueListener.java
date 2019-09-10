@@ -1,16 +1,16 @@
 package org.jenkinsci.plugins.docker.swarm;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import hudson.Extension;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.Queue;
 import hudson.model.queue.QueueListener;
 import jenkins.model.Jenkins;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Extension
 public class OneShotProvisionQueueListener extends QueueListener {
@@ -26,11 +26,11 @@ public class OneShotProvisionQueueListener extends QueueListener {
         }
     }
 
-
     @Override
     public void onLeft(final Queue.LeftItem li) {
         if (li.isCancelled()) {
-            final DockerSwarmLabelAssignmentAction labelAssignmentAction = li.getAction(DockerSwarmLabelAssignmentAction.class);
+            final DockerSwarmLabelAssignmentAction labelAssignmentAction = li
+                    .getAction(DockerSwarmLabelAssignmentAction.class);
             if (labelAssignmentAction != null) {
                 final String computerName = labelAssignmentAction.getLabel().getName();
 
@@ -38,8 +38,7 @@ public class OneShotProvisionQueueListener extends QueueListener {
                 Computer.threadPoolForRemoting.submit(() -> {
                     try {
                         ((DockerSwarmAgent) node).terminate();
-                    }
-                    catch (IOException e) {
+                    } catch (IOException e) {
                         LOGGER.log(Level.WARNING, "Failed to terminate agent.", e);
                     }
                 });
