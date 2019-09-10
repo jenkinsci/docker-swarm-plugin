@@ -12,6 +12,6 @@
     <code>
         sh<br>
         -cx<br>
-        curl --connect-timeout 20  --max-time 60 -o slave.jar $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL && java -jar slave.jar -jnlpUrl $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL -secret $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET -noReconnect -workDir /tmp
+        curl --connect-timeout 20  --max-time 60 -o agent.jar $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL && java -jar agent.jar -jnlpUrl $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL -secret $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET -noReconnect -workDir /tmp
     </code>
 </div>

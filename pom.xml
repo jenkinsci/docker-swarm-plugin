@@ -28,7 +28,7 @@
       <tag>HEAD</tag>
   </scm>
     <properties>
-        <jenkins.version>2.76</jenkins.version>
+        <jenkins.version>2.78</jenkins.version>
         <java.level>8</java.level>
         <jackson-jaxrs.version>2.6.4</jackson-jaxrs.version>
     </properties>
