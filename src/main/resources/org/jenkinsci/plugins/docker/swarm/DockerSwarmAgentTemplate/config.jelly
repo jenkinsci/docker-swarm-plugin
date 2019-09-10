@@ -10,7 +10,7 @@
         <f:textbox value="${dockerSwarmAgentTemplate.image}" default="java:8"/>
     </f:entry>
     <f:entry title="Command" field="command">
-        <f:textarea value="${dockerSwarmAgentTemplate.command}" default="sh&#10;-cx&#10;curl --connect-timeout 20 --max-time 60 -o slave.jar $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL &amp;&amp; java -jar slave.jar -jnlpUrl $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL -secret $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET -noReconnect -workDir /tmp"/>
+        <f:textarea value="${dockerSwarmAgentTemplate.command}" default="sh&#10;-cx&#10;curl --connect-timeout 20 --max-time 60 -o agent.jar $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL &amp;&amp; java -jar agent.jar -jnlpUrl $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL -secret $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET -noReconnect -workDir /tmp"/>
     </f:entry>
     <f:entry title="Working Directory" field="workingDir">
         <f:textbox value="${dockerSwarmAgentTemplate.workingDir}" default="/tmp"/>

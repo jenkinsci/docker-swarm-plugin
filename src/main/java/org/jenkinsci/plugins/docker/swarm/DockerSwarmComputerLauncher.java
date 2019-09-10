@@ -103,7 +103,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
             String fetchAndLaunchCommand;
             interpreter = "powershell.exe";
             interpreterOptions = "";
-            fetchAndLaunchCommand = "& { Invoke-WebRequest -TimeoutSec 20 -OutFile slave.jar " + getAgentJarUrl(configuration) + "; if($?) { java -jar slave.jar " + agentOptions + " } }";
+            fetchAndLaunchCommand = "& { Invoke-WebRequest -TimeoutSec 20 -OutFile agent.jar " + getAgentJarUrl(configuration) + "; if($?) { java -jar agent.jar " + agentOptions + " } }";
             final String[] command = new String[]{interpreter, interpreterOptions, fetchAndLaunchCommand};
             launchContainer(command,configuration, envVars, dockerSwarmAgentTemplate.getWorkingDir(),
                     dockerSwarmAgentTemplate.getUser(), dockerSwarmAgentTemplate, listener, computer, dockerSwarmAgentTemplate.getHostsConfig());
@@ -296,7 +296,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
 
 
     private String getAgentJarUrl(final DockerSwarmCloud configuration) {
-        return getJenkinsUrl(configuration) + "jnlpJars/slave.jar";
+        return getJenkinsUrl(configuration) + "jnlpJars/agent.jar";
     }
 
     private String getAgentJnlpUrl(final Computer computer, final DockerSwarmCloud configuration) {
