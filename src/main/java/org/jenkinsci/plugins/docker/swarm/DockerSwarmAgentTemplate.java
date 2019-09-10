@@ -42,31 +42,17 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String serverAddress;
     private String pullCredentialsId;
 
-    public DockerSwarmAgentTemplate(){
-        //For Yaml Load
+    public DockerSwarmAgentTemplate() {
+        // For Yaml Load
     }
 
     @DataBoundConstructor
-    public DockerSwarmAgentTemplate(final String image, final String hostBinds,
-                                    final String command,
-                                    final String user,
-                                    final String workingDir,
-                                    final String hosts,
-                                    final String secrets,
-                                    final String configs,
-                                    final String label,
-                                    final String cacheDir, final String tmpfsDir,
-                                    final String envVars,
-                                    final long limitsNanoCPUs,
-                                    final long limitsMemoryBytes,
-                                    final long reservationsNanoCPUs,
-                                    final long reservationsMemoryBytes,
-                                    final boolean osWindows,
-                                    final String baseWorkspaceLocation,
-                                    final String placementConstraints,
-                                    final String email,
-                                    final String serverAddress,
-                                    final String pullCredentialsId) {
+    public DockerSwarmAgentTemplate(final String image, final String hostBinds, final String command, final String user,
+            final String workingDir, final String hosts, final String secrets, final String configs, final String label,
+            final String cacheDir, final String tmpfsDir, final String envVars, final long limitsNanoCPUs,
+            final long limitsMemoryBytes, final long reservationsNanoCPUs, final long reservationsMemoryBytes,
+            final boolean osWindows, final String baseWorkspaceLocation, final String placementConstraints,
+            final String email, final String serverAddress, final String pullCredentialsId) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.command = command;
@@ -92,7 +78,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     public String[] getCacheDirs() {
-        return StringUtils.isEmpty(this.cacheDir) ? new String[]{} : this.cacheDir.split("[\\r\\n ]+");
+        return StringUtils.isEmpty(this.cacheDir) ? new String[] {} : this.cacheDir.split("[\\r\\n ]+");
     }
 
     public String getLabel() {
@@ -104,27 +90,27 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     public String[] getHostBindsConfig() {
-        return StringUtils.isEmpty(this.hostBinds) ? new String[]{} : this.hostBinds.split("[\\r\\n ]+");
+        return StringUtils.isEmpty(this.hostBinds) ? new String[] {} : this.hostBinds.split("[\\r\\n ]+");
     }
 
     public String[] getSecretsConfig() {
-        return StringUtils.isEmpty(this.secrets) ? new String[]{} : this.secrets.split("[\\r\\n ]+");
+        return StringUtils.isEmpty(this.secrets) ? new String[] {} : this.secrets.split("[\\r\\n ]+");
     }
 
     public String[] getConfigsConfig() {
-        return StringUtils.isEmpty(this.configs) ? new String[]{} : this.configs.split("[\\r\\n ]+");
+        return StringUtils.isEmpty(this.configs) ? new String[] {} : this.configs.split("[\\r\\n ]+");
     }
 
     public String[] getEnvVarsConfig() {
-        return StringUtils.isEmpty(this.envVars) ? new String[]{} : this.envVars.split("[\\r\\n ]+");
+        return StringUtils.isEmpty(this.envVars) ? new String[] {} : this.envVars.split("[\\r\\n ]+");
     }
 
     public String[] getCommandConfig() {
-        return StringUtils.isEmpty(this.command) ? new String[]{} : this.command.split("[\\r\\n]+");
+        return StringUtils.isEmpty(this.command) ? new String[] {} : this.command.split("[\\r\\n]+");
     }
 
     public String[] getHostsConfig() {
-        return StringUtils.isEmpty(this.hosts) ? new String[]{} : this.hosts.split("[\\r\\n]+");
+        return StringUtils.isEmpty(this.hosts) ? new String[] {} : this.hosts.split("[\\r\\n]+");
     }
 
     public long getLimitsNanoCPUs() {
@@ -150,6 +136,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     public String getTmpfsDir() {
         return tmpfsDir;
     }
+
     public String getEnvVars() {
         return envVars;
     }
@@ -164,7 +151,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     public String[] getPlacementConstraintsConfig() {
-        return StringUtils.isEmpty(this.placementConstraints) ? new String[]{} : this.placementConstraints.split(";");
+        return StringUtils.isEmpty(this.placementConstraints) ? new String[] {} : this.placementConstraints.split(";");
     }
 
     public boolean isOsWindows() {
@@ -183,26 +170,45 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         }
 
         public ListBoxModel doFillPullCredentialsIdItems(@AncestorInPath Item item,
-            @QueryParameter String pullCredentialsId) {
-            if (item == null && !Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER) ||
-                item != null && !item.hasPermission(Item.EXTENDED_READ)) {
+                @QueryParameter String pullCredentialsId) {
+            if (item == null && !Jenkins.getInstance().hasPermission(Jenkins.ADMINISTER)
+                    || item != null && !item.hasPermission(Item.EXTENDED_READ)) {
                 return new StandardListBoxModel();
             }
 
-            final DockerRegistryEndpoint.DescriptorImpl descriptor =
-                    (DockerRegistryEndpoint.DescriptorImpl)
-                    Jenkins.getInstance().getDescriptorOrDie(DockerRegistryEndpoint.class);
+            final DockerRegistryEndpoint.DescriptorImpl descriptor = (DockerRegistryEndpoint.DescriptorImpl) Jenkins
+                    .getInstance().getDescriptorOrDie(DockerRegistryEndpoint.class);
             return descriptor.doFillCredentialsIdItems(item);
         }
     }
 
-    public String getHostBinds() { return hostBinds; }
-    public String getSecrets() { return secrets; }
-    public String getConfigs() { return configs; }
-    public String getCommand() { return command; }
-    public String getHosts() { return hosts; }
-    public String getCacheDir() { return cacheDir;  }
-    public String getUser() { return user; }
+    public String getHostBinds() {
+        return hostBinds;
+    }
+
+    public String getSecrets() {
+        return secrets;
+    }
+
+    public String getConfigs() {
+        return configs;
+    }
+
+    public String getCommand() {
+        return command;
+    }
+
+    public String getHosts() {
+        return hosts;
+    }
+
+    public String getCacheDir() {
+        return cacheDir;
+    }
+
+    public String getUser() {
+        return user;
+    }
 
     public String getEmail() {
         return email;

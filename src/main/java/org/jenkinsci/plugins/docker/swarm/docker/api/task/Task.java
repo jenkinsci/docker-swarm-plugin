@@ -8,17 +8,21 @@ public class Task {
     public String NodeID;
     public String ServiceID;
     public Status Status;
-    public String getServiceID(){
+
+    public String getServiceID() {
         return ServiceID;
     }
+
     public long getReservedCpus() {
-        return Spec.Resources.Reservations.NanoCPUs/ 1000000000;
+        return Spec.Resources.Reservations.NanoCPUs / 1000000000;
     }
 
     public long getReservedMemory() {
         return Bytes.toMB(Spec.Resources.Reservations.MemoryBytes);
     }
+
     public ScheduledService service;
+
     public boolean isComplete() {
         return Status.isComplete();
     }

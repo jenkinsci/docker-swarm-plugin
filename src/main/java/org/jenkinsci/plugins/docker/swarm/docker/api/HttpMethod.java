@@ -1,4 +1,5 @@
 package org.jenkinsci.plugins.docker.swarm.docker.api;
-public enum  HttpMethod {
+
+public enum HttpMethod {
     GET, POST, DELETE
 }

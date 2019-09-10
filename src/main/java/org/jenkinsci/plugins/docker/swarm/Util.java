@@ -5,14 +5,11 @@ import java.util.stream.Collectors;
 
 public class Util {
     public static <T> Collector<T, ?, T> singletonCollector() {
-        return Collectors.collectingAndThen(
-                Collectors.toList(),
-                list -> {
-                    if (list.size() != 1) {
-                        return null;
-                    }
-                    return list.get(0);
-                }
-        );
+        return Collectors.collectingAndThen(Collectors.toList(), list -> {
+            if (list.size() != 1) {
+                return null;
+            }
+            return list.get(0);
+        });
     }
 }

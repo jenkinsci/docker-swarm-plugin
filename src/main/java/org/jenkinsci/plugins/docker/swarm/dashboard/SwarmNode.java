@@ -1,20 +1,21 @@
 package org.jenkinsci.plugins.docker.swarm.dashboard;
 
-import hudson.model.Computer;
-import hudson.model.Run;
-import jenkins.model.Jenkins;
-import net.sf.json.JSONArray;
-import org.jenkinsci.plugins.docker.swarm.Bytes;
-import org.jenkinsci.plugins.docker.swarm.DockerSwarmComputer;
-import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
-import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+
+import org.jenkinsci.plugins.docker.swarm.Bytes;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmComputer;
+import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
+import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
+
+import hudson.model.Computer;
+import hudson.model.Run;
+import jenkins.model.Jenkins;
+import net.sf.json.JSONArray;
 
 public class SwarmNode {
     private final String healthy;
@@ -50,7 +51,7 @@ public class SwarmNode {
     }
 
     public boolean isIdle() {
-            return getCurrentBuilds().length == 0 && getUnknownRunningTasks().length == 0;
+        return getCurrentBuilds().length == 0 && getUnknownRunningTasks().length == 0;
     }
 
     public long getComputerCount() {

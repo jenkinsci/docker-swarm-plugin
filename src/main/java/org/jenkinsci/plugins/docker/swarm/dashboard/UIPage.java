@@ -1,9 +1,9 @@
 package org.jenkinsci.plugins.docker.swarm.dashboard;
 
+import java.io.IOException;
+
 import hudson.Extension;
 import hudson.model.RootAction;
-
-import java.io.IOException;
 
 @Extension
 public class UIPage implements RootAction {

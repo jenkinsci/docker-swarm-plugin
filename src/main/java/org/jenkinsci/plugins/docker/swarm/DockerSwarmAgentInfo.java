@@ -53,25 +53,33 @@ public class DockerSwarmAgentInfo implements RunAction2 {
         this.dockerImage = dockerImage;
     }
 
-    public long getLimitsNanoCPUs() { return this.limitsNanoCPUs; }
+    public long getLimitsNanoCPUs() {
+        return this.limitsNanoCPUs;
+    }
 
     public void setLimitsNanoCPUs(final long limitsNanoCPUs) {
         this.limitsNanoCPUs = limitsNanoCPUs;
     }
 
-    public long getReservationsNanoCPUs() { return this.reservationsNanoCPUs; }
+    public long getReservationsNanoCPUs() {
+        return this.reservationsNanoCPUs;
+    }
 
     public void setReservationsNanoCPUs(final long reservationsNanoCPUs) {
         this.reservationsNanoCPUs = reservationsNanoCPUs;
     }
 
-    public long getReservationsMemoryBytes() { return this.reservationsMemoryBytes; }
+    public long getReservationsMemoryBytes() {
+        return this.reservationsMemoryBytes;
+    }
 
     public void setReservationsMemoryBytes(final long reservationsMemoryBytes) {
         this.reservationsMemoryBytes = reservationsMemoryBytes;
     }
 
-    public String getAgentLabel() { return this.agentLabel; }
+    public String getAgentLabel() {
+        return this.agentLabel;
+    }
 
     public void setAgentLabel(final String agentLabel) {
         this.agentLabel = agentLabel;
