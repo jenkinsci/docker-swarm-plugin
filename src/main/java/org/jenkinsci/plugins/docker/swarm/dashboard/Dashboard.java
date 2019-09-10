@@ -1,21 +1,5 @@
 package org.jenkinsci.plugins.docker.swarm.dashboard;
 
-import hudson.model.Job;
-import hudson.model.Queue;
-import hudson.model.Run;
-import jenkins.model.Jenkins;
-import net.sf.json.JSONArray;
-import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentInfo;
-import org.jenkinsci.plugins.docker.swarm.Util;
-import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.ListNodesRequest;
-import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
-import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
-import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationException;
-import org.jenkinsci.plugins.docker.swarm.docker.api.service.ListServicesRequest;
-import org.jenkinsci.plugins.docker.swarm.docker.api.service.ScheduledService;
-import org.jenkinsci.plugins.docker.swarm.docker.api.task.ListTasksRequest;
-import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +11,23 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.Iterables;
 
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentInfo;
+import org.jenkinsci.plugins.docker.swarm.Util;
+import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.ListNodesRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationException;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.ListServicesRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.service.ScheduledService;
+import org.jenkinsci.plugins.docker.swarm.docker.api.task.ListTasksRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;
+
+import hudson.model.Job;
+import hudson.model.Queue;
+import hudson.model.Run;
+import jenkins.model.Jenkins;
+import net.sf.json.JSONArray;
+
 public class Dashboard {
     private final List<SwarmNode> nodes;
 
@@ -37,7 +38,7 @@ public class Dashboard {
     public Iterable<SwarmQueueItem> getQueue() {
         final List<SwarmQueueItem> queue = new ArrayList<>();
         final Queue.Item[] items = Jenkins.getInstance().getQueue().getItems();
-        for (int i = items.length - 1; i >= 0; i--) { //reverse order
+        for (int i = items.length - 1; i >= 0; i--) { // reverse order
             final Queue.Item item = items[i];
             final DockerSwarmAgentInfo agentInfo = item.getAction(DockerSwarmAgentInfo.class);
             if (agentInfo != null && item instanceof Queue.BuildableItem) {
@@ -126,32 +127,32 @@ public class Dashboard {
     }
 
     private List<SwarmNode> calculateNodes() throws IOException {
-        final List<Node> nodeList = getResult(new ListNodesRequest().execute(),List.class);
-        final List services = getResult(new ListServicesRequest().execute(),List.class);
+        final List<Node> nodeList = getResult(new ListNodesRequest().execute(), List.class);
+        final List services = getResult(new ListServicesRequest().execute(), List.class);
         final Object tasks = new ListTasksRequest().execute();
-        return toSwarmNodes(services,getResult(tasks, List.class), nodeList);
+        return toSwarmNodes(services, getResult(tasks, List.class), nodeList);
     }
 
     private List<SwarmNode> toSwarmNodes(List<ScheduledService> services, List<Task> tasks, List<Node> nodeList) {
         return nodeList.stream().map(node -> {
-            Stream<Task> tasksForNode = tasks.stream()
-                    .filter(task -> task.Status.isRunning())
+            Stream<Task> tasksForNode = tasks.stream().filter(task -> task.Status.isRunning())
                     .filter(task -> node.ID.equals(task.NodeID));
             Stream<Task> tasksWithServices = tasksForNode.map(task -> {
-                ScheduledService taskService = services.stream().filter(service -> service.ID.equals(task.getServiceID())).collect(Util.singletonCollector());
+                ScheduledService taskService = services.stream()
+                        .filter(service -> service.ID.equals(task.getServiceID())).collect(Util.singletonCollector());
                 task.service = taskService;
                 return task;
             });
-            return    new SwarmNode(node, tasksWithServices.collect(Collectors.toList()));
+            return new SwarmNode(node, tasksWithServices.collect(Collectors.toList()));
         }).collect(Collectors.toList());
     }
 
-    private <T> T  getResult(Object result, Class<T> clazz){
-        if(result instanceof SerializationException){
-            throw new RuntimeException (((SerializationException)result).getCause());
+    private <T> T getResult(Object result, Class<T> clazz) {
+        if (result instanceof SerializationException) {
+            throw new RuntimeException(((SerializationException) result).getCause());
         }
-        if(result instanceof ApiException){
-            throw new RuntimeException (((ApiException)result).getCause());
+        if (result instanceof ApiException) {
+            throw new RuntimeException(((ApiException) result).getCause());
         }
         return clazz.cast(result);
     }

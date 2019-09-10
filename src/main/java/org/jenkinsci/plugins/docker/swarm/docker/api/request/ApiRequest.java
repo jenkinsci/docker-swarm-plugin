@@ -1,9 +1,16 @@
 package org.jenkinsci.plugins.docker.swarm.docker.api.request;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import hudson.model.Api;
-import okhttp3.*;
+
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
 import org.jenkinsci.plugins.docker.swarm.docker.api.HttpMethod;
 import org.jenkinsci.plugins.docker.swarm.docker.api.error.ErrorMessage;
@@ -14,13 +21,12 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationExcep
 import org.jenkinsci.plugins.docker.swarm.docker.marshalling.Jackson;
 import org.jenkinsci.plugins.docker.swarm.docker.marshalling.ResponseType;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import okhttp3.Headers;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public abstract class ApiRequest {
     @JsonIgnore
@@ -43,7 +49,8 @@ public abstract class ApiRequest {
     @JsonIgnore
     private static final Logger LOGGER = Logger.getLogger(ApiRequest.class.getName());
 
-    public ApiRequest(HttpMethod method, String dockerApiUrl, String url, Class<?> responseClass, ResponseType responseType, Map<String, String> headers) throws IOException {
+    public ApiRequest(HttpMethod method, String dockerApiUrl, String url, Class<?> responseClass,
+            ResponseType responseType, Map<String, String> headers) throws IOException {
         this.responseClass = responseClass;
         this.responseType = responseType;
         this.method = method;
@@ -51,36 +58,41 @@ public abstract class ApiRequest {
             headers = new HashMap<>();
         }
         this.headers = headers;
-        this.url = dockerApiUrl+url;
+        this.url = dockerApiUrl + url;
         String dockerCredentialsId = null;
         if (DockerSwarmCloud.get().getDockerHost() != null) {
             dockerCredentialsId = DockerSwarmCloud.get().getDockerHost().getCredentialsId();
         }
         if (client == null || (dockerCredentialsId != null && !dockerCredentialsId.equals(ApiRequest.credentialsId))) {
             if (dockerCredentialsId != null) {
-                client = new OkHttpClient.Builder().sslSocketFactory(DockerSwarmCloud.get().getSSLContext().getSocketFactory()).build();
+                client = new OkHttpClient.Builder()
+                        .sslSocketFactory(DockerSwarmCloud.get().getSSLContext().getSocketFactory()).build();
             } else {
                 client = new OkHttpClient();
             }
             ApiRequest.credentialsId = dockerCredentialsId;
         }
     }
-    public ApiRequest(HttpMethod method, String url, Class<?> responseClass , ResponseType responseType) throws IOException {
-        this(method, DockerSwarmCloud.get().getDockerSwarmApiUrl(),url,responseClass,responseType, null);
+
+    public ApiRequest(HttpMethod method, String url, Class<?> responseClass, ResponseType responseType)
+            throws IOException {
+        this(method, DockerSwarmCloud.get().getDockerSwarmApiUrl(), url, responseClass, responseType, null);
     }
-    public ApiRequest(HttpMethod method, String url) throws IOException  {
-       this(method,url,null,null) ;
+
+    public ApiRequest(HttpMethod method, String url) throws IOException {
+        this(method, url, null, null);
     }
 
     protected static String encodeJsonFilter(String filterKey, String filterValue) {
-        Map<Object,Object> filter = new HashMap<>();
-        filter.put(filterKey,new String[]{filterValue});
+        Map<Object, Object> filter = new HashMap<>();
+        filter.put(filterKey, new String[] { filterValue });
         try {
-            return URLEncoder.encode( Jackson.toJson(filter),"UTF-8");
+            return URLEncoder.encode(Jackson.toJson(filter), "UTF-8");
         } catch (UnsupportedEncodingException e) {
-           throw new RuntimeException(e);
+            throw new RuntimeException(e);
         }
     }
+
     private String getUrl() {
         return url;
     }
@@ -89,9 +101,10 @@ public abstract class ApiRequest {
         return method;
     }
 
-    public Class<?> getResponseClass(){
+    public Class<?> getResponseClass() {
         return responseClass;
     }
+
     public Object getEntity() {
         return this;
     }
@@ -110,55 +123,53 @@ public abstract class ApiRequest {
 
     private Request toOkHttpRequest() {
         String jsonString = toJsonString();
-        LOGGER.log(Level.FINE,"JSON Request: {0}, {1}", new Object[]{getUrl(), jsonString});
+        LOGGER.log(Level.FINE, "JSON Request: {0}, {1}", new Object[] { getUrl(), jsonString });
         RequestBody body = RequestBody.create(JSON, jsonString);
         String method = getMethod().name();
         Headers.Builder headersBuilder = new Headers.Builder();
-        for (Map.Entry<String, String> entry: this.headers.entrySet()) {
+        for (Map.Entry<String, String> entry : this.headers.entrySet()) {
             headersBuilder.add(entry.getKey(), entry.getValue());
         }
         Headers headers = headersBuilder.build();
-        return new Request.Builder()
-                .url(getUrl())
-                .headers(headers)
-                .method(method, method.equals("GET")?null:body)
+        return new Request.Builder().url(getUrl()).headers(headers).method(method, method.equals("GET") ? null : body)
                 .build();
     }
 
-    public Object execute(){
+    public Object execute() {
         try {
             Request apiCall = toOkHttpRequest();
             Response response = client.newCall(apiCall).execute();
-            return response.isSuccessful()? handleSuccess(response): handleFailure(response);
+            return response.isSuccessful() ? handleSuccess(response) : handleFailure(response);
         } catch (JsonProcessingException e) {
-            LOGGER.log(Level.WARNING,"Serialisation exception", e);
+            LOGGER.log(Level.WARNING, "Serialisation exception", e);
             return new SerializationException(e);
         } catch (IOException e) {
-            LOGGER.log(Level.WARNING,"Execute IO exception", e);
-            return new ApiException(responseClass,e);
+            LOGGER.log(Level.WARNING, "Execute IO exception", e);
+            return new ApiException(responseClass, e);
         }
     }
+
     private Object handleSuccess(Response response) throws IOException {
-        if(getResponseClass() != null){
+        if (getResponseClass() != null) {
             String responseBody = response.body().string();
-            LOGGER.log(Level.FINE,"API Request response success: {0}", responseBody);
+            LOGGER.log(Level.FINE, "API Request response success: {0}", responseBody);
             return Jackson.fromJSON(responseBody, getResponseClass(), getResponseType());
-        }else{
-            LOGGER.log(Level.FINE,"API Request response success");
+        } else {
+            LOGGER.log(Level.FINE, "API Request response success");
             return new ApiSuccess(getClass(), response);
         }
     }
 
     private Object handleFailure(Response response) throws IOException {
         Object result;
-        if(response.code() == 500 ) {
-            LOGGER.log(Level.WARNING,"API Request response status 500. Message: {0}", response.message());
-            result = new ApiError(getClass(), response.code(), response.message()) ;
-        }else{
+        if (response.code() == 500) {
+            LOGGER.log(Level.WARNING, "API Request response status 500. Message: {0}", response.message());
+            result = new ApiError(getClass(), response.code(), response.message());
+        } else {
             String responseBody = response.body().string();
-            LOGGER.log(Level.WARNING,"API Request response fail: {0}", responseBody);
+            LOGGER.log(Level.WARNING, "API Request response fail: {0}", responseBody);
             ErrorMessage errorMessage = Jackson.fromJSON(responseBody, ErrorMessage.class);
-            result = new ApiError(getClass(), response.code(), errorMessage.message) ;
+            result = new ApiError(getClass(), response.code(), errorMessage.message);
         }
         return result;
     }

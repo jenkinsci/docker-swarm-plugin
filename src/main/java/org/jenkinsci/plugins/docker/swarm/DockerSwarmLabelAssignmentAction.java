@@ -1,12 +1,12 @@
 package org.jenkinsci.plugins.docker.swarm;
 
+import java.util.Date;
+
 import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.labels.LabelAssignmentAction;
 import hudson.model.labels.LabelAtom;
 import hudson.model.queue.SubTask;
-
-import java.util.Date;
 
 public class DockerSwarmLabelAssignmentAction implements LabelAssignmentAction {
 
@@ -18,7 +18,7 @@ public class DockerSwarmLabelAssignmentAction implements LabelAssignmentAction {
         this.provisionedTime = new Date().getTime();
     }
 
-    public DockerSwarmLabelAssignmentAction(String label){
+    public DockerSwarmLabelAssignmentAction(String label) {
         this(new DockerSwarmAgentLabel(label));
     }
 
@@ -56,6 +56,7 @@ public class DockerSwarmLabelAssignmentAction implements LabelAssignmentAction {
             return this.name.equals(node.getNodeName());
         }
     }
+
     public long getProvisionedTime() {
         return provisionedTime;
     }
