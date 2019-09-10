@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.docker.swarm.docker.api.response;
 public class ApiException {
     private Class<?> requestClass;
     private Throwable cause;
+
     public Class<?> getRequestClass() {
         return requestClass;
     }
@@ -11,7 +12,7 @@ public class ApiException {
         return cause;
     }
 
-    public ApiException(Class<?> requestClass,  Throwable cause) {
+    public ApiException(Class<?> requestClass, Throwable cause) {
         this.requestClass = requestClass;
         this.cause = cause;
     }

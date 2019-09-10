@@ -1,5 +1,9 @@
 package org.jenkinsci.plugins.docker.swarm;
 
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import hudson.model.Computer;
 import hudson.model.Descriptor;
 import hudson.model.Node;
@@ -8,12 +12,9 @@ import hudson.security.ACL;
 import hudson.security.ACLContext;
 import jenkins.model.Jenkins;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 public class BuildScheduler {
     private static final Logger LOGGER = Logger.getLogger(BuildScheduler.class.getName());
+
     public static void scheduleBuild(final Queue.BuildableItem bi) {
         try (ACLContext _ = ACL.as(ACL.SYSTEM)) {
             final DockerSwarmLabelAssignmentAction action = createLabelAssignmentAction(bi.task.getDisplayName());
@@ -24,13 +25,13 @@ public class BuildScheduler {
             final Node node = new DockerSwarmAgent(bi, action.getLabel().toString());
             Computer.threadPoolForRemoting.submit(() -> {
                 try {
-                    Jenkins.getInstance().addNode(node); //locks queue
+                    Jenkins.getInstance().addNode(node); // locks queue
                 } catch (final IOException e) {
-                    LOGGER.log(Level.INFO,"couldn't add agent", e);
+                    LOGGER.log(Level.INFO, "couldn't add agent", e);
                 }
             });
-        } catch (final IOException|Descriptor.FormException e) {
-            LOGGER.log(Level.INFO,"couldn't add agent", e);
+        } catch (final IOException | Descriptor.FormException e) {
+            LOGGER.log(Level.INFO, "couldn't add agent", e);
         }
     }
 
@@ -38,7 +39,7 @@ public class BuildScheduler {
         try {
             Thread.sleep(5, 10);
         } catch (final InterruptedException e) {
-            LOGGER.log(Level.INFO,"couldn't add agent", e);
+            LOGGER.log(Level.INFO, "couldn't add agent", e);
         }
         taskName = taskName.replaceAll("[^a-zA-Z0-9]", "_");
         if (taskName.length() > 15) {
@@ -46,7 +47,7 @@ public class BuildScheduler {
         }
         String truncatedTime = Long.toString(System.nanoTime());
         truncatedTime = truncatedTime.substring(truncatedTime.length() - 5);
-        
+
         return new DockerSwarmLabelAssignmentAction("agent-" + taskName + "-" + truncatedTime);
     }
 }

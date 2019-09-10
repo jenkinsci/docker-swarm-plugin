@@ -24,16 +24,13 @@
     <f:entry title="Additional hosts (newline-separated)" field="hosts">
         <f:expandableTextbox value="${dockerSwarmAgentTemplate.hosts}"/>
     </f:entry>
-    <f:entry title="Host Binds (newline-separated)"
-             field="hostBinds">
+    <f:entry title="Host Binds (newline-separated)" field="hostBinds">
         <f:expandableTextbox value="${dockerSwarmAgentTemplate.hostBinds}"/>
     </f:entry>
-    <f:entry title="Secrets (newline-separated)"
-             field="secrets">
+    <f:entry title="Secrets (newline-separated)" field="secrets">
         <f:expandableTextbox value="${dockerSwarmAgentTemplate.secrets}"/>
     </f:entry>
-    <f:entry title="Configs (newline-separated)"
-             field="configs">
+    <f:entry title="Configs (newline-separated)" field="configs">
         <f:expandableTextbox value="${dockerSwarmAgentTemplate.configs}"/>
     </f:entry>
     <f:entry title="Cache Dirs (newline-separated)" field="cacheDir">

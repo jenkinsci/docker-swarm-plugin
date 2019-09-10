@@ -1,5 +1,17 @@
 package org.jenkinsci.plugins.docker.swarm;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.annotation.Nonnull;
+
+import org.jenkinsci.plugins.durabletask.executors.ContinuableExecutable;
+import org.kohsuke.stapler.DataBoundConstructor;
+
 import hudson.Extension;
 import hudson.model.Computer;
 import hudson.model.Descriptor;
@@ -7,18 +19,9 @@ import hudson.model.Executor;
 import hudson.model.ExecutorListener;
 import hudson.model.Queue;
 import hudson.slaves.RetentionStrategy;
-import org.jenkinsci.plugins.durabletask.executors.ContinuableExecutable;
-import org.kohsuke.stapler.DataBoundConstructor;
 
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static java.util.concurrent.TimeUnit.MINUTES;
-
-public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerSwarmComputer> implements ExecutorListener {
+public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerSwarmComputer>
+        implements ExecutorListener {
     private static final Logger LOGGER = Logger.getLogger(DockerSwarmAgentRetentionStrategy.class.getName());
 
     private int timeout = 1;
@@ -70,17 +73,18 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerS
 
     @Override
     public void taskCompletedWithProblems(Executor executor, Queue.Task task, long durationMS, Throwable problems) {
-        taskCompleted(executor,task,durationMS);
+        taskCompleted(executor, task, durationMS);
     }
 
     private void done(Executor executor) {
         final DockerSwarmComputer c = (DockerSwarmComputer) executor.getOwner();
         Queue.Executable exec = executor.getCurrentExecutable();
         if (exec instanceof ContinuableExecutable && ((ContinuableExecutable) exec).willContinue()) {
-            LOGGER.log(Level.FINE, "not terminating {0} because {1} says it will be continued", new Object[]{c.getName(), exec});
+            LOGGER.log(Level.FINE, "not terminating {0} because {1} says it will be continued",
+                    new Object[] { c.getName(), exec });
             return;
         }
-        LOGGER.log(Level.FINE, "terminating {0} since {1} seems to be finished", new Object[]{c.getName(), exec});
+        LOGGER.log(Level.FINE, "terminating {0} since {1} seems to be finished", new Object[] { c.getName(), exec });
         done(c);
     }
 
@@ -91,13 +95,13 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerS
         }
         terminating = true;
         Computer.threadPoolForRemoting.submit(() -> {
-            Queue.withLock( () -> {
-                 DockerSwarmAgent node = c.getNode();
+            Queue.withLock(() -> {
+                DockerSwarmAgent node = c.getNode();
                 if (node != null) {
                     try {
                         node.terminate();
+                    } catch (IOException e) {
                     }
-                    catch (IOException e) {}
                 }
             });
         });

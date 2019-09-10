@@ -1,9 +1,9 @@
 package org.jenkinsci.plugins.docker.swarm.docker.api.service;
 
+import java.io.IOException;
+
 import org.jenkinsci.plugins.docker.swarm.docker.api.HttpMethod;
 import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
-
-import java.io.IOException;
 
 public class ServiceLogRequest extends ApiRequest {
 
