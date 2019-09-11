@@ -1,4 +1,8 @@
 # Jenkins Docker Swarm plugin
+[![Build Status](https://ci.jenkins.io/buildStatus/icon?job=Plugins/docker-swarm-plugin/master)](https://ci.jenkins.io/job/Plugins/job/docker-swarm/job/master/)
+[![Jenkins Plugin](https://img.shields.io/jenkins/plugin/v/docker-swarm.svg)](https://plugins.jenkins.io/docker-swarm)
+[![GitHub release](https://img.shields.io/github/release/jenkinsci/docker-swarm-plugin.svg?label=release)](https://github.com/jenkinsci/docker-swarm-plugin/releases/latest)
+[![Jenkins Plugin Installs](https://img.shields.io/jenkins/plugin/i/docker-swarm.svg?color=blue)](https://plugins.jenkins.io/docker-swarm)
 
 ## Description
 This plugin allows to add a Docker Swarm as a cloud agent provider. This allows to dynamically spin up single use Jenkins agents inside the Docker Swarm from a given Docker image. The creation is done with a [Docker Agent serviceSpec](https://docs.docker.com/engine/swarm/how-swarm-mode-works/services/) which allows options like Limits and Reservations to be set on agent containers.
