@@ -139,7 +139,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setRestartAttemptCount(crReq);
         setAuthHeaders(dockerSwarmAgentTemplate, crReq);
         setDnsIps(dockerSwarmAgentTemplate, crReq);
-        setDnsSearchs(dockerSwarmAgentTemplate, crReq);
+        setDnsSearchDomains(dockerSwarmAgentTemplate, crReq);
 
         this.agentInfo.setServiceRequestJson(crReq.toJsonString());
 
@@ -296,10 +296,10 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         }
     }
 
-    private void setDnsSearchs(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
-        String[] dnsSearchs = dockerSwarmAgentTemplate.getDnsSearchsConfig();
-        for (String dnsSearch : dnsSearchs) {
-            crReq.addDnsSearch(dnsSearch);
+    private void setDnsSearchDomains(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        String[] dnsSearchDomains = dockerSwarmAgentTemplate.getDnsSearchDomainsConfig();
+        for (String dnsSearchDomain : dnsSearchDomains) {
+            crReq.addDnsSearchDomain(dnsSearchDomain);
         }
     }
 

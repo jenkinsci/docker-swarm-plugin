@@ -56,8 +56,8 @@ public class ServiceSpec extends ApiRequest {
         this.TaskTemplate.ContainerSpec.DNSConfig.addNameserver(dnsIp);
     }
 
-    public void addDnsSearch(String dnsSearch) {
-        this.TaskTemplate.ContainerSpec.DNSConfig.addSearch(dnsSearch);
+    public void addDnsSearchDomain(String dnsSearchDomain) {
+        this.TaskTemplate.ContainerSpec.DNSConfig.addSearch(dnsSearchDomain);
     }
 
     public void addCacheVolume(String cacheVolumeName, String target, String cacheDriverName) {

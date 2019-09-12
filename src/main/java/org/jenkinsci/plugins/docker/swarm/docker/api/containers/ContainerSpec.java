@@ -34,9 +34,11 @@ public class ContainerSpec {
         List<String> Nameservers = new ArrayList<>();
         List<String> Search = new ArrayList<>();
         List<String> Options = new ArrayList<>();
+
         public DNSConfig() {
             // For deserialization
         }
+
         public DNSConfig(String nameserver, String search, String option) {
             if (nameserver != null && !nameserver.isEmpty()) {
                 this.Nameservers.add(nameserver);
@@ -48,9 +50,11 @@ public class ContainerSpec {
                 this.Options.add(option);
             }
         }
+
         public void addNameserver(String nameserver) {
             this.Nameservers.add(nameserver);
         }
+
         public void addSearch(String search) {
             this.Search.add(search);
         }
