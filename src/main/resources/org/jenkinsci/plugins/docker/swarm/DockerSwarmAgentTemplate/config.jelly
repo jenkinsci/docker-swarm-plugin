@@ -16,7 +16,7 @@
         <f:textbox value="${dockerSwarmAgentTemplate.workingDir}" default="/tmp"/>
     </f:entry>
     <f:entry title="User" field="user">
-        <f:textbox value="${dockerSwarmAgentTemplate.user}" default="root"/>
+        <f:textbox value="${dockerSwarmAgentTemplate.user}"/>
     </f:entry>
     <f:entry title="Env (newline-separated)" field="envVars">
         <f:expandableTextbox value="${dockerSwarmAgentTemplate.envVars}"/>

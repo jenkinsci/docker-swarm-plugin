@@ -4,7 +4,7 @@
          xmlns:c="/lib/credentials">
     <f:section title="Docker Swarm Cloud Configuration">
         <f:property field="dockerHost"/>
-        <f:validateButton method="validateTestDockerApiConnection" title="Test Connection"  with="uri,credentialsId"/>
+        <f:validateButton method="validateTestDockerApiConnection" title="Test Connection" with="uri,credentialsId"/>
         <f:entry title="Jenkins Url " field="jenkinsUrl">
             <f:textbox/>
         </f:entry>

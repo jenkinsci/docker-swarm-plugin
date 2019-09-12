@@ -52,7 +52,7 @@ public class DeadAgentServiceReaperActor extends AbstractActor {
 
             }
         } finally {
-            resechedule();
+            reschedule();
         }
 
     }
@@ -67,7 +67,7 @@ public class DeadAgentServiceReaperActor extends AbstractActor {
         return clazz.cast(result);
     }
 
-    private void resechedule() {
+    private void reschedule() {
         ActorSystem system = getContext().getSystem();
         system.scheduler().scheduleOnce(Duration.apply(5, TimeUnit.MINUTES), getSelf(), "restart",
                 getContext().dispatcher(), ActorRef.noSender());
