@@ -1,6 +1,7 @@
 package org.jenkinsci.plugins.docker.swarm;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,6 +15,7 @@ import jenkins.model.Jenkins;
 
 public class BuildScheduler {
     private static final Logger LOGGER = Logger.getLogger(BuildScheduler.class.getName());
+    private static AtomicInteger counter = new AtomicInteger(1);
 
     public static void scheduleBuild(final Queue.BuildableItem bi) {
         try (ACLContext _ = ACL.as(ACL.SYSTEM)) {
@@ -36,18 +38,11 @@ public class BuildScheduler {
     }
 
     private static DockerSwarmLabelAssignmentAction createLabelAssignmentAction(String taskName) {
-        try {
-            Thread.sleep(5, 10);
-        } catch (final InterruptedException e) {
-            LOGGER.log(Level.INFO, "couldn't add agent", e);
-        }
         taskName = taskName.replaceAll("[^a-zA-Z0-9]", "_");
         if (taskName.length() > 15) {
             taskName = taskName.substring(taskName.length() - 15);
         }
-        String truncatedTime = Long.toString(System.nanoTime());
-        truncatedTime = truncatedTime.substring(truncatedTime.length() - 5);
-
-        return new DockerSwarmLabelAssignmentAction("agent-" + taskName + "-" + truncatedTime);
+        return new DockerSwarmLabelAssignmentAction("agt-" + taskName + "-" +
+                Math.abs(BuildScheduler.counter.incrementAndGet() % 9999999));
     }
 }
