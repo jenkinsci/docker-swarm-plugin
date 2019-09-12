@@ -138,6 +138,8 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setLabels(crReq);
         setRestartAttemptCount(crReq);
         setAuthHeaders(dockerSwarmAgentTemplate, crReq);
+        setDnsIps(dockerSwarmAgentTemplate, crReq);
+        setDnsSearchDomains(dockerSwarmAgentTemplate, crReq);
 
         this.agentInfo.setServiceRequestJson(crReq.toJsonString());
 
@@ -285,6 +287,20 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         // Add the credentials to the header
         crReq.setAuthHeader(credentials.getUsername(), credentials.getPassword().getPlainText(),
                 dockerSwarmAgentTemplate.getEmail(), dockerSwarmAgentTemplate.getServerAddress());
+    }
+
+    private void setDnsIps(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        String[] dnsIps = dockerSwarmAgentTemplate.getDnsIpsConfig();
+        for (String dnsIp : dnsIps) {
+            crReq.addDnsIp(dnsIp);
+        }
+    }
+
+    private void setDnsSearchDomains(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        String[] dnsSearchDomains = dockerSwarmAgentTemplate.getDnsSearchDomainsConfig();
+        for (String dnsSearchDomain : dnsSearchDomains) {
+            crReq.addDnsSearchDomain(dnsSearchDomain);
+        }
     }
 
     private void setLimitsAndReservations(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {

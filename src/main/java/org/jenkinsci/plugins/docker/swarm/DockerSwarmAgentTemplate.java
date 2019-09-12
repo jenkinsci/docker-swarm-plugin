@@ -27,6 +27,8 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String hostBinds;
     private String secrets;
     private String configs;
+    private String dnsIps;
+    private String dnsSearchDomains;
     private String label;
     private boolean osWindows;
     private String command;
@@ -47,14 +49,17 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     @DataBoundConstructor
-    public DockerSwarmAgentTemplate(final String image, final String hostBinds, final String command, final String user,
-            final String workingDir, final String hosts, final String secrets, final String configs, final String label,
-            final String cacheDir, final String tmpfsDir, final String envVars, final long limitsNanoCPUs,
-            final long limitsMemoryBytes, final long reservationsNanoCPUs, final long reservationsMemoryBytes,
-            final boolean osWindows, final String baseWorkspaceLocation, final String placementConstraints,
-            final String email, final String serverAddress, final String pullCredentialsId) {
+    public DockerSwarmAgentTemplate(final String image, final String hostBinds, final String dnsIps,
+            final String dnsSearchDomains, final String command, final String user, final String workingDir,
+            final String hosts, final String secrets, final String configs, final String label, final String cacheDir,
+            final String tmpfsDir, final String envVars, final long limitsNanoCPUs, final long limitsMemoryBytes,
+            final long reservationsNanoCPUs, final long reservationsMemoryBytes, final boolean osWindows,
+            final String baseWorkspaceLocation, final String placementConstraints, final String email,
+            final String serverAddress, final String pullCredentialsId) {
         this.image = image;
         this.hostBinds = hostBinds;
+        this.dnsIps = dnsIps;
+        this.dnsSearchDomains = dnsSearchDomains;
         this.command = command;
         this.user = user;
         this.workingDir = workingDir;
@@ -99,6 +104,14 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String[] getConfigsConfig() {
         return StringUtils.isEmpty(this.configs) ? new String[] {} : this.configs.split("[\\r\\n ]+");
+    }
+
+    public String[] getDnsIpsConfig() {
+        return StringUtils.isEmpty(this.dnsIps) ? new String[] {} : this.dnsIps.split("[\\r\\n ]+");
+    }
+
+    public String[] getDnsSearchDomainsConfig() {
+        return StringUtils.isEmpty(this.dnsSearchDomains) ? new String[] {} : this.dnsSearchDomains.split("[\\r\\n ]+");
     }
 
     public String[] getEnvVarsConfig() {
@@ -200,6 +213,14 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String getHosts() {
         return hosts;
+    }
+
+    public String getDnsIps() {
+        return dnsIps;
+    }
+
+    public String getDnsSearchDomains() {
+        return dnsSearchDomains;
     }
 
     public String getCacheDir() {

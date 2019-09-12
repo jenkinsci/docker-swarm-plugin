@@ -10,6 +10,7 @@ public class ContainerSpec {
     public final String[] Env;
     public final String Dir;
     public final String User;
+    public DNSConfig DNSConfig;
     public List<Mount> Mounts = new ArrayList<>();
     public final String[] Hosts;
     public List<Secret> Secrets = new ArrayList<>();
@@ -26,6 +27,37 @@ public class ContainerSpec {
         this.Dir = dir;
         this.User = user;
         this.Hosts = hosts;
+        this.DNSConfig = new DNSConfig();
+    }
+
+    public static class DNSConfig {
+        List<String> Nameservers = new ArrayList<>();
+        List<String> Search = new ArrayList<>();
+        List<String> Options = new ArrayList<>();
+
+        public DNSConfig() {
+            // For deserialization
+        }
+
+        public DNSConfig(String nameserver, String search, String option) {
+            if (nameserver != null && !nameserver.isEmpty()) {
+                this.Nameservers.add(nameserver);
+            }
+            if (search != null && !search.isEmpty()) {
+                this.Search.add(search);
+            }
+            if (option != null && !option.isEmpty()) {
+                this.Options.add(option);
+            }
+        }
+
+        public void addNameserver(String nameserver) {
+            this.Nameservers.add(nameserver);
+        }
+
+        public void addSearch(String search) {
+            this.Search.add(search);
+        }
     }
 
     public static class Secret {
