@@ -43,6 +43,6 @@ public class BuildScheduler {
             taskName = taskName.substring(taskName.length() - 15);
         }
         return new DockerSwarmLabelAssignmentAction("agt-" + taskName + "-" +
-                BuildScheduler.counter.incrementAndGet() % 9999999);
+                Math.abs(BuildScheduler.counter.incrementAndGet() % 9999999));
     }
 }
