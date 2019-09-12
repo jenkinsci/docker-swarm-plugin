@@ -38,7 +38,7 @@ public class BuildScheduler {
     }
 
     private static DockerSwarmLabelAssignmentAction createLabelAssignmentAction(String taskName) {
-        taskName = taskName.replaceAll("[^a-zA-Z0-9]", "_");
+        taskName = taskName.replaceAll("[^a-zA-Z0-9]", "_").replaceAll("_{2,}", "_");
         if (taskName.length() > 15) {
             taskName = taskName.substring(taskName.length() - 15);
         }
