@@ -96,6 +96,7 @@ public class DockerSwarmCloud extends Cloud {
     @Extension
     public static class DescriptorImpl extends Descriptor<Cloud> {
 
+        Is this even needed?
         public ListBoxModel doFillCredentialsIdItems(@AncestorInPath ItemGroup context, @QueryParameter String value) {
             AccessControlled ac = (context instanceof AccessControlled ? (AccessControlled) context
                     : Jenkins.getInstance());
