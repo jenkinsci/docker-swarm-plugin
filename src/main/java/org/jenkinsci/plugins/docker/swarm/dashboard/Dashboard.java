@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.docker.swarm.dashboard;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -144,7 +145,7 @@ public class Dashboard {
                 return task;
             });
             return new SwarmNode(node, tasksWithServices.collect(Collectors.toList()));
-        }).collect(Collectors.toList());
+        }).sorted(Comparator.comparing(SwarmNode::getName)).collect(Collectors.toList());
     }
 
     private <T> T getResult(Object result, Class<T> clazz) {
