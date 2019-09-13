@@ -68,7 +68,7 @@
 
                 <ul class="list-unstyled">
                     <j:if test='${node.isIdle()}'>
-                        Idle
+                        <i>Idle</i>
                     </j:if>
 
                     <j:forEach items="${node.currentBuilds}" var="build">
