@@ -121,6 +121,13 @@ public class DockerSwarmCloud extends Cloud {
             }
         }
 
+        public FormValidation doCheckUri(@QueryParameter String uri) {
+            if (uri.startsWith("http")) {
+                return FormValidation.ok();
+            }
+            return FormValidation.error("Can only be http or https.");
+        }
+
         @RequirePOST
         public FormValidation doValidateTestDockerApiConnection(@QueryParameter("uri") String uri,
                 @QueryParameter("credentialsId") String credentialsId) throws IOException {
