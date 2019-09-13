@@ -28,7 +28,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import org.jenkinsci.plugins.docker.commons.credentials.DockerServerCredentials;
-import org.jenkinsci.plugins.docker.commons.credentials.DockerServerEndpoint;
 import org.jenkinsci.plugins.docker.swarm.docker.api.ping.PingRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiError;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
@@ -61,10 +60,10 @@ public class DockerSwarmCloud extends Cloud {
     private String tunnel;
     private List<DockerSwarmAgentTemplate> agentTemplates = new ArrayList<>();
 
-    private DockerServerEndpoint dockerHost;
+    private DockerSwarmEndpoint dockerHost;
 
     @DataBoundConstructor
-    public DockerSwarmCloud(DockerServerEndpoint dockerHost, String dockerSwarmApiUrl, String jenkinsUrl,
+    public DockerSwarmCloud(DockerSwarmEndpoint dockerHost, String dockerSwarmApiUrl, String jenkinsUrl,
             String swarmNetwork, String cacheDriverName, String tunnel, List<DockerSwarmAgentTemplate> agentTemplates) {
         super(DOCKER_SWARM_CLOUD_NAME);
         this.jenkinsUrl = jenkinsUrl;
@@ -90,7 +89,7 @@ public class DockerSwarmCloud extends Cloud {
         return getLabels().contains(label.getName());
     }
 
-    public DockerServerEndpoint getDockerHost() {
+    public DockerSwarmEndpoint getDockerHost() {
         return dockerHost;
     }
 
