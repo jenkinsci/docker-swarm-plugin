@@ -55,6 +55,7 @@ import jenkins.model.Jenkins;
 public class DockerSwarmCloud extends Cloud {
     private static final String DOCKER_SWARM_CLOUD_NAME = "Docker Swarm";
     private static final Logger LOGGER = Logger.getLogger(DockerSwarmCloud.class.getName());
+    private Long timeoutMinutes;
     private String jenkinsUrl;
     private String swarmNetwork;
     private String cacheDriverName;
@@ -65,7 +66,8 @@ public class DockerSwarmCloud extends Cloud {
 
     @DataBoundConstructor
     public DockerSwarmCloud(DockerServerEndpoint dockerHost, String dockerSwarmApiUrl, String jenkinsUrl,
-            String swarmNetwork, String cacheDriverName, String tunnel, List<DockerSwarmAgentTemplate> agentTemplates) {
+            String swarmNetwork, String cacheDriverName, String tunnel, List<DockerSwarmAgentTemplate> agentTemplates,
+            long timeoutMinutes) {
         super(DOCKER_SWARM_CLOUD_NAME);
         this.jenkinsUrl = jenkinsUrl;
         this.swarmNetwork = swarmNetwork;
@@ -73,6 +75,7 @@ public class DockerSwarmCloud extends Cloud {
         this.tunnel = tunnel;
         this.agentTemplates = agentTemplates;
         this.dockerHost = dockerHost;
+        this.timeoutMinutes = timeoutMinutes;
     }
 
     // for yaml serialization
@@ -180,6 +183,10 @@ public class DockerSwarmCloud extends Cloud {
         return tunnel;
     }
 
+    public Long getTimeoutMinutes() {
+        return timeoutMinutes;
+    }
+    
     public List<DockerSwarmAgentTemplate> getAgentTemplates() {
         return agentTemplates;
     }

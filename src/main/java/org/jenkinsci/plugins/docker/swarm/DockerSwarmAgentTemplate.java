@@ -57,7 +57,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
             final String tmpfsDir, final String envVars, final long limitsNanoCPUs, final long limitsMemoryBytes,
             final long reservationsNanoCPUs, final long reservationsMemoryBytes, final boolean osWindows,
             final String baseWorkspaceLocation, final String placementConstraints, final String placementArchitecture,
-            final String placementOperatingSystemfinal String email, final String serverAddress, final String pullCredentialsId) {
+            final String placementOperatingSystem, final String email, final String serverAddress, final String pullCredentialsId) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.dnsIps = dnsIps;
