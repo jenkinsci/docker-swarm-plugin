@@ -208,7 +208,13 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         for (int i = 0; i < hostBinds.length; i++) {
             String hostBind = hostBinds[i];
             String[] srcDest = hostBind.split(":");
-            crReq.addBindVolume(srcDest[0], srcDest[1]);
+            //on Windows machines with windows containers, you will likely have paths including the drive name,
+            //e.g. "D:\host\dir:C:\container\dir" has 3 ":" - and should evaluate as addBindVolume("D:\host\dir","C:\container\dir")
+            if (srcDest.length == 4){
+                crReq.addBindVolume(srcDest[0]+":"+srcDest[1],srcDest[2]+":"+srcDest[3]);
+            } else {
+                crReq.addBindVolume(srcDest[0],srcDest[1]);
+            }
         }
     }
 
