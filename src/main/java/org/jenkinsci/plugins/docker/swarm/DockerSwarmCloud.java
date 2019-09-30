@@ -71,7 +71,9 @@ public class DockerSwarmCloud extends Cloud {
         this.swarmNetwork = swarmNetwork;
         this.cacheDriverName = cacheDriverName;
         this.tunnel = tunnel;
-        this.agentTemplates = agentTemplates;
+        if (agentTemplates != null) {
+            this.agentTemplates = agentTemplates;
+        }
         this.dockerHost = dockerHost;
     }
 

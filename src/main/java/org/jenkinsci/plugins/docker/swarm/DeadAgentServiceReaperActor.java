@@ -36,20 +36,22 @@ public class DeadAgentServiceReaperActor extends AbstractActor {
         try {
             final DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
             final ActorSystem as = swarmPlugin.getActorSystem();
-            String dockerSwarmApiUrl = DockerSwarmCloud.get().getDockerSwarmApiUrl();
-            final Object result = new ListServicesRequest(dockerSwarmApiUrl, "label", "ROLE=jenkins-agent").execute();
-            for (ScheduledService service : (List<ScheduledService>) getResult(result, List.class)) {
-                Object tasks = new ListTasksRequest(dockerSwarmApiUrl, "service", service.Spec.Name).execute();
-                if (tasks != null) {
-                    for (Task task : (List<Task>) getResult(tasks, List.class)) {
-                        if (task.isComplete()) {
-                            LOGGER.info("Reaping service: " + service.Spec.Name);
-                            new DeleteServiceRequest(dockerSwarmApiUrl, service.Spec.Name).execute();
-                            break;
+            if (DockerSwarmCloud.get() != null) {
+                String dockerSwarmApiUrl = DockerSwarmCloud.get().getDockerSwarmApiUrl();
+                final Object result = new ListServicesRequest(dockerSwarmApiUrl, "label", "ROLE=jenkins-agent").execute();
+                for (ScheduledService service : (List<ScheduledService>) getResult(result, List.class)) {
+                    Object tasks = new ListTasksRequest(dockerSwarmApiUrl, "service", service.Spec.Name).execute();
+                    if (tasks != null) {
+                        for (Task task : (List<Task>) getResult(tasks, List.class)) {
+                            if (task.isComplete()) {
+                                LOGGER.info("Reaping service: " + service.Spec.Name);
+                                new DeleteServiceRequest(dockerSwarmApiUrl, service.Spec.Name).execute();
+                                break;
+                            }
                         }
                     }
-                }
 
+                }
             }
         } finally {
             reschedule();
