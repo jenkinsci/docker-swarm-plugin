@@ -134,7 +134,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setNetwork(configuration, crReq);
         setCacheDirs(configuration, dockerSwarmAgentTemplate, listener, computer, crReq);
         setTmpfs(dockerSwarmAgentTemplate, crReq);
-        setConstraints(dockerSwarmAgentTemplate, crReq);
+        setPlacement(dockerSwarmAgentTemplate, crReq);
         setLabels(crReq);
         setRestartAttemptCount(crReq);
         setAuthHeaders(dockerSwarmAgentTemplate, crReq);
@@ -156,8 +156,9 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         crReq.addLabel("ROLE", "jenkins-agent");
     }
 
-    private void setConstraints(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
-        crReq.TaskTemplate.setPlacementConstraints(dockerSwarmAgentTemplate.getPlacementConstraintsConfig());
+    private void setPlacement(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        crReq.TaskTemplate.setPlacement(dockerSwarmAgentTemplate.getPlacementConstraintsConfig(), 
+            dockerSwarmAgentTemplate.getPlacementArchitecture(), dockerSwarmAgentTemplate.getPlacementOperatingSystem());
     }
 
     private ServiceSpec createCreateServiceRequest(String[] commands, DockerSwarmCloud configuration, String[] envVars,

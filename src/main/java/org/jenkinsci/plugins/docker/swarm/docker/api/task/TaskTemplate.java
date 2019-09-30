@@ -19,8 +19,8 @@ public class TaskTemplate {
         this.ContainerSpec = new ContainerSpec(image, cmd, env, dir, user, hosts);
     }
 
-    public void setPlacementConstraints(String[] placementConstraints) {
-        this.Placement = new Placement(placementConstraints);
+    public void setPlacement(String[] placementConstraints, String architecture, String operatingSystem) {
+        this.Placement = new Placement(placementConstraints, architecture, operatingSystem);
     }
 
     public void setRestartAttemptCount(int restartAttemptCount) {
@@ -32,11 +32,29 @@ public class TaskTemplate {
             // for deseriliztion
         }
 
-        public Placement(String[] constraints) {
+
+        public Placement(String[] constraints, String architecture, String operatingSystem) {
             Constraints = constraints;
+            Platforms = new Platform[1]; 
+            Platforms[0] = new Platform(architecture, operatingSystem);
         }
 
         public String[] Constraints;
+        public Platform[] Platforms;
+    }
+
+    public static class Platform {
+        public Platform(){
+           //for deseriliztion
+        }
+
+        public Platform(String architecture, String operatingSystem) {
+            Architecture = architecture;
+            OS = operatingSystem;
+        }
+
+        public String Architecture;
+        public String OS;
     }
 
     public static class Resources {

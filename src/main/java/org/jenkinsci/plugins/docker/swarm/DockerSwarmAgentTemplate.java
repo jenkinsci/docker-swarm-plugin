@@ -43,6 +43,8 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String email;
     private String serverAddress;
     private String pullCredentialsId;
+    private String placementArchitecture;
+    private String placementOperatingSystem;
 
     public DockerSwarmAgentTemplate() {
         // For Yaml Load
@@ -54,8 +56,8 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
             final String hosts, final String secrets, final String configs, final String label, final String cacheDir,
             final String tmpfsDir, final String envVars, final long limitsNanoCPUs, final long limitsMemoryBytes,
             final long reservationsNanoCPUs, final long reservationsMemoryBytes, final boolean osWindows,
-            final String baseWorkspaceLocation, final String placementConstraints, final String email,
-            final String serverAddress, final String pullCredentialsId) {
+            final String baseWorkspaceLocation, final String placementConstraints, final String placementArchitecture,
+            final String placementOperatingSystemfinal String email, final String serverAddress, final String pullCredentialsId) {
         this.image = image;
         this.hostBinds = hostBinds;
         this.dnsIps = dnsIps;
@@ -77,6 +79,8 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         this.osWindows = osWindows;
         this.baseWorkspaceLocation = baseWorkspaceLocation;
         this.placementConstraints = placementConstraints;
+        this.placementArchitecture = placementArchitecture;
+        this.placementOperatingSystem = placementOperatingSystem;
         this.email = email;
         this.serverAddress = serverAddress;
         this.pullCredentialsId = pullCredentialsId;
@@ -144,6 +148,14 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String getPlacementConstraints() {
         return placementConstraints;
+    }
+
+    public String getPlacementArchitecture() {
+        return placementArchitecture;
+    }
+
+    public String getPlacementOperatingSystem() {
+        return placementOperatingSystem;
     }
 
     public String getTmpfsDir() {
