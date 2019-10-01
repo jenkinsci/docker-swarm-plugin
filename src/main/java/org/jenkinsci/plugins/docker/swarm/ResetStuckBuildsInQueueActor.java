@@ -16,7 +16,6 @@ import scala.concurrent.duration.Duration;
 
 public class ResetStuckBuildsInQueueActor extends AbstractActor {
     private static final Logger LOGGER = Logger.getLogger(ResetStuckBuildsInQueueActor.class.getName());
-    public static final int RESET_MINUTES = 5;
     public static final int CHECK_INTERVAL = 1;
 
     @Override
@@ -30,6 +29,7 @@ public class ResetStuckBuildsInQueueActor extends AbstractActor {
 
     private void resetStuckBuildsInQueue() throws IOException {
         try {
+            final long RESET_MINUTES = DockerSwarmCloud.get().getTimeoutMinutes();
             final Queue.Item[] items = Jenkins.getInstance().getQueue().getItems();
             for (int i = items.length - 1; i >= 0; i--) { // reverse order
                 final Queue.Item item = items[i];
