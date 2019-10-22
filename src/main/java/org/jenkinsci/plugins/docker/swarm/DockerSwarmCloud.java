@@ -89,7 +89,10 @@ public class DockerSwarmCloud extends Cloud {
 
     @Override
     public boolean canProvision(final Label label) {
-        return getLabels().contains(label.getName());
+        if (label != null) {
+            return getLabels().contains(label.getName());
+        }
+        return false;
     }
 
     public DockerServerEndpoint getDockerHost() {
