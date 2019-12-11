@@ -25,6 +25,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private long reservationsMemoryBytes;
     private String image;
     private String hostBinds;
+    private String hostNamedPipes;
     private String secrets;
     private String configs;
     private String dnsIps;
@@ -49,7 +50,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     @DataBoundConstructor
-    public DockerSwarmAgentTemplate(final String image, final String hostBinds, final String dnsIps,
+    public DockerSwarmAgentTemplate(final String image, final String hostBinds, final String hostNamedPipes, final String dnsIps,
             final String dnsSearchDomains, final String command, final String user, final String workingDir,
             final String hosts, final String secrets, final String configs, final String label, final String cacheDir,
             final String tmpfsDir, final String envVars, final long limitsNanoCPUs, final long limitsMemoryBytes,
@@ -58,6 +59,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
             final String serverAddress, final String pullCredentialsId) {
         this.image = image;
         this.hostBinds = hostBinds;
+        this.hostNamedPipes = hostNamedPipes;
         this.dnsIps = dnsIps;
         this.dnsSearchDomains = dnsSearchDomains;
         this.command = command;
@@ -96,6 +98,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String[] getHostBindsConfig() {
         return StringUtils.isEmpty(this.hostBinds) ? new String[] {} : this.hostBinds.split("[\\r\\n ]+");
+    }
+
+    public String[] getHostNamedPipesConfig() {
+        return StringUtils.isEmpty(this.hostNamedPipes) ? new String[] {} : this.hostNamedPipes.split("[\\r\\n ]+");
     }
 
     public String[] getSecretsConfig() {
@@ -197,6 +203,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String getHostBinds() {
         return hostBinds;
+    }
+
+    public String getHostNamedPipes() {
+        return hostNamedPipes;
     }
 
     public String getSecrets() {

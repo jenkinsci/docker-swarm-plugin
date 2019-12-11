@@ -129,6 +129,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
 
         setLimitsAndReservations(dockerSwarmAgentTemplate, crReq);
         setHostBinds(dockerSwarmAgentTemplate, crReq);
+        setHostNamedPipes(dockerSwarmAgentTemplate, crReq);
         setSecrets(dockerSwarmAgentTemplate, crReq);
         setConfigs(dockerSwarmAgentTemplate, crReq);
         setNetwork(configuration, crReq);
@@ -208,6 +209,15 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
             String hostBind = hostBinds[i];
             String[] srcDest = hostBind.split(":");
             crReq.addBindVolume(srcDest[0], srcDest[1]);
+        }
+    }
+
+    private void setHostNamedPipes(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        String[] hostNamedPipes = dockerSwarmAgentTemplate.getHostNamedPipesConfig();
+        for (int i = 0; i < hostNamedPipes.length; i++) {
+            String hostNamedPipe = hostNamedPipes[i];
+            String[] srcDest = hostNamedPipe.split(":");
+            crReq.addNamedPipeVolume(srcDest[0], srcDest[1]);
         }
     }
 
