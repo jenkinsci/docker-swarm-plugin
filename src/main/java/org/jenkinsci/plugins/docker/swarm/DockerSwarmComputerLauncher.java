@@ -140,6 +140,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setAuthHeaders(dockerSwarmAgentTemplate, crReq);
         setDnsIps(dockerSwarmAgentTemplate, crReq);
         setDnsSearchDomains(dockerSwarmAgentTemplate, crReq);
+        setPortBinds(dockerSwarmAgentTemplate, crReq);
 
         this.agentInfo.setServiceRequestJson(crReq.toJsonString());
 
@@ -300,6 +301,20 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         String[] dnsSearchDomains = dockerSwarmAgentTemplate.getDnsSearchDomainsConfig();
         for (String dnsSearchDomain : dnsSearchDomains) {
             crReq.addDnsSearchDomain(dnsSearchDomain);
+        }
+    }
+
+    private void setPortBinds(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        String[] portBinds = dockerSwarmAgentTemplate.getPortBindsConfig();
+        for (String portBind : portBinds) {
+            if (!portBind.contains(":")) {
+                continue;
+            }
+
+            String[] srcDestProtocol = portBind.split("/");
+            String[] srcDest = srcDestProtocol[0].split(":");
+            crReq.addPortBind(srcDest[0], srcDest[1],
+                    srcDestProtocol.length > 1 ? srcDestProtocol[1] : null);
         }
     }
 
