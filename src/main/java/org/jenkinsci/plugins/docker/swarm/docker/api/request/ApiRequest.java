@@ -3,10 +3,18 @@ package org.jenkinsci.plugins.docker.swarm.docker.api.request;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -65,8 +73,8 @@ public abstract class ApiRequest {
         }
         if (client == null || (dockerCredentialsId != null && !dockerCredentialsId.equals(ApiRequest.credentialsId))) {
             if (dockerCredentialsId != null) {
-                client = new OkHttpClient.Builder()
-                        .sslSocketFactory(DockerSwarmCloud.get().getSSLContext().getSocketFactory()).build();
+                SSLSocketFactory sslSocketFactory = DockerSwarmCloud.get().getSSLContext().getSocketFactory();
+                client = new OkHttpClient.Builder().sslSocketFactory(sslSocketFactory, getTrustManager()).build();
             } else {
                 client = new OkHttpClient();
             }
@@ -89,6 +97,20 @@ public abstract class ApiRequest {
         try {
             return URLEncoder.encode(Jackson.toJson(filter), "UTF-8");
         } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private X509TrustManager getTrustManager() {
+        try {
+            TrustManagerFactory trustManagerFactory  = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            trustManagerFactory.init((KeyStore) null);
+            TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+            if (trustManagers.length != 1 || !(trustManagers[0] instanceof X509TrustManager)) {
+                throw new IllegalStateException("Unexpected default trust managers:" + Arrays.toString(trustManagers));
+            }
+            return (X509TrustManager) trustManagers[0];
+        } catch (NoSuchAlgorithmException | KeyStoreException e) {
             throw new RuntimeException(e);
         }
     }
