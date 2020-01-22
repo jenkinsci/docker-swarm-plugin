@@ -157,6 +157,12 @@ public class ContainerSpec {
             return mount;
         }
 
+        public static Mount namedPipeMount(String Source, String Target) {
+            Mount mount = new Mount(Source, Target);
+            mount.Type = "npipe";
+            return mount;
+        }
+
         public static class VolumeOptions {
             public Mount.VolumeOptions.DriverConfig DriverConfig;
 

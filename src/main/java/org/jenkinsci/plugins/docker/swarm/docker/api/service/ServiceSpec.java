@@ -41,6 +41,11 @@ public class ServiceSpec extends ApiRequest {
         ContainerSpec.Mount mount = ContainerSpec.Mount.bindMount(source, target);
         this.TaskTemplate.ContainerSpec.Mounts.add(mount);
     }
+    
+    public void addNamedPipeVolume(String source, String target) {
+        ContainerSpec.Mount mount = ContainerSpec.Mount.namedPipeMount(source, target);
+        this.TaskTemplate.ContainerSpec.Mounts.add(mount);
+    }
 
     public void addSecret(String secretId, String secretName, String fileName) {
         ContainerSpec.Secret secret = ContainerSpec.Secret.createSecret(secretId, secretName, fileName);
