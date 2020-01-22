@@ -30,6 +30,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String configs;
     private String dnsIps;
     private String dnsSearchDomains;
+    private String portBinds;
     private String label;
     private boolean osWindows;
     private String command;
@@ -54,7 +55,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
             final String dnsSearchDomains, final String command, final String user, final String workingDir,
             final String hosts, final String secrets, final String configs, final String label, final String cacheDir,
             final String tmpfsDir, final String envVars, final long limitsNanoCPUs, final long limitsMemoryBytes,
-            final long reservationsNanoCPUs, final long reservationsMemoryBytes, final boolean osWindows,
+            final long reservationsNanoCPUs, final long reservationsMemoryBytes, String portBinds, final boolean osWindows,
             final String baseWorkspaceLocation, final String placementConstraints, final String email,
             final String serverAddress, final String pullCredentialsId) {
         this.image = image;
@@ -76,6 +77,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         this.reservationsNanoCPUs = reservationsNanoCPUs;
         this.reservationsMemoryBytes = reservationsMemoryBytes;
         this.envVars = envVars;
+        this.portBinds = portBinds;
         this.osWindows = osWindows;
         this.baseWorkspaceLocation = baseWorkspaceLocation;
         this.placementConstraints = placementConstraints;
@@ -118,6 +120,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String[] getDnsSearchDomainsConfig() {
         return StringUtils.isEmpty(this.dnsSearchDomains) ? new String[] {} : this.dnsSearchDomains.split("[\\r\\n ]+");
+    }
+
+    public String[] getPortBindsConfig() {
+        return StringUtils.isEmpty(this.portBinds) ? new String[]{} : this.portBinds.split("[\\r\\n ]+");
     }
 
     public String[] getEnvVarsConfig() {
@@ -179,6 +185,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String getWorkingDir() {
         return workingDir == null ? "/home/jenkins" : workingDir;
+    }
+
+    public String getPortBinds() {
+        return portBinds;
     }
 
     @Extension

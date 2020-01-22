@@ -36,6 +36,9 @@
     <f:entry title="DNS Search Domains (newline-separated)" field="dnsSearchDomains">
         <f:expandableTextbox value="${dockerSwarmAgentTemplate.dnsSearchDomains}"/>
     </f:entry>
+    <f:entry title="Port binds (newline-separated)" field="portBinds">
+        <f:expandableTextbox value="${dockerSwarmAgentTemplate.portBinds}"/>
+    </f:entry>
     <f:entry title="Secrets (newline-separated)" field="secrets">
         <f:expandableTextbox value="${dockerSwarmAgentTemplate.secrets}"/>
     </f:entry>
