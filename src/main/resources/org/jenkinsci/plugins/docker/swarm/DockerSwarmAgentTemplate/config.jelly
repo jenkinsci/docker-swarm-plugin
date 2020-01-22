@@ -27,11 +27,17 @@
     <f:entry title="Host Binds (newline-separated)" field="hostBinds">
         <f:expandableTextbox value="${dockerSwarmAgentTemplate.hostBinds}"/>
     </f:entry>
+    <f:entry title="Host Named Pipes (newline-separated)" field="hostNamedPipes">
+        <f:expandableTextbox value="${dockerSwarmAgentTemplate.hostNamedPipes}"/>
+    </f:entry>
     <f:entry title="DNS IPs (newline-separated)" field="dnsIps">
         <f:expandableTextbox value="${dockerSwarmAgentTemplate.dnsIps}"/>
     </f:entry>
     <f:entry title="DNS Search Domains (newline-separated)" field="dnsSearchDomains">
         <f:expandableTextbox value="${dockerSwarmAgentTemplate.dnsSearchDomains}"/>
+    </f:entry>
+    <f:entry title="Port binds (newline-separated)" field="portBinds">
+        <f:expandableTextbox value="${dockerSwarmAgentTemplate.portBinds}"/>
     </f:entry>
     <f:entry title="Secrets (newline-separated)" field="secrets">
         <f:expandableTextbox value="${dockerSwarmAgentTemplate.secrets}"/>

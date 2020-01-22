@@ -129,6 +129,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
 
         setLimitsAndReservations(dockerSwarmAgentTemplate, crReq);
         setHostBinds(dockerSwarmAgentTemplate, crReq);
+        setHostNamedPipes(dockerSwarmAgentTemplate, crReq);
         setSecrets(dockerSwarmAgentTemplate, crReq);
         setConfigs(dockerSwarmAgentTemplate, crReq);
         setNetwork(configuration, crReq);
@@ -140,6 +141,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setAuthHeaders(dockerSwarmAgentTemplate, crReq);
         setDnsIps(dockerSwarmAgentTemplate, crReq);
         setDnsSearchDomains(dockerSwarmAgentTemplate, crReq);
+        setPortBinds(dockerSwarmAgentTemplate, crReq);
 
         this.agentInfo.setServiceRequestJson(crReq.toJsonString());
 
@@ -215,6 +217,15 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
             } else {
                 crReq.addBindVolume(srcDest[0],srcDest[1]);
             }
+        }
+    }
+
+    private void setHostNamedPipes(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        String[] hostNamedPipes = dockerSwarmAgentTemplate.getHostNamedPipesConfig();
+        for (int i = 0; i < hostNamedPipes.length; i++) {
+            String hostNamedPipe = hostNamedPipes[i];
+            String[] srcDest = hostNamedPipe.split(":");
+            crReq.addNamedPipeVolume(srcDest[0], srcDest[1]);
         }
     }
 
@@ -307,6 +318,20 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         String[] dnsSearchDomains = dockerSwarmAgentTemplate.getDnsSearchDomainsConfig();
         for (String dnsSearchDomain : dnsSearchDomains) {
             crReq.addDnsSearchDomain(dnsSearchDomain);
+        }
+    }
+
+    private void setPortBinds(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        String[] portBinds = dockerSwarmAgentTemplate.getPortBindsConfig();
+        for (String portBind : portBinds) {
+            if (!portBind.contains(":")) {
+                continue;
+            }
+
+            String[] srcDestProtocol = portBind.split("/");
+            String[] srcDest = srcDestProtocol[0].split(":");
+            crReq.addPortBind(srcDest[0], srcDest[1],
+                    srcDestProtocol.length > 1 ? srcDestProtocol[1] : null);
         }
     }
 

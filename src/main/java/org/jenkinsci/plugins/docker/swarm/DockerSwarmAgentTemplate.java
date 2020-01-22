@@ -25,10 +25,12 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private long reservationsMemoryBytes;
     private String image;
     private String hostBinds;
+    private String hostNamedPipes;
     private String secrets;
     private String configs;
     private String dnsIps;
     private String dnsSearchDomains;
+    private String portBinds;
     private String label;
     private boolean osWindows;
     private String command;
@@ -51,15 +53,16 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     @DataBoundConstructor
-    public DockerSwarmAgentTemplate(final String image, final String hostBinds, final String dnsIps,
+    public DockerSwarmAgentTemplate(final String image, final String hostBinds, final String hostNamedPipes, final String dnsIps,
             final String dnsSearchDomains, final String command, final String user, final String workingDir,
             final String hosts, final String secrets, final String configs, final String label, final String cacheDir,
             final String tmpfsDir, final String envVars, final long limitsNanoCPUs, final long limitsMemoryBytes,
-            final long reservationsNanoCPUs, final long reservationsMemoryBytes, final boolean osWindows,
+            final long reservationsNanoCPUs, final long reservationsMemoryBytes, String portBinds, final boolean osWindows,
             final String baseWorkspaceLocation, final String placementConstraints, final String placementArchitecture,
             final String placementOperatingSystem, final String email, final String serverAddress, final String pullCredentialsId) {
         this.image = image;
         this.hostBinds = hostBinds;
+        this.hostNamedPipes = hostNamedPipes;
         this.dnsIps = dnsIps;
         this.dnsSearchDomains = dnsSearchDomains;
         this.command = command;
@@ -76,6 +79,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         this.reservationsNanoCPUs = reservationsNanoCPUs;
         this.reservationsMemoryBytes = reservationsMemoryBytes;
         this.envVars = envVars;
+        this.portBinds = portBinds;
         this.osWindows = osWindows;
         this.baseWorkspaceLocation = baseWorkspaceLocation;
         this.placementConstraints = placementConstraints;
@@ -102,6 +106,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         return StringUtils.isEmpty(this.hostBinds) ? new String[] {} : this.hostBinds.split("[\\r\\n ]+");
     }
 
+    public String[] getHostNamedPipesConfig() {
+        return StringUtils.isEmpty(this.hostNamedPipes) ? new String[] {} : this.hostNamedPipes.split("[\\r\\n ]+");
+    }
+
     public String[] getSecretsConfig() {
         return StringUtils.isEmpty(this.secrets) ? new String[] {} : this.secrets.split("[\\r\\n ]+");
     }
@@ -116,6 +124,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String[] getDnsSearchDomainsConfig() {
         return StringUtils.isEmpty(this.dnsSearchDomains) ? new String[] {} : this.dnsSearchDomains.split("[\\r\\n ]+");
+    }
+
+    public String[] getPortBindsConfig() {
+        return StringUtils.isEmpty(this.portBinds) ? new String[]{} : this.portBinds.split("[\\r\\n ]+");
     }
 
     public String[] getEnvVarsConfig() {
@@ -187,6 +199,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         return workingDir == null ? "/home/jenkins" : workingDir;
     }
 
+    public String getPortBinds() {
+        return portBinds;
+    }
+
     @Extension
     public static final class DescriptorImpl extends Descriptor<DockerSwarmAgentTemplate> {
         @Override
@@ -209,6 +225,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String getHostBinds() {
         return hostBinds;
+    }
+
+    public String getHostNamedPipes() {
+        return hostNamedPipes;
     }
 
     public String getSecrets() {

@@ -14,6 +14,7 @@ import com.google.common.base.Strings;
 
 import org.jenkinsci.plugins.docker.swarm.docker.api.HttpMethod;
 import org.jenkinsci.plugins.docker.swarm.docker.api.containers.ContainerSpec;
+import org.jenkinsci.plugins.docker.swarm.docker.api.network.EndpointSpec;
 import org.jenkinsci.plugins.docker.swarm.docker.api.network.Network;
 import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.task.TaskTemplate;
@@ -21,6 +22,7 @@ import org.jenkinsci.plugins.docker.swarm.docker.marshalling.ResponseType;
 
 public class ServiceSpec extends ApiRequest {
     public org.jenkinsci.plugins.docker.swarm.docker.api.task.TaskTemplate TaskTemplate;
+    public org.jenkinsci.plugins.docker.swarm.docker.api.network.EndpointSpec EndpointSpec;
     public String Name;
     public Map<String, String> Labels = new HashMap<>();
 
@@ -31,6 +33,7 @@ public class ServiceSpec extends ApiRequest {
         super(HttpMethod.POST, "/services/create", CreateServiceResponse.class, ResponseType.CLASS);
         this.Name = name;
         this.TaskTemplate = new TaskTemplate(Image, Cmd, Env, Dir, User, Hosts);
+        this.EndpointSpec = new EndpointSpec();
     }
 
     public ServiceSpec() throws IOException {
@@ -39,6 +42,11 @@ public class ServiceSpec extends ApiRequest {
 
     public void addBindVolume(String source, String target) {
         ContainerSpec.Mount mount = ContainerSpec.Mount.bindMount(source, target);
+        this.TaskTemplate.ContainerSpec.Mounts.add(mount);
+    }
+    
+    public void addNamedPipeVolume(String source, String target) {
+        ContainerSpec.Mount mount = ContainerSpec.Mount.namedPipeMount(source, target);
         this.TaskTemplate.ContainerSpec.Mounts.add(mount);
     }
 
@@ -58,6 +66,10 @@ public class ServiceSpec extends ApiRequest {
 
     public void addDnsSearchDomain(String dnsSearchDomain) {
         this.TaskTemplate.ContainerSpec.DNSConfig.addSearch(dnsSearchDomain);
+    }
+
+    public void addPortBind(String publishedPort, String targetPort, String protocol) {
+        this.EndpointSpec.addPortBind(publishedPort, targetPort, protocol);
     }
 
     public void addCacheVolume(String cacheVolumeName, String target, String cacheDriverName) {

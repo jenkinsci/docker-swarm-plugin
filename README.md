@@ -32,3 +32,24 @@ Driver gets called to create an overlayfs cache volume for each build and once b
 Follow the link `Docker Swarm Dashboard` on the sidebar to view the status of your swarm. It displays what build is executing where, what builds are in the queue for what resources ect.
 
 ![dashboard](/docs/images/dashboard.png?raw=true "Dashboard")
+
+## Development Notes
+### Jenkins Plugin Documentation
+https://jenkins.io/doc/developer/publishing/releasing/
+
+### Local build, test and package
+```
+mvn compile
+mvn test
+mvn package
+```
+
+### Prepare the release locally and perform the release
+```
+mvn release:prepare
+mvn release:perform
+```
+
+### Create Release Notes
+After the release, create a new release on GitHub based on the already present tag.
+Fill in the new features and bugfixes and publish the release.
