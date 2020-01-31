@@ -127,7 +127,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     public String[] getEnvVarsConfig() {
-        return StringUtils.isEmpty(this.envVars) ? new String[] {} : this.envVars.split("[\\r\\n ]+");
+        return StringUtils.isEmpty(this.envVars) ? new String[] {} : this.envVars.split("[\\r\\n]+");
     }
 
     public String[] getCommandConfig() {
