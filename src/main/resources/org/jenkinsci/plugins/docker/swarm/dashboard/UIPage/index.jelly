@@ -65,6 +65,10 @@
                 google.charts.load('current', {'packages':['corechart']});
                 google.charts.setOnLoadCallback(drawCharts);
                 function drawCharts() {
+                    // restore Array.prototype.entries native behaviour (see JENKINS-49319)
+                    Array.prototype.entries = function() {
+                        return Object.entries(this).map(([key,value]) => [+key, value])[Symbol.iterator]();
+                    }
                     drawCpuChart();
                     drawMemoryChart();
                 }
