@@ -362,8 +362,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
     }
 
     public String getJobName() {
-        return this.jobName.replaceAll("/", "_").replaceAll("-", "_").replaceAll(",", "_").replaceAll(" ", "_")
-                .replaceAll("=", "_").replaceAll("\\.", "_");
+        return this.jobName.replaceAll("\\P{Alnum}", "_");
     }
 
 }
