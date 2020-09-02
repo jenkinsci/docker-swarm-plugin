@@ -135,7 +135,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setNetwork(configuration, crReq);
         setCacheDirs(configuration, dockerSwarmAgentTemplate, listener, computer, crReq);
         setTmpfs(dockerSwarmAgentTemplate, crReq);
-        setConstraints(dockerSwarmAgentTemplate, crReq);
+        setPlacement(dockerSwarmAgentTemplate, crReq);
         setLabels(crReq);
         setRestartAttemptCount(crReq);
         setAuthHeaders(dockerSwarmAgentTemplate, crReq);
@@ -158,8 +158,9 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         crReq.addLabel("ROLE", "jenkins-agent");
     }
 
-    private void setConstraints(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
-        crReq.TaskTemplate.setPlacementConstraints(dockerSwarmAgentTemplate.getPlacementConstraintsConfig());
+    private void setPlacement(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        crReq.TaskTemplate.setPlacement(dockerSwarmAgentTemplate.getPlacementConstraintsConfig(), 
+            dockerSwarmAgentTemplate.getPlacementArchitecture(), dockerSwarmAgentTemplate.getPlacementOperatingSystem());
     }
 
     private ServiceSpec createCreateServiceRequest(String[] commands, DockerSwarmCloud configuration, String[] envVars,
@@ -209,7 +210,13 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         for (int i = 0; i < hostBinds.length; i++) {
             String hostBind = hostBinds[i];
             String[] srcDest = hostBind.split(":");
-            crReq.addBindVolume(srcDest[0], srcDest[1]);
+            //on Windows machines with windows containers, you will likely have paths including the drive name,
+            //e.g. "D:\host\dir:C:\container\dir" has 3 ":" - and should evaluate as addBindVolume("D:\host\dir","C:\container\dir")
+            if (srcDest.length == 4){
+                crReq.addBindVolume(srcDest[0]+":"+srcDest[1],srcDest[2]+":"+srcDest[3]);
+            } else {
+                crReq.addBindVolume(srcDest[0],srcDest[1]);
+            }
         }
     }
 

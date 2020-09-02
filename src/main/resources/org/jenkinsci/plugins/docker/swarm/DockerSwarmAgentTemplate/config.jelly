@@ -76,6 +76,12 @@
             <f:entry title="Windows Container" field="osWindows">
                 <f:checkbox checked="${dockerSwarmAgentTemplate.osWindows}"/>
             </f:entry>
+            <f:entry title="Architecture" field="placementArchitecture">
+                <f:textbox value="${dockerSwarmAgentTemplate.placementArchitecture}"/>
+            </f:entry>
+            <f:entry title="Operating System" field="placementOperatingSystem">
+                <f:textbox value="${dockerSwarmAgentTemplate.placementOperatingSystem}"/>
+            </f:entry>
         </f:section>
     </f:advanced>
     <f:advanced title="${%Limits/Reservations}" align="left">
