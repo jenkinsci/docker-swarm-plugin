@@ -1,109 +1,11 @@
-<?jelly escape-by-default='false'?>
-<!DOCTYPE html>
-<html lang="en">
-    <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
-             xmlns:l="/lib/layout">
-        <head>
-            <st:contentType value="text/html;charset=UTF-8"/>
-            <meta charset="utf-8"/>
-            <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-            <meta name="description" content="Docker Swarm Status"/>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0"/>
-            <title>Docker Swarm Status</title>
-
-            <meta name="mobile-web-app-capable" content="yes"/>
-            <meta name="apple-mobile-web-app-capable" content="yes"/>
-            <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
-            <meta name="apple-mobile-web-app-title" content="Docker Swarm Status"/>
-            <meta name="msapplication-TileColor" content="#3372DF"/>
-            <j:set var="dbrd" value="${it.dashboard}" />
-
-            <link rel="stylesheet" href="https://unpkg.com/@clr/ui/clr-ui.min.css" />
-            <link rel="stylesheet" href="https://unpkg.com/@clr/icons/clr-icons.min.css" />
-            <script src="https://unpkg.com/@webcomponents/custom-elements/custom-elements.min.js"></script>
-            <script src="https://unpkg.com/@clr/icons/clr-icons.min.js"></script>
-
-            <style>
-                #main-panel {
-                    margin-left: 0px !important;
-                    padding: 0px !important;
-                }
-                #side-panel {
-                    width: 0px !important;
-                }
-                footer {
-                    visibility: hidden;
-                }
-
-                .info-block .card-header {
-                    background-color: #DDDDDD;
-                }
-                .flex {
-                    display: flex;
-                }
-                .node {
-                    width: 350px;
-                    margin: 5px;
-                    display: inline-block;
-                }
-                .chart-small-container {
-                    text-align: center;
-                }
-                .chart-small-text {
-                    font-size: 0.5em;
-                }
-                /* Fix to remove the margin of the first entry in the queue */
-                .list-unstyled > li:first-child > div {
-                    margin-top: 0 !important;
-                }
-                .goog-tooltip {
-                    z-index: 1000;
-                }
-            </style>
-            <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-            <script>
-                google.charts.load('current', {'packages':['corechart']});
-                google.charts.setOnLoadCallback(drawCharts);
-                function drawCharts() {
-                    // restore Array.prototype.entries native behaviour (see JENKINS-49319)
-                    Array.prototype.entries = function() {
-                        return Object.entries(this).map(([key,value]) => [+key, value])[Symbol.iterator]();
-                    }
-                    drawCpuChart();
-                    drawMemoryChart();
-                }
-                function drawCpuChart() {
-                    var data = google.visualization.arrayToDataTable(${dbrd.cpuUsage});
-                    var options = {
-                        title: 'CPU Usage',
-                        width: '100%',
-                        legend: { position: 'top', alignment: 'start', maxLines: '4' }
-                    };
-                    var chart = new
-                        google.visualization.PieChart(document.getElementById('cpu-usage-chart'));
-                    chart.draw(data, options);
-                }
-                function drawMemoryChart() {
-                    var data = google.visualization.arrayToDataTable(${dbrd.memoryUsage});
-                    var options = {
-                        title: 'Memory Usage',
-                        width: '100%',
-                        legend: { position: 'top', alignment: 'start', maxLines: '4' }
-                    };
-                    var chart = new
-                        google.visualization.PieChart(document.getElementById('mem-usage-chart'));
-                    chart.draw(data, options);
-                }
-
-                window.addEventListener("resize", function(){
-                    drawCpuChart();
-                    drawMemoryChart();
-                });
-            </script>
-        </head>
-        <body>
-            <l:layout>
-                <l:main-panel>
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler"
+    xmlns:l="/lib/layout">
+    <l:layout title="Docker Swarm Status" type="one-column">
+        <j:set var="dbrd" value="${it.dashboard}" />
+        <l:main-panel>
+            <div id="contentDiv">
+                <div class="content-container">
                     <div class="clr-row">
                         <div class="clr-col-4">
                             <div class="card info-block">
@@ -114,10 +16,14 @@
                                     <div class="card-text">
                                         <div class="clr-row">
                                             <div class="clr-col-6">
-                                                <div id="cpu-usage-chart" style="min-height: 250px;"></div>
+                                                <div class="chart-container" style="min-height: 250px;">
+                                                    <canvas id="cpu-usage-chart"></canvas>
+                                                </div>
                                             </div>
                                             <div class="clr-col-6">
-                                                <div id="mem-usage-chart" style="min-height: 250px;"></div>
+                                                <div class="chart-container" style="min-height: 250px;">
+                                                    <canvas id="mem-usage-chart"></canvas>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -131,8 +37,68 @@
                             <st:include page="swarm-status.jelly"/>
                         </div>
                     </div>
-                </l:main-panel>
-            </l:layout>
-        </body>
-    </j:jelly>
-</html>
+                </div>
+            </div>
+            <div id="shadowElement">
+            </div>
+            <script>
+                // Build and attach the shadowDOM
+                const header = document.getElementById('shadowElement');
+                const shadowRoot = header.attachShadow({mode: 'open'});
+
+                // Get the html that should be added to the shadow dom
+                var contentDiv = document.getElementById('contentDiv');
+                var html = contentDiv.innerHTML;
+                contentDiv.remove();
+
+                // Add the base elements to the shadowDOM
+                var shadowHtmlElement = document.createElement('html');
+                var shadowBodyElement = document.createElement('body');
+                shadowBodyElement.innerHTML = html;
+                shadowHtmlElement.appendChild(shadowBodyElement);
+
+                // Add styles to the shadowDOM
+                addCss(shadowRoot, '${resURL}/plugin/docker-swarm/css/clr-ui.min.css');
+                addCss(shadowRoot, '${resURL}/plugin/docker-swarm/css/clr-icons.min.css');
+                addCss(shadowRoot, '${resURL}/plugin/docker-swarm/css/custom-styles.css');
+
+                // Append the content element to the shadowDOM
+                shadowRoot.appendChild(shadowHtmlElement);
+
+                // Add scripts to the shadowDOM
+                addScript(shadowRoot, '${resURL}/plugin/docker-swarm/js/clr-icons.min.js');
+                addScript(shadowRoot, '${resURL}/plugin/docker-swarm/js/Chart.min.js');
+                addScript(shadowRoot, '${resURL}/plugin/docker-swarm/js/chartjs-plugin-datalabels.js');
+                const lastScript = addScript(shadowRoot, '${resURL}/plugin/docker-swarm/js/custom-script.js');
+
+                // Wait until the script is loaded and then draw the charts
+                lastScript.addEventListener('load', () => {
+                    // Draw the charts
+                    drawCpuChart(shadowRoot, ${dbrd.cpuUsage});
+                    drawMemoryChart(shadowRoot, ${dbrd.memoryUsage});
+                    <j:forEach items="${dbrd.nodes}" var="node">
+                        drawNodeCpuChart(shadowRoot, '${node.name}', ${node.cpuUsageJson});
+                        drawNodeMemoryChart(shadowRoot, '${node.name}', ${node.memoryUsageJson});
+                    </j:forEach>
+                });
+
+                function addCss(element, url) {
+                    let link = document.createElement('link');
+                    link.setAttribute('rel', 'stylesheet');
+                    link.setAttribute('href', url);
+                    element.appendChild(link);
+                    return link;
+                }
+                
+                function addScript(element, url) {
+                    var script = document.createElement('script');
+                    script.setAttribute('type', 'text/javascript');
+                    script.setAttribute('src', url);
+                    script.async = false;
+                    element.appendChild(script);
+                    return script;
+                }
+            </script>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>
