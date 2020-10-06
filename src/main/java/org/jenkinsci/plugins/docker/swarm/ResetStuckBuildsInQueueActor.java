@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.docker.swarm;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -16,6 +17,7 @@ import scala.concurrent.duration.Duration;
 
 public class ResetStuckBuildsInQueueActor extends AbstractActor {
     private static final Logger LOGGER = Logger.getLogger(ResetStuckBuildsInQueueActor.class.getName());
+    private static final long DEFAULT_RESET_MINUTES = 60L;
     public static final int CHECK_INTERVAL = 1;
 
     @Override
@@ -24,12 +26,12 @@ public class ResetStuckBuildsInQueueActor extends AbstractActor {
     }
 
     public static Props props() {
-        return Props.create(ResetStuckBuildsInQueueActor.class, () -> new ResetStuckBuildsInQueueActor());
+        return Props.create(ResetStuckBuildsInQueueActor.class, ResetStuckBuildsInQueueActor::new);
     }
 
     private void resetStuckBuildsInQueue() throws IOException {
         try {
-            final long RESET_MINUTES = DockerSwarmCloud.get().getTimeoutMinutes();
+            long resetMinutes = Optional.ofNullable(DockerSwarmCloud.get().getTimeoutMinutes()).orElse(DEFAULT_RESET_MINUTES);
             final Queue.Item[] items = Jenkins.getInstance().getQueue().getItems();
             for (int i = items.length - 1; i >= 0; i--) { // reverse order
                 final Queue.Item item = items[i];
@@ -40,7 +42,7 @@ public class ResetStuckBuildsInQueueActor extends AbstractActor {
                 if (lblAssignmentAction != null) {
                     long inQueueForMinutes = TimeUnit.MILLISECONDS
                             .toMinutes(new Date().getTime() - lblAssignmentAction.getProvisionedTime());
-                    if (inQueueForMinutes > RESET_MINUTES) {
+                    if (inQueueForMinutes > resetMinutes) {
                         final String computerName = lblAssignmentAction.getLabel().getName();
                         final Node provisionedNode = Jenkins.getInstance().getNode(computerName);
                         if (provisionedNode != null) {
@@ -52,12 +54,12 @@ public class ResetStuckBuildsInQueueActor extends AbstractActor {
                 }
             }
         } finally {
-            resechedule();
+            reschedule();
         }
 
     }
 
-    private void resechedule() {
+    private void reschedule() {
         ActorSystem system = getContext().getSystem();
         system.scheduler().scheduleOnce(Duration.apply(CHECK_INTERVAL, TimeUnit.MINUTES), getSelf(), "restart",
                 getContext().dispatcher(), ActorRef.noSender());
