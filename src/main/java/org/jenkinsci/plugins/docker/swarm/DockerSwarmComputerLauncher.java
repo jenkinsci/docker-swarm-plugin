@@ -347,7 +347,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
     }
 
     private String getAgentJnlpUrl(final Computer computer, final DockerSwarmCloud configuration) {
-        return getJenkinsUrl(configuration) + computer.getUrl() + "slave-agent.jnlp";
+        return getJenkinsUrl(configuration) + computer.getUrl() + "jenkins-agent.jnlp";
 
     }
 
