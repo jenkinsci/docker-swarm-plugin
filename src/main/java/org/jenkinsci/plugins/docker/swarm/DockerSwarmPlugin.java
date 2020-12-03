@@ -14,7 +14,6 @@ public class DockerSwarmPlugin extends Plugin {
     @Override
     public void start() throws Exception {
         this.actorSystem = ActorSystem.create("swarm-plugin", ConfigFactory.load());
-
     }
 
     @Override

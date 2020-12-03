@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 import com.google.common.collect.Iterables;
 
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentInfo;
-import org.jenkinsci.plugins.docker.swarm.Util;
+import org.jenkinsci.plugins.docker.swarm.utils.Util;
 import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.ListNodesRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;

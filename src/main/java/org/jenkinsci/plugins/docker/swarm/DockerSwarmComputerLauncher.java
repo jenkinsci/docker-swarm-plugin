@@ -34,6 +34,7 @@ import hudson.slaves.JNLPLauncher;
 import hudson.slaves.SlaveComputer;
 import jenkins.model.Jenkins;
 import jenkins.slaves.RemotingWorkDirSettings;
+import org.jenkinsci.plugins.docker.swarm.scheduler.DockerSwarmAgentLauncherActor;
 
 public class DockerSwarmComputerLauncher extends JNLPLauncher {
 

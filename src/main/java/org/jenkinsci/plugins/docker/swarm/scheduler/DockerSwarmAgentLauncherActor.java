@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.docker.swarm;
+package org.jenkinsci.plugins.docker.swarm.scheduler;
 
 import java.io.BufferedReader;
 import java.io.IOException;

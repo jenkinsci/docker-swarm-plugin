@@ -1,4 +1,4 @@
 <?jelly escape-by-default='true'?>
 <div>
-  Docker swarm cloud plugin.
+  Docker Swarm cloud plugin.
 </div>

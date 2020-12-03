@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import org.jenkinsci.plugins.docker.swarm.Bytes;
+import org.jenkinsci.plugins.docker.swarm.utils.Bytes;
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmComputer;
 import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
 import org.jenkinsci.plugins.docker.swarm.docker.api.task.Task;

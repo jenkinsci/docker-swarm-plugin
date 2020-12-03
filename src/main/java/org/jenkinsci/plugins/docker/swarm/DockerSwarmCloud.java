@@ -1,24 +1,6 @@
 package org.jenkinsci.plugins.docker.swarm;
 
-import static com.cloudbees.plugins.credentials.CredentialsMatchers.firstOrNull;
-import static com.cloudbees.plugins.credentials.CredentialsMatchers.withId;
-import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Logger;
-
-import javax.net.ssl.SSLContext;
-
+import akka.actor.ActorRef;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,18 +8,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.github.dockerjava.core.SSLConfig;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-
-import org.jenkinsci.plugins.docker.commons.credentials.DockerServerCredentials;
-import org.jenkinsci.plugins.docker.commons.credentials.DockerServerEndpoint;
-import org.jenkinsci.plugins.docker.swarm.docker.api.ping.PingRequest;
-import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiError;
-import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
-import org.kohsuke.stapler.AncestorInPath;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.interceptor.RequirePOST;
-
-import akka.actor.ActorRef;
 import hudson.Extension;
 import hudson.init.InitMilestone;
 import hudson.init.Initializer;
@@ -51,6 +21,29 @@ import hudson.slaves.NodeProvisioner;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.docker.commons.credentials.DockerServerCredentials;
+import org.jenkinsci.plugins.docker.commons.credentials.DockerServerEndpoint;
+import org.jenkinsci.plugins.docker.swarm.docker.DockerServerCredentialsSSLConfig;
+import org.jenkinsci.plugins.docker.swarm.docker.api.ping.PingRequest;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiError;
+import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
+import org.jenkinsci.plugins.docker.swarm.scheduler.DeadDockerSwarmAgentReaperActor;
+import org.jenkinsci.plugins.docker.swarm.scheduler.ObserveItemQueueActor;
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.interceptor.RequirePOST;
+
+import javax.net.ssl.SSLContext;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.*;
+import java.util.logging.Logger;
+
+import static com.cloudbees.plugins.credentials.CredentialsMatchers.firstOrNull;
+import static com.cloudbees.plugins.credentials.CredentialsMatchers.withId;
+import static com.cloudbees.plugins.credentials.CredentialsProvider.lookupCredentials;
 
 public class DockerSwarmCloud extends Cloud {
     private static final String DOCKER_SWARM_CLOUD_NAME = "Docker Swarm";
@@ -66,8 +59,8 @@ public class DockerSwarmCloud extends Cloud {
 
     @DataBoundConstructor
     public DockerSwarmCloud(DockerServerEndpoint dockerHost, String dockerSwarmApiUrl, String jenkinsUrl,
-            String swarmNetwork, String cacheDriverName, String tunnel, List<DockerSwarmAgentTemplate> agentTemplates,
-            long timeoutMinutes) {
+                            String swarmNetwork, String cacheDriverName, String tunnel, List<DockerSwarmAgentTemplate> agentTemplates,
+                            long timeoutMinutes) {
         super(DOCKER_SWARM_CLOUD_NAME);
         this.jenkinsUrl = jenkinsUrl;
         this.swarmNetwork = swarmNetwork;
@@ -131,7 +124,7 @@ public class DockerSwarmCloud extends Cloud {
 
         @RequirePOST
         public FormValidation doValidateTestDockerApiConnection(@QueryParameter("uri") String uri,
-                @QueryParameter("credentialsId") String credentialsId) throws IOException {
+                                                                @QueryParameter("credentialsId") String credentialsId) throws IOException {
             if (uri.endsWith("/")) {
                 return FormValidation.error("URI must not have trailing /");
             }
@@ -191,7 +184,7 @@ public class DockerSwarmCloud extends Cloud {
     public Long getTimeoutMinutes() {
         return timeoutMinutes;
     }
-    
+
     public List<DockerSwarmAgentTemplate> getAgentTemplates() {
         return agentTemplates;
     }
@@ -242,13 +235,13 @@ public class DockerSwarmCloud extends Cloud {
     private static void scheduleResetStuckBuildsActor() {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
         final ActorRef resetStuckBuildsActor = swarmPlugin.getActorSystem()
-                .actorOf(ResetStuckBuildsInQueueActor.props(), "reset-stuck-builds-actor");
+                .actorOf(ObserveItemQueueActor.props(), "reset-stuck-builds-actor");
         resetStuckBuildsActor.tell("start", ActorRef.noSender());
     }
 
     private static void scheduleReaperActor() {
         DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
-        final ActorRef deadAgentReaper = swarmPlugin.getActorSystem().actorOf(DeadAgentServiceReaperActor.props(),
+        final ActorRef deadAgentReaper = swarmPlugin.getActorSystem().actorOf(DeadDockerSwarmAgentReaperActor.props(),
                 "dead-agentService-reaper");
         deadAgentReaper.tell("start", ActorRef.noSender());
     }
