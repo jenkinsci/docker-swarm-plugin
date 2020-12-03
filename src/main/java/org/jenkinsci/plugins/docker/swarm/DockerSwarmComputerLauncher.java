@@ -166,19 +166,8 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
     private ServiceSpec createCreateServiceRequest(String[] commands, DockerSwarmCloud configuration, String[] envVars,
             String dir, String user, DockerSwarmAgentTemplate dockerSwarmAgentTemplate, DockerSwarmComputer computer,
             String[] hosts) throws IOException {
-        ServiceSpec crReq;
-        if (dockerSwarmAgentTemplate.getLabel().contains("dind")) {
-            commands[2] = StringUtils.isEmpty(configuration.getSwarmNetwork())
-                    ? String.format("docker run --rm --privileged %s sh -xc '%s' ", dockerSwarmAgentTemplate.getImage(),
-                            commands[2])
-                    : String.format("docker run --rm --privileged --network %s %s sh -xc '%s' ",
-                            configuration.getSwarmNetwork(), dockerSwarmAgentTemplate.getImage(), commands[2]);
-
-            crReq = new ServiceSpec(computer.getName(), "docker:17.12", commands, envVars, dir, user, hosts);
-        } else {
-            crReq = new ServiceSpec(computer.getName(), dockerSwarmAgentTemplate.getImage(), commands, envVars, dir,
-                    user, hosts);
-        }
+        ServiceSpec crReq = new ServiceSpec(computer.getName(), dockerSwarmAgentTemplate.getImage(), commands, envVars,
+                dir, user, hosts);
         return crReq;
     }
 
