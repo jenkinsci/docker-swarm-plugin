@@ -16,6 +16,8 @@ import hudson.model.Item;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 
+import java.util.Arrays;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTemplate> {
     private String tmpfsDir;
@@ -96,6 +98,10 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     public String getLabel() {
         return this.label;
+    }
+
+    public String[] getLabels() {
+        return StringUtils.isEmpty(this.label) ? new String[]{} : this.label.split("\\s+");
     }
 
     public String getImage() {
@@ -274,4 +280,9 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     public String getPullCredentialsId() {
         return pullCredentialsId;
     }
+
+    public boolean hasLabel(String label) {
+        return Arrays.asList(this.getLabels()).contains(label);
+    }
+
 }

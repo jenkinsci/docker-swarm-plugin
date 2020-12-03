@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -198,7 +199,7 @@ public class DockerSwarmCloud extends Cloud {
 
     public DockerSwarmAgentTemplate getLabelConfiguration(final String label) {
         for (final DockerSwarmAgentTemplate dockerSwarmAgentTemplate : this.agentTemplates) {
-            if (label.equals(dockerSwarmAgentTemplate.getLabel())) {
+            if (dockerSwarmAgentTemplate.hasLabel(label)) {
                 return dockerSwarmAgentTemplate;
             }
         }
@@ -206,8 +207,9 @@ public class DockerSwarmCloud extends Cloud {
     }
 
     public List<String> getLabels() {
-        final Iterable<String> labels = Iterables.transform(getAgentTemplates(),
-                dockerSwarmAgentTemplate -> dockerSwarmAgentTemplate.getLabel());
+        final Iterable<String> labels = Iterables.concat(
+                Iterables.transform(getAgentTemplates(),
+                        dockerSwarmAgentTemplate -> Arrays.asList(dockerSwarmAgentTemplate.getLabels())));
         return Lists.newArrayList(labels);
     }
 
