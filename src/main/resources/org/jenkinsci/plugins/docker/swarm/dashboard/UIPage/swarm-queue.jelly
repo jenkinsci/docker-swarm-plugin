@@ -15,7 +15,7 @@
                 <ul class="list-unstyled">
                     <j:forEach items="${dbrd.queue}" var="item">
                         <li>
-                            <div class="p2">${item.name} (${item.labelConfigLabel})</div>
+                            <div class="p2">${item.name} (${item.label})</div>
                             <span class="p3">
                                 ${item.inQueueSince} - Provisioning:
                                 ${item.agentInfo.provisioningInProgress}
