@@ -1,6 +1,6 @@
 package org.jenkinsci.plugins.docker.swarm.docker.api.task;
 
-import org.jenkinsci.plugins.docker.swarm.Bytes;
+import org.jenkinsci.plugins.docker.swarm.utils.Bytes;
 import org.jenkinsci.plugins.docker.swarm.docker.api.service.ScheduledService;
 
 public class Task {

@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.docker.swarm;
+package org.jenkinsci.plugins.docker.swarm.docker;
 
 import java.io.IOException;
 import java.security.KeyManagementException;

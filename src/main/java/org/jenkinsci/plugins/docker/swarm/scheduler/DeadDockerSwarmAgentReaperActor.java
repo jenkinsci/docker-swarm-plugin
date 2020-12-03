@@ -1,10 +1,12 @@
-package org.jenkinsci.plugins.docker.swarm;
+package org.jenkinsci.plugins.docker.swarm.scheduler;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmPlugin;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.SerializationException;
 import org.jenkinsci.plugins.docker.swarm.docker.api.service.DeleteServiceRequest;
@@ -20,8 +22,8 @@ import akka.actor.Props;
 import jenkins.model.Jenkins;
 import scala.concurrent.duration.Duration;
 
-public class DeadAgentServiceReaperActor extends AbstractActor {
-    private static final Logger LOGGER = Logger.getLogger(DeadAgentServiceReaperActor.class.getName());
+public class DeadDockerSwarmAgentReaperActor extends AbstractActor {
+    private static final Logger LOGGER = Logger.getLogger(DeadDockerSwarmAgentReaperActor.class.getName());
 
     @Override
     public Receive createReceive() {
@@ -29,7 +31,7 @@ public class DeadAgentServiceReaperActor extends AbstractActor {
     }
 
     public static Props props() {
-        return Props.create(DeadAgentServiceReaperActor.class, () -> new DeadAgentServiceReaperActor());
+        return Props.create(DeadDockerSwarmAgentReaperActor.class, () -> new DeadDockerSwarmAgentReaperActor());
     }
 
     private void reapDeadAgentServices() throws IOException {

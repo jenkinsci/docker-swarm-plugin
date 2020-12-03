@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.docker.swarm;
+package org.jenkinsci.plugins.docker.swarm.scheduler;
 
 import java.io.IOException;
 import java.util.List;
@@ -11,11 +11,15 @@ import hudson.model.Node;
 import hudson.model.Queue;
 import hudson.model.queue.QueueListener;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgent;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmLabelAssignmentAction;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentSpawner;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
 
 @Extension
-public class OneShotProvisionQueueListener extends QueueListener {
+public class DockerSwarmItemQueueListener extends QueueListener {
 
-    private static final Logger LOGGER = Logger.getLogger(OneShotProvisionQueueListener.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(DockerSwarmItemQueueListener.class.getName());
 
     @Override
     public void onEnterBuildable(final Queue.BuildableItem bi) {
@@ -23,7 +27,7 @@ public class OneShotProvisionQueueListener extends QueueListener {
         if (DockerSwarmCloud.get() != null) {
             final List<String> labels = DockerSwarmCloud.get().getLabels();
             if (job.getAssignedLabel() != null && labels.contains(job.getAssignedLabel().getName())) {
-                BuildScheduler.scheduleBuild(bi);
+                DockerSwarmAgentSpawner.spawn(bi);
             }
         }
     }

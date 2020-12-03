@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.docker.swarm;
+package org.jenkinsci.plugins.docker.swarm.scheduler;
 
 import java.io.IOException;
 import java.util.Date;
@@ -13,10 +13,14 @@ import akka.actor.Props;
 import hudson.model.Node;
 import hudson.model.Queue;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgent;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmLabelAssignmentAction;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentSpawner;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
 import scala.concurrent.duration.Duration;
 
-public class ResetStuckBuildsInQueueActor extends AbstractActor {
-    private static final Logger LOGGER = Logger.getLogger(ResetStuckBuildsInQueueActor.class.getName());
+public class ObserveItemQueueActor extends AbstractActor {
+    private static final Logger LOGGER = Logger.getLogger(ObserveItemQueueActor.class.getName());
     private static final long DEFAULT_RESET_MINUTES = 60L;
     public static final int CHECK_INTERVAL = 1;
 
@@ -26,7 +30,7 @@ public class ResetStuckBuildsInQueueActor extends AbstractActor {
     }
 
     public static Props props() {
-        return Props.create(ResetStuckBuildsInQueueActor.class, ResetStuckBuildsInQueueActor::new);
+        return Props.create(ObserveItemQueueActor.class, ObserveItemQueueActor::new);
     }
 
     private void resetStuckBuildsInQueue() throws IOException {
@@ -47,7 +51,7 @@ public class ResetStuckBuildsInQueueActor extends AbstractActor {
                         final Node provisionedNode = Jenkins.getInstance().getNode(computerName);
                         if (provisionedNode != null) {
                             LOGGER.info(String.format("Rescheduling %s and Deleting %s computer ", item, computerName));
-                            BuildScheduler.scheduleBuild((Queue.BuildableItem) item);
+                            DockerSwarmAgentSpawner.spawn((Queue.BuildableItem) item);
                             ((DockerSwarmAgent) provisionedNode).terminate();
                         }
                     }

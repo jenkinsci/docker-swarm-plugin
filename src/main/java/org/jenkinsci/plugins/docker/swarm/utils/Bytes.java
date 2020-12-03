@@ -1,4 +1,4 @@
-package org.jenkinsci.plugins.docker.swarm;
+package org.jenkinsci.plugins.docker.swarm.utils;
 
 public class Bytes {
     public static int GB(final int i) {
