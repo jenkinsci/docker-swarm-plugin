@@ -12,6 +12,8 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import hudson.model.Node;
 import hudson.model.Queue;
+import hudson.security.ACL;
+import hudson.security.ACLContext;
 import jenkins.model.Jenkins;
 import scala.concurrent.duration.Duration;
 
@@ -30,7 +32,7 @@ public class ResetStuckBuildsInQueueActor extends AbstractActor {
     }
 
     private void resetStuckBuildsInQueue() throws IOException {
-        try {
+        try (ACLContext _ = ACL.as(ACL.SYSTEM)) {
             long resetMinutes = Optional.ofNullable(DockerSwarmCloud.get().getTimeoutMinutes()).orElse(DEFAULT_RESET_MINUTES);
             final Queue.Item[] items = Jenkins.getInstance().getQueue().getItems();
             for (int i = items.length - 1; i >= 0; i--) { // reverse order
@@ -46,7 +48,7 @@ public class ResetStuckBuildsInQueueActor extends AbstractActor {
                         final String computerName = lblAssignmentAction.getLabel().getName();
                         final Node provisionedNode = Jenkins.getInstance().getNode(computerName);
                         if (provisionedNode != null) {
-                            LOGGER.info(String.format("Rescheduling %s and Deleting %s computer ", item, computerName));
+                            LOGGER.info(String.format("Rescheduling %s and deleting %s computer ", item, computerName));
                             BuildScheduler.scheduleBuild((Queue.BuildableItem) item);
                             ((DockerSwarmAgent) provisionedNode).terminate();
                         }
