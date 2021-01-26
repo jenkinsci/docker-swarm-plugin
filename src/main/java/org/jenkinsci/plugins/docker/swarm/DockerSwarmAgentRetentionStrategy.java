@@ -24,24 +24,28 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerS
         implements ExecutorListener {
     private static final Logger LOGGER = Logger.getLogger(DockerSwarmAgentRetentionStrategy.class.getName());
 
-    private int timeout = 1;
     private transient volatile boolean terminating;
+
+    private boolean isTaskAccepted;
     private boolean isTaskCompleted;
+    private long timeout; // in ms
 
     @DataBoundConstructor
-    public DockerSwarmAgentRetentionStrategy(int idleMinutes) {
-        this.timeout = idleMinutes;
+    public DockerSwarmAgentRetentionStrategy(int timeout /* in minutes */) {
+        this.timeout = MINUTES.toMillis(timeout);
     }
 
-    public int getIdleMinutes() {
+    public long getTimeout() {
         return timeout;
     }
 
     @Override
     public long check(@Nonnull DockerSwarmComputer c) {
-        if (c.isIdle() && c.isOnline() && isTaskCompleted) {
-            final long idleMilliseconds = System.currentTimeMillis() - c.getIdleStartMilliseconds();
-            if (idleMilliseconds > MINUTES.toMillis(timeout)) {
+        if (c.isIdle() && c.isOnline()) {
+            final long connectTime = System.currentTimeMillis() - c.getConnectTime();
+            final long idleTime = System.currentTimeMillis() - c.getIdleStartMilliseconds();
+            final boolean isTimeout = connectTime > timeout && idleTime > timeout;
+            if (isTimeout && (!isTaskAccepted || isTaskCompleted)) {
                 LOGGER.log(Level.INFO, "Disconnecting due to idle {0}", c.getName());
                 done(c);
             }
@@ -57,23 +61,25 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerS
 
     @Override
     public void taskAccepted(Executor executor, Queue.Task task) {
+        this.isTaskAccepted = true;
+        getLogger(executor).println("Task accepted: " + task.getFullDisplayName());
     }
 
     @Override
     public void taskCompleted(Executor executor, Queue.Task task, long durationMS) {
         this.isTaskCompleted = true;
-        getLogger(executor).println("Task completed: " + task.getFullDisplayName());
+        getLogger(executor).println("Task completed: " + task.getFullDisplayName() + " (" + durationMS + " ms)");
         done(executor);
-    }
-
-    private PrintStream getLogger(Executor executor) {
-        final DockerSwarmComputer c = (DockerSwarmComputer) executor.getOwner();
-        return c.getListener().getLogger();
     }
 
     @Override
     public void taskCompletedWithProblems(Executor executor, Queue.Task task, long durationMS, Throwable problems) {
         taskCompleted(executor, task, durationMS);
+    }
+
+    private PrintStream getLogger(Executor executor) {
+        final DockerSwarmComputer c = (DockerSwarmComputer) executor.getOwner();
+        return c.getListener().getLogger();
     }
 
     private void done(Executor executor) {
@@ -101,6 +107,7 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerS
                     try {
                         node.terminate();
                     } catch (IOException e) {
+                        LOGGER.log(Level.WARNING, "Failed to terminate " + c.getName(), e);
                     }
                 }
             });
