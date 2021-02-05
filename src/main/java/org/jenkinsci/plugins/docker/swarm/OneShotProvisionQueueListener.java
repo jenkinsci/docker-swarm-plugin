@@ -21,12 +21,12 @@ public class OneShotProvisionQueueListener extends QueueListener {
 
     @Override
     public void onEnterBuildable(final Queue.BuildableItem bi) {
-        final Queue.Task job = bi.task;
         final Jenkins jenkins = Jenkins.getInstance();
         final Label label = bi.getAssignedLabel();
         for (Cloud cloud : jenkins.clouds) {
             if (cloud instanceof DockerSwarmCloud && cloud.canProvision(label)) {
-                BuildScheduler.scheduleBuild(bi);
+                BuildScheduler.scheduleBuild(bi, (DockerSwarmCloud)cloud);
+                break;
             }
         }
     }

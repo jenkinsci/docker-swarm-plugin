@@ -4,14 +4,17 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import akka.actor.AbstractActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.Queue;
+import hudson.slaves.Cloud;
 import jenkins.model.Jenkins;
 import scala.concurrent.duration.Duration;
 
@@ -47,7 +50,18 @@ public class ResetStuckBuildsInQueueActor extends AbstractActor {
                         final Node provisionedNode = Jenkins.getInstance().getNode(computerName);
                         if (provisionedNode != null) {
                             LOGGER.info(String.format("Rescheduling %s and Deleting %s computer ", item, computerName));
-                            BuildScheduler.scheduleBuild((Queue.BuildableItem) item);
+                            //FIXME copy paste from onEnterBuildable
+                            //BuildScheduler.scheduleBuild((Queue.BuildableItem) item, DockerSwarmCloud.get());
+                            final Queue.BuildableItem bi = (Queue.BuildableItem) item;
+                            final Jenkins jenkins = Jenkins.getInstance();
+                            final Label label = bi.getAssignedLabel();
+                            for (Cloud cloud : jenkins.clouds) {
+                                LOGGER.log(Level.WARNING, "Checking cloud " + cloud.name + " url " + cloud.toString());
+                                if (cloud instanceof DockerSwarmCloud && cloud.canProvision(label)) {
+                                    BuildScheduler.scheduleBuild(bi, (DockerSwarmCloud)cloud);
+                                    break;
+                                }
+                            }
                             ((DockerSwarmAgent) provisionedNode).terminate();
                         }
                     }
