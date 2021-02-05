@@ -7,9 +7,11 @@ import java.util.logging.Logger;
 
 import hudson.Extension;
 import hudson.model.Computer;
+import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.Queue;
 import hudson.model.queue.QueueListener;
+import hudson.slaves.Cloud;
 import jenkins.model.Jenkins;
 
 @Extension
@@ -20,9 +22,10 @@ public class OneShotProvisionQueueListener extends QueueListener {
     @Override
     public void onEnterBuildable(final Queue.BuildableItem bi) {
         final Queue.Task job = bi.task;
-        if (DockerSwarmCloud.get() != null) {
-            final List<String> labels = DockerSwarmCloud.get().getLabels();
-            if (job.getAssignedLabel() != null && labels.contains(job.getAssignedLabel().getName())) {
+        final Jenkins jenkins = Jenkins.getInstance();
+        final Label label = bi.getAssignedLabel();
+        for (Cloud cloud : jenkins.clouds) {
+            if (cloud instanceof DockerSwarmCloud && cloud.canProvision(label)) {
                 BuildScheduler.scheduleBuild(bi);
             }
         }
