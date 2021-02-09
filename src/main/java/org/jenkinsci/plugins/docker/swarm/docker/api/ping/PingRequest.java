@@ -6,7 +6,7 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.HttpMethod;
 import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 
 public class PingRequest extends ApiRequest {
-    public PingRequest(String swarmName) throws IOException {
-        super(swarmName, HttpMethod.GET, "/_ping", null, null, null);
+    public PingRequest(String uri, String credentialsId) throws IOException {
+        super(HttpMethod.GET, uri,"/_ping", null, null, null, credentialsId);
     }
 }
