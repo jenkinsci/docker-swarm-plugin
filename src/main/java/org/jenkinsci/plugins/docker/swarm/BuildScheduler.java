@@ -20,6 +20,7 @@ public class BuildScheduler {
     public static void scheduleBuild(final Queue.BuildableItem bi, final DockerSwarmCloud cloud) {
         try (ACLContext _ = ACL.as(ACL.SYSTEM)) {
             final DockerSwarmLabelAssignmentAction action = createLabelAssignmentAction(bi.task.getDisplayName());
+            // TODO set cloud name on DockerSwarmAgentInfo ?
             DockerSwarmAgentInfo dockerSwarmAgentInfo = new DockerSwarmAgentInfo(true);
             dockerSwarmAgentInfo.setAgentLabel(action.getLabel().toString());
             bi.replaceAction(dockerSwarmAgentInfo);
