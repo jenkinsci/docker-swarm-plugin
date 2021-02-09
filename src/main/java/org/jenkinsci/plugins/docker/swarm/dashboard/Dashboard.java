@@ -12,7 +12,9 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.Iterables;
 
+import hudson.slaves.Cloud;
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentInfo;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
 import org.jenkinsci.plugins.docker.swarm.Util;
 import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.ListNodesRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
@@ -36,6 +38,12 @@ public class Dashboard {
     private String swarmName;
 
     public Dashboard() throws IOException {
+        for( final Cloud cloud: Jenkins.getInstance().clouds){
+            if (cloud instanceof  DockerSwarmCloud) {
+                swarmName = cloud.name;
+                break;
+            }
+        }
         this.nodes = calculateNodes();
     }
 
