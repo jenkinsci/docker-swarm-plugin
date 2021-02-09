@@ -48,7 +48,7 @@ public class DeadAgentServiceReaperActor extends AbstractActor {
                             for (Task task : (List<Task>) getResult(tasks, List.class)) {
                                 if (task.isComplete()) {
                                     LOGGER.info("Reaping service: " + service.Spec.Name);
-                                    new DeleteServiceRequest(dockerSwarmApiUrl, service.Spec.Name).execute();
+                                    new DeleteServiceRequest(swarmCloud.name, service.Spec.Name).execute();
                                     break;
                                 }
                             }

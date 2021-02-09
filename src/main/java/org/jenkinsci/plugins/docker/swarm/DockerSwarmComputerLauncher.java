@@ -136,8 +136,8 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setLimitsAndReservations(dockerSwarmAgentTemplate, crReq);
         setHostBinds(dockerSwarmAgentTemplate, crReq);
         setHostNamedPipes(dockerSwarmAgentTemplate, crReq);
-        setSecrets(dockerSwarmAgentTemplate, crReq);
-        setConfigs(dockerSwarmAgentTemplate, crReq);
+        setSecrets(configuration.name, dockerSwarmAgentTemplate, crReq);
+        setConfigs(configuration.name, dockerSwarmAgentTemplate, crReq);
         setNetwork(configuration, crReq);
         setCacheDirs(configuration, dockerSwarmAgentTemplate, listener, computer, crReq);
         setTmpfs(dockerSwarmAgentTemplate, crReq);
@@ -180,9 +180,9 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
                     : String.format("docker run --rm --privileged --network %s %s sh -xc '%s' ",
                             configuration.getSwarmNetwork(), dockerSwarmAgentTemplate.getImage(), commands[2]);
 
-            crReq = new ServiceSpec(computer.getName(), "docker:17.12", commands, envVars, dir, user, hosts);
+            crReq = new ServiceSpec(configuration.name, computer.getName(), "docker:17.12", commands, envVars, dir, user, hosts);
         } else {
-            crReq = new ServiceSpec(computer.getName(), dockerSwarmAgentTemplate.getImage(), commands, envVars, dir,
+            crReq = new ServiceSpec(configuration.name, computer.getName(), dockerSwarmAgentTemplate.getImage(), commands, envVars, dir,
                     user, hosts);
         }
         return crReq;
@@ -235,11 +235,11 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         }
     }
 
-    private void setSecrets(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+    private void setSecrets(String swarmName, DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
         String[] secrets = dockerSwarmAgentTemplate.getSecretsConfig();
         if (secrets.length > 0)
             try {
-                final Object secretList = new ListSecretsRequest().execute();
+                final Object secretList = new ListSecretsRequest(swarmName).execute();
                 for (int i = 0; i < secrets.length; i++) {
                     String secret = secrets[i];
                     String[] split = secret.split(":");
@@ -260,11 +260,11 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
             }
     }
 
-    private void setConfigs(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+    private void setConfigs(String swarmName, DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
         String[] configs = dockerSwarmAgentTemplate.getConfigsConfig();
         if (configs.length > 0)
             try {
-                final Object configList = new ListConfigsRequest().execute();
+                final Object configList = new ListConfigsRequest(swarmName).execute();
                 for (int i = 0; i < configs.length; i++) {
                     String config = configs[i];
                     String[] split = config.split(":");

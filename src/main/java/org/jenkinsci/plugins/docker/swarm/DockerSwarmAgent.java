@@ -81,7 +81,7 @@ public class DockerSwarmAgent extends AbstractCloudSlave implements EphemeralNod
         try {
             DockerSwarmPlugin swarmPlugin = Jenkins.getInstance().getPlugin(DockerSwarmPlugin.class);
             ActorRef agentLauncherRef = swarmPlugin.getActorSystem().actorFor("/user/" + getComputer().getName());
-            agentLauncherRef.tell(new DeleteServiceRequest(getComputer().getName()), ActorRef.noSender());
+            agentLauncherRef.tell(new DeleteServiceRequest(getCloudName(), getComputer().getName()), ActorRef.noSender());
         } finally {
             try {
                 Jenkins.getInstance().removeNode(this);

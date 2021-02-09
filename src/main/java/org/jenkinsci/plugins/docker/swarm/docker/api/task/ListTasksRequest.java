@@ -9,15 +9,15 @@ import org.jenkinsci.plugins.docker.swarm.docker.marshalling.ResponseType;
 
 public class ListTasksRequest extends ApiRequest {
 
-    public ListTasksRequest() throws IOException {
-        super(HttpMethod.GET, "/tasks", Task.class, ResponseType.LIST);
+    public ListTasksRequest(String swarmName) throws IOException {
+        super(swarmName, HttpMethod.GET, "/tasks", Task.class, ResponseType.LIST);
     }
 
-    public ListTasksRequest(String dockerSwarmApiUrl, String url) throws IOException {
-        super(HttpMethod.GET, dockerSwarmApiUrl, url, Task.class, ResponseType.LIST, null);
+    public ListTasksRequest(String swarmName, String url) throws IOException {
+        super(swarmName, HttpMethod.GET, url, Task.class, ResponseType.LIST, null);
     }
 
-    public ListTasksRequest(String dockerApiUrl, String filterKey, String filterValue) throws IOException {
-        this(dockerApiUrl, "/tasks?filters=" + encodeJsonFilter(filterKey, filterValue));
+    public ListTasksRequest(String swarmName, String filterKey, String filterValue) throws IOException {
+        this(swarmName, "/tasks?filters=" + encodeJsonFilter(filterKey, filterValue));
     }
 }

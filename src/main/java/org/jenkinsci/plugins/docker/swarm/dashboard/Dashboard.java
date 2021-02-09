@@ -32,6 +32,7 @@ import net.sf.json.JSONArray;
 public class Dashboard {
     private final List<SwarmNode> nodes;
 
+    // FIXME to be set somewher
     private String swarmName;
 
     public Dashboard() throws IOException {
@@ -130,9 +131,9 @@ public class Dashboard {
     }
 
     private List<SwarmNode> calculateNodes() throws IOException {
-        final List<Node> nodeList = getResult(new ListNodesRequest().execute(), List.class);
-        final List services = getResult(new ListServicesRequest().execute(), List.class);
-        final Object tasks = new ListTasksRequest().execute();
+        final List<Node> nodeList = getResult(new ListNodesRequest(swarmName).execute(), List.class);
+        final List services = getResult(new ListServicesRequest(swarmName).execute(), List.class);
+        final Object tasks = new ListTasksRequest(swarmName).execute();
         return toSwarmNodes(services, getResult(tasks, List.class), nodeList);
     }
 

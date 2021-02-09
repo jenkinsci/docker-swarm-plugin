@@ -135,6 +135,7 @@ public class DockerSwarmCloud extends Cloud {
             if (uri.endsWith("/")) {
                 return FormValidation.error("URI must not have trailing /");
             }
+            // FIXME DOES NOT WORK ANYMORE
             Object response = new PingRequest(uri).execute();
             if (response instanceof ApiException) {
                 return FormValidation.error(((ApiException) response).getCause(),

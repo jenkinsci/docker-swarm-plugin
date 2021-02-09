@@ -7,7 +7,7 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 
 public class ServiceLogRequest extends ApiRequest {
 
-    public ServiceLogRequest(String id) throws IOException {
-        super(HttpMethod.GET, "/services/" + id + "/logs?follow=true&stdout=true&stderr=true");
+    public ServiceLogRequest(String swarmName, String id) throws IOException {
+        super(swarmName, HttpMethod.GET, "/services/" + id + "/logs?follow=true&stdout=true&stderr=true");
     }
 }
