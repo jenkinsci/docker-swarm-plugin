@@ -34,7 +34,15 @@ public class ResetStuckBuildsInQueueActor extends AbstractActor {
 
     private void resetStuckBuildsInQueue() throws IOException {
         try {
-            long resetMinutes = Optional.ofNullable(DockerSwarmCloud.get().getTimeoutMinutes()).orElse(DEFAULT_RESET_MINUTES);
+            //FIXME getting timeout from first cloud
+            DockerSwarmCloud swarmCloud = null;
+            for (final Cloud cloud: Jenkins.getInstance().clouds) {
+                if(cloud instanceof DockerSwarmCloud) {
+                    swarmCloud = (DockerSwarmCloud)cloud;
+                    break;
+                }
+            }
+            long resetMinutes = Optional.ofNullable(swarmCloud.getTimeoutMinutes()).orElse(DEFAULT_RESET_MINUTES);
             final Queue.Item[] items = Jenkins.getInstance().getQueue().getItems();
             for (int i = items.length - 1; i >= 0; i--) { // reverse order
                 final Queue.Item item = items[i];

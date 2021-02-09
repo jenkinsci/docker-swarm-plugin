@@ -211,8 +211,8 @@ public class DockerSwarmCloud extends Cloud {
         return Lists.newArrayList(labels);
     }
 
-    public static DockerSwarmCloud get() {
-        return (DockerSwarmCloud) Jenkins.getInstance().getCloud(DOCKER_SWARM_CLOUD_NAME);
+    public static DockerSwarmCloud get(String name) {
+        return (DockerSwarmCloud) Jenkins.getInstance().getCloud(name);
     }
 
     public void save() {
@@ -228,7 +228,7 @@ public class DockerSwarmCloud extends Cloud {
             ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             try (InputStream in = new BufferedInputStream(new FileInputStream(swarmConfigYaml))) {
                 DockerSwarmCloud configuration = mapper.readValue(in, DockerSwarmCloud.class);
-                DockerSwarmCloud existingCloud = DockerSwarmCloud.get();
+                DockerSwarmCloud existingCloud = DockerSwarmCloud.get(configuration.name);
                 if (existingCloud != null) {
                     Jenkins.getInstance().clouds.remove(existingCloud);
                 }

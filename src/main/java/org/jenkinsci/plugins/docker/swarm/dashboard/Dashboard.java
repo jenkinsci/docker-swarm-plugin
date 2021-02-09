@@ -32,6 +32,8 @@ import net.sf.json.JSONArray;
 public class Dashboard {
     private final List<SwarmNode> nodes;
 
+    private String swarmName;
+
     public Dashboard() throws IOException {
         this.nodes = calculateNodes();
     }
@@ -43,7 +45,7 @@ public class Dashboard {
             final Queue.Item item = items[i];
             final DockerSwarmAgentInfo agentInfo = item.getAction(DockerSwarmAgentInfo.class);
             if (agentInfo != null && item instanceof Queue.BuildableItem) {
-                queue.add(new SwarmQueueItem((Queue.BuildableItem) item));
+                queue.add(new SwarmQueueItem((Queue.BuildableItem) item, swarmName));
             }
         }
         return queue;

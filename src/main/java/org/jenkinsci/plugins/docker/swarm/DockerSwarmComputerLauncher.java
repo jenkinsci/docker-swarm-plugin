@@ -44,8 +44,8 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
 
     private static final Logger LOGGER = Logger.getLogger(DockerSwarmComputerLauncher.class.getName());
 
-    public DockerSwarmComputerLauncher(final Queue.BuildableItem bi) {
-        super(DockerSwarmCloud.get().getTunnel(), null, new RemotingWorkDirSettings(false, "/tmp", null, false));
+    public DockerSwarmComputerLauncher(final Queue.BuildableItem bi, final DockerSwarmCloud cloud) {
+        super(cloud.getTunnel(), null, new RemotingWorkDirSettings(false, "/tmp", null, false));
         this.bi = bi;
         this.label = bi.task.getAssignedLabel().getName();
         this.jobName = bi.task instanceof AbstractProject ? ((AbstractProject) bi.task).getFullName()
@@ -69,7 +69,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         final DockerSwarmAgent agent = computer.getNode();
 
         // FIXME get configuration from cloud name
-        final DockerSwarmCloud configuration = DockerSwarmCloud.get();
+        final DockerSwarmCloud configuration = DockerSwarmCloud.get(agent.getCloudName());
         final DockerSwarmAgentTemplate dockerSwarmAgentTemplate = agent.getTemplate();
         if(dockerSwarmAgentTemplate == null) {
             throw new RuntimeException("dockerSwarmAgentTemplate is null");
