@@ -5,6 +5,9 @@
     <f:section title="Docker Swarm Cloud Configuration">
         <f:property field="dockerHost"/>
         <f:validateButton method="validateTestDockerApiConnection" title="Test Connection" with="uri,credentialsId"/>
+        <f:entry title="Swarm name " field="name">
+            <f:textbox/>
+        </f:entry>
         <f:entry title="Jenkins Url " field="jenkinsUrl">
             <f:textbox/>
         </f:entry>

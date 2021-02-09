@@ -65,10 +65,10 @@ public class DockerSwarmCloud extends Cloud {
     private DockerServerEndpoint dockerHost;
 
     @DataBoundConstructor
-    public DockerSwarmCloud(DockerServerEndpoint dockerHost, String dockerSwarmApiUrl, String jenkinsUrl,
+    public DockerSwarmCloud(String name, DockerServerEndpoint dockerHost, String dockerSwarmApiUrl, String jenkinsUrl,
             String swarmNetwork, String cacheDriverName, String tunnel, List<DockerSwarmAgentTemplate> agentTemplates,
             long timeoutMinutes) {
-        super(DOCKER_SWARM_CLOUD_NAME);
+        super(name);
         this.jenkinsUrl = jenkinsUrl;
         this.swarmNetwork = swarmNetwork;
         this.cacheDriverName = cacheDriverName;

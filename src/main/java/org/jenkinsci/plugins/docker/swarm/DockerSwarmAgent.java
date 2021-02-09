@@ -25,17 +25,25 @@ public class DockerSwarmAgent extends AbstractCloudSlave implements EphemeralNod
 
     private static final Logger LOGGER = Logger.getLogger(DockerSwarmAgent.class.getName());
 
+    private final DockerSwarmAgentTemplate template;
+
     public DockerSwarmAgent(final Queue.BuildableItem bi, final String labelString, final DockerSwarmCloud cloud)
             throws Descriptor.FormException, IOException {
         super(labelString, "Docker swarm agent for building " + bi.task.getFullDisplayName(),
                 cloud.getLabelConfiguration(bi.task.getAssignedLabel().getName()).getWorkingDir(), 1,
                 Mode.EXCLUSIVE, labelString, new DockerSwarmComputerLauncher(bi),
                 new DockerSwarmAgentRetentionStrategy(1), Collections.emptyList());
+        final DockerSwarmAgentTemplate labelConfiguration = cloud.getLabelConfiguration(bi.task.getAssignedLabel().getName());
+        this.template = labelConfiguration;
         LOGGER.log(Level.FINE, "Created docker swarm agent: {0}", labelString);
     }
 
     public DockerSwarmComputer createComputer() {
         return new DockerSwarmComputer(this);
+    }
+
+    public DockerSwarmAgentTemplate getTemplate() {
+        return template;
     }
 
     @Override
