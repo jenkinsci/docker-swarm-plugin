@@ -90,6 +90,9 @@ public abstract class ApiRequest {
     }
 
     private static String getDockerUriFromSwarmName (String swarmName) {
+        if(swarmName == null) {
+            return null;
+        }
         final DockerSwarmCloud swarmCloud = DockerSwarmCloud.get(swarmName);
         if (swarmCloud.getDockerHost() != null) {
             return swarmCloud.getDockerHost().getUri();
@@ -99,6 +102,9 @@ public abstract class ApiRequest {
     }
 
     private  static final String dockerCredentialsIdFromSwarmName(String swarmName){
+        if(swarmName == null) {
+            return null;
+        }
         final DockerSwarmCloud swarmCloud = DockerSwarmCloud.get(swarmName);
         if (swarmCloud.getDockerHost() != null) {
             return swarmCloud.getDockerHost().getCredentialsId();

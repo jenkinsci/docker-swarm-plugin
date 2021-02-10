@@ -38,8 +38,9 @@ public class ServiceSpec extends ApiRequest {
         this.EndpointSpec = new EndpointSpec();
     }
 
-    public ServiceSpec(String swarmName) throws IOException {
-        super(swarmName, HttpMethod.POST, "/services/create", CreateServiceResponse.class, ResponseType.CLASS, null);
+    // default constructor to deserialize JSON from the dashboard page
+    public ServiceSpec() throws IOException {
+        super(null, HttpMethod.POST, "/services/create", CreateServiceResponse.class, ResponseType.CLASS, null);
     }
 
     public void addBindVolume(String source, String target) {
