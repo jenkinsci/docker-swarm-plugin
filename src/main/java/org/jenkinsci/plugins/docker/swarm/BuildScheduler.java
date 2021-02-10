@@ -17,14 +17,14 @@ public class BuildScheduler {
     private static final Logger LOGGER = Logger.getLogger(BuildScheduler.class.getName());
     private static AtomicInteger counter = new AtomicInteger(1);
 
-    public static void scheduleBuild(final Queue.BuildableItem bi) {
+    public static void scheduleBuild(final Queue.BuildableItem bi, final DockerSwarmCloud cloud) {
         try (ACLContext _ = ACL.as(ACL.SYSTEM)) {
             final DockerSwarmLabelAssignmentAction action = createLabelAssignmentAction(bi.task.getDisplayName());
             DockerSwarmAgentInfo dockerSwarmAgentInfo = new DockerSwarmAgentInfo(true);
             dockerSwarmAgentInfo.setAgentLabel(action.getLabel().toString());
             bi.replaceAction(dockerSwarmAgentInfo);
             bi.replaceAction(action);
-            final Node node = new DockerSwarmAgent(bi, action.getLabel().toString());
+            final Node node = new DockerSwarmAgent(bi, action.getLabel().toString(), cloud);
             Computer.threadPoolForRemoting.submit(() -> {
                 try {
                     Jenkins.getInstance().addNode(node); // locks queue

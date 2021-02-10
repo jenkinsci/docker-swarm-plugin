@@ -8,20 +8,15 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.marshalling.ResponseType;
 
 public class ListServicesRequest extends ApiRequest {
-
-    public ListServicesRequest(String url) throws IOException {
-        super(HttpMethod.GET, url, ScheduledService.class, ResponseType.LIST);
+    public ListServicesRequest(String swarmName, String url) throws IOException {
+        super(swarmName, HttpMethod.GET, url, ScheduledService.class, ResponseType.LIST, null);
     }
 
-    public ListServicesRequest(String dockerApiUrl, String url) throws IOException {
-        super(HttpMethod.GET, dockerApiUrl, url, ScheduledService.class, ResponseType.LIST, null);
+    public ListServicesRequest(String swarmName) throws IOException {
+        this(swarmName, "/services");
     }
 
-    public ListServicesRequest() throws IOException {
-        this("/services");
-    }
-
-    public ListServicesRequest(String dockerApiUrl, String filterKey, String filterValue) throws IOException {
-        this(dockerApiUrl, "/services?filters=" + encodeJsonFilter(filterKey, filterValue));
+    public ListServicesRequest(String swarmName, String filterKey, String filterValue) throws IOException {
+        this(swarmName, "/services?filters=" + encodeJsonFilter(filterKey, filterValue));
     }
 }

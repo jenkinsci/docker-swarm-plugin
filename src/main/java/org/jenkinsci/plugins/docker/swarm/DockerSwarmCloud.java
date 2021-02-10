@@ -65,10 +65,10 @@ public class DockerSwarmCloud extends Cloud {
     private DockerServerEndpoint dockerHost;
 
     @DataBoundConstructor
-    public DockerSwarmCloud(DockerServerEndpoint dockerHost, String dockerSwarmApiUrl, String jenkinsUrl,
+    public DockerSwarmCloud(String name, DockerServerEndpoint dockerHost, String dockerSwarmApiUrl, String jenkinsUrl,
             String swarmNetwork, String cacheDriverName, String tunnel, List<DockerSwarmAgentTemplate> agentTemplates,
             long timeoutMinutes) {
-        super(DOCKER_SWARM_CLOUD_NAME);
+        super(name);
         this.jenkinsUrl = jenkinsUrl;
         this.swarmNetwork = swarmNetwork;
         this.cacheDriverName = cacheDriverName;
@@ -135,7 +135,10 @@ public class DockerSwarmCloud extends Cloud {
             if (uri.endsWith("/")) {
                 return FormValidation.error("URI must not have trailing /");
             }
-            Object response = new PingRequest(uri).execute();
+            if(credentialsId.equals("")) {
+                credentialsId = null;
+            }
+            Object response = new PingRequest(uri, credentialsId).execute();
             if (response instanceof ApiException) {
                 return FormValidation.error(((ApiException) response).getCause(),
                         "Couldn't ping docker api: " + uri + "/_ping");
@@ -151,7 +154,7 @@ public class DockerSwarmCloud extends Cloud {
         return dockerHost.getUri();
     }
 
-    private static SSLConfig toSSlConfig(String credentialsId) {
+    public static SSLConfig toSSlConfig(String credentialsId) {
         if (credentialsId == null)
             return null;
 
@@ -211,8 +214,8 @@ public class DockerSwarmCloud extends Cloud {
         return Lists.newArrayList(labels);
     }
 
-    public static DockerSwarmCloud get() {
-        return (DockerSwarmCloud) Jenkins.getInstance().getCloud(DOCKER_SWARM_CLOUD_NAME);
+    public static DockerSwarmCloud get(String name) {
+        return (DockerSwarmCloud) Jenkins.getInstance().getCloud(name);
     }
 
     public void save() {
@@ -228,7 +231,7 @@ public class DockerSwarmCloud extends Cloud {
             ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             try (InputStream in = new BufferedInputStream(new FileInputStream(swarmConfigYaml))) {
                 DockerSwarmCloud configuration = mapper.readValue(in, DockerSwarmCloud.class);
-                DockerSwarmCloud existingCloud = DockerSwarmCloud.get();
+                DockerSwarmCloud existingCloud = DockerSwarmCloud.get(configuration.name);
                 if (existingCloud != null) {
                     Jenkins.getInstance().clouds.remove(existingCloud);
                 }

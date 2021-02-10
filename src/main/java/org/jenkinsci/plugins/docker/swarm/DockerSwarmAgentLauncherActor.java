@@ -73,8 +73,8 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
     }
 
     private void createService(ServiceSpec createRequest) throws IOException {
-        logger.println(String.format("[%s] Creating Service with Name : %s",
-                DateFormat.getTimeInstance().format(new Date()), createRequest.Name));
+        logger.println(String.format("[%s] Creating Service with Name : %s on swarm: %s",
+                DateFormat.getTimeInstance().format(new Date()), createRequest.Name, createRequest.SwarmName));
         this.createRequest = createRequest;
         handleServiceResponse(createRequest.execute());
     }
@@ -96,7 +96,7 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
         if (StringUtils.isNotEmpty(createServiceResponse.Warning)) {
             logger.println("ServiceSpec creation warning : " + createServiceResponse.Warning);
         }
-        Object result = apiRequestWithErrorHandling(new ServiceLogRequest(createServiceResponse.ID));
+        Object result = apiRequestWithErrorHandling(new ServiceLogRequest(createRequest.SwarmName, createServiceResponse.ID));
         if (result instanceof ApiSuccess) {
             serviceLogResponse((ApiSuccess) result);
         }

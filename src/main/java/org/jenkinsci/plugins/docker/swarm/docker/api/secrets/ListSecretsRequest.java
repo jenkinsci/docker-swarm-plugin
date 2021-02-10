@@ -9,20 +9,15 @@ import org.jenkinsci.plugins.docker.swarm.docker.api.service.ScheduledService;
 import org.jenkinsci.plugins.docker.swarm.docker.marshalling.ResponseType;
 
 public class ListSecretsRequest extends ApiRequest {
-
-    public ListSecretsRequest(String url) throws IOException {
-        super(HttpMethod.GET, url, Secret.class, ResponseType.LIST);
+    public ListSecretsRequest(String swarmName, String url) throws IOException {
+        super(swarmName, HttpMethod.GET, url, ScheduledService.class, ResponseType.LIST, null);
     }
 
-    public ListSecretsRequest(String dockerApiUrl, String url) throws IOException {
-        super(HttpMethod.GET, dockerApiUrl, url, ScheduledService.class, ResponseType.LIST, null);
+    public ListSecretsRequest(String swarmName) throws IOException {
+        this(swarmName, "/secrets");
     }
 
-    public ListSecretsRequest() throws IOException {
-        this("/secrets");
-    }
-
-    public ListSecretsRequest(String dockerApiUrl, String filterKey, String filterValue) throws IOException {
-        this(dockerApiUrl, "/secrets?filters=" + encodeJsonFilter(filterKey, filterValue));
+    public ListSecretsRequest(String swarmName, String filterKey, String filterValue) throws IOException {
+        this(swarmName, "/secrets?filters=" + encodeJsonFilter(filterKey, filterValue));
     }
 }

@@ -19,6 +19,10 @@ import javax.net.ssl.X509TrustManager;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import com.github.dockerjava.core.SSLConfig;
+import hudson.slaves.Cloud;
+import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentLauncherActor;
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
 import org.jenkinsci.plugins.docker.swarm.docker.api.HttpMethod;
 import org.jenkinsci.plugins.docker.swarm.docker.api.error.ErrorMessage;
@@ -57,24 +61,27 @@ public abstract class ApiRequest {
     @JsonIgnore
     private static final Logger LOGGER = Logger.getLogger(ApiRequest.class.getName());
 
-    public ApiRequest(HttpMethod method, String dockerApiUrl, String url, Class<?> responseClass,
-            ResponseType responseType, Map<String, String> headers) throws IOException {
+    //FIXME restore old variable name for dockerUri
+    public ApiRequest(HttpMethod method, String dockerUri, String url, Class<?> responseClass,
+                      ResponseType responseType, Map<String, String> headers, String dockerCredentialsId) throws IOException {
         this.responseClass = responseClass;
         this.responseType = responseType;
         this.method = method;
         if (headers == null) {
-            headers = new HashMap<>();
+            this.headers = new HashMap<>();
+        } else {
+            this.headers = headers;
         }
-        this.headers = headers;
-        this.url = dockerApiUrl + url;
-        String dockerCredentialsId = null;
-        if (DockerSwarmCloud.get().getDockerHost() != null) {
-            dockerCredentialsId = DockerSwarmCloud.get().getDockerHost().getCredentialsId();
-        }
+        this.url = dockerUri+url;
         if (client == null || (dockerCredentialsId != null && !dockerCredentialsId.equals(ApiRequest.credentialsId))) {
             if (dockerCredentialsId != null) {
-                SSLSocketFactory sslSocketFactory = DockerSwarmCloud.get().getSSLContext().getSocketFactory();
-                client = new OkHttpClient.Builder().sslSocketFactory(sslSocketFactory, getTrustManager()).build();
+                try {
+                    final SSLConfig sslConfig = DockerSwarmCloud.toSSlConfig(dockerCredentialsId);
+                    SSLSocketFactory sslSocketFactory = sslConfig.getSSLContext().getSocketFactory();
+                    client = new OkHttpClient.Builder().sslSocketFactory(sslSocketFactory, getTrustManager()).build();
+                } catch (Exception e) {
+                    throw new IOException("Failed to create SSL Config ", e);
+                }
             } else {
                 client = new OkHttpClient();
             }
@@ -82,13 +89,43 @@ public abstract class ApiRequest {
         }
     }
 
-    public ApiRequest(HttpMethod method, String url, Class<?> responseClass, ResponseType responseType)
-            throws IOException {
-        this(method, DockerSwarmCloud.get().getDockerSwarmApiUrl(), url, responseClass, responseType, null);
+    private static String getDockerUriFromSwarmName (String swarmName) {
+        if(swarmName == null) {
+            return null;
+        }
+        final DockerSwarmCloud swarmCloud = DockerSwarmCloud.get(swarmName);
+        if (swarmCloud.getDockerHost() != null) {
+            return swarmCloud.getDockerHost().getUri();
+        } else {
+            return null;
+        }
     }
 
-    public ApiRequest(HttpMethod method, String url) throws IOException {
-        this(method, url, null, null);
+    private  static final String dockerCredentialsIdFromSwarmName(String swarmName){
+        if(swarmName == null) {
+            return null;
+        }
+        final DockerSwarmCloud swarmCloud = DockerSwarmCloud.get(swarmName);
+        if (swarmCloud.getDockerHost() != null) {
+            return swarmCloud.getDockerHost().getCredentialsId();
+        } else {
+            return null;
+        }
+    }
+
+    public ApiRequest(String swarmName, HttpMethod method, String url, Class<?> responseClass,
+            ResponseType responseType, Map<String, String> headers) throws IOException {
+        this(method, getDockerUriFromSwarmName(swarmName), url, responseClass, responseType, headers,
+                dockerCredentialsIdFromSwarmName(swarmName));
+    }
+
+    public ApiRequest(String swarmName, HttpMethod method, String url, Class<?> responseClass, ResponseType responseType)
+            throws IOException {
+        this(swarmName, method, url, responseClass, responseType, null);
+    }
+
+    public ApiRequest(final  String swarmName, HttpMethod method, String url) throws IOException {
+        this(swarmName, method, url, null, null);
     }
 
     protected static String encodeJsonFilter(String filterKey, String filterValue) {

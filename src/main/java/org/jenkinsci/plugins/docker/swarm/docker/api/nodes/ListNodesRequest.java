@@ -9,11 +9,7 @@ import org.jenkinsci.plugins.docker.swarm.docker.marshalling.ResponseType;
 
 public class ListNodesRequest extends ApiRequest {
 
-    public ListNodesRequest() throws IOException {
-        super(HttpMethod.GET, "/nodes", Node.class, ResponseType.LIST);
-    }
-
-    public ListNodesRequest(String dockerSwarmApiUrl) throws IOException {
-        super(HttpMethod.GET, dockerSwarmApiUrl, "/nodes", Node.class, ResponseType.LIST, null);
+    public ListNodesRequest(final String swarmName) throws IOException {
+        super(swarmName, HttpMethod.GET, "/nodes", Node.class, ResponseType.LIST);
     }
 }

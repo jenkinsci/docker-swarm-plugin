@@ -24,20 +24,23 @@ public class ServiceSpec extends ApiRequest {
     public org.jenkinsci.plugins.docker.swarm.docker.api.task.TaskTemplate TaskTemplate;
     public org.jenkinsci.plugins.docker.swarm.docker.api.network.EndpointSpec EndpointSpec;
     public String Name;
+    public String SwarmName;
     public Map<String, String> Labels = new HashMap<>();
 
     public List<Network> Networks = new ArrayList<>();
 
-    public ServiceSpec(String name, String Image, String[] Cmd, String[] Env, String Dir, String User, String[] Hosts)
+    public ServiceSpec(String swarmName, String name, String Image, String[] Cmd, String[] Env, String Dir, String User, String[] Hosts)
             throws IOException {
-        super(HttpMethod.POST, "/services/create", CreateServiceResponse.class, ResponseType.CLASS);
+        super(swarmName, HttpMethod.POST, "/services/create", CreateServiceResponse.class, ResponseType.CLASS);
+        this.SwarmName = swarmName;
         this.Name = name;
         this.TaskTemplate = new TaskTemplate(Image, Cmd, Env, Dir, User, Hosts);
         this.EndpointSpec = new EndpointSpec();
     }
 
+    // default constructor to deserialize JSON from the dashboard page
     public ServiceSpec() throws IOException {
-        super(HttpMethod.POST, "", "/services/create", CreateServiceResponse.class, ResponseType.CLASS, null);
+        super(null, HttpMethod.POST, "/services/create", CreateServiceResponse.class, ResponseType.CLASS, null);
     }
 
     public void addBindVolume(String source, String target) {

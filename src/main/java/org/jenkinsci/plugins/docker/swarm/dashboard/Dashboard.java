@@ -12,7 +12,9 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.Iterables;
 
+import hudson.slaves.Cloud;
 import org.jenkinsci.plugins.docker.swarm.DockerSwarmAgentInfo;
+import org.jenkinsci.plugins.docker.swarm.DockerSwarmCloud;
 import org.jenkinsci.plugins.docker.swarm.Util;
 import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.ListNodesRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.nodes.Node;
@@ -32,7 +34,16 @@ import net.sf.json.JSONArray;
 public class Dashboard {
     private final List<SwarmNode> nodes;
 
+    // FIXME to be set somewher
+    private String swarmName;
+
     public Dashboard() throws IOException {
+        for( final Cloud cloud: Jenkins.getInstance().clouds){
+            if (cloud instanceof  DockerSwarmCloud) {
+                swarmName = cloud.name;
+                break;
+            }
+        }
         this.nodes = calculateNodes();
     }
 
@@ -43,7 +54,7 @@ public class Dashboard {
             final Queue.Item item = items[i];
             final DockerSwarmAgentInfo agentInfo = item.getAction(DockerSwarmAgentInfo.class);
             if (agentInfo != null && item instanceof Queue.BuildableItem) {
-                queue.add(new SwarmQueueItem((Queue.BuildableItem) item));
+                queue.add(new SwarmQueueItem((Queue.BuildableItem) item, swarmName));
             }
         }
         return queue;
@@ -128,9 +139,9 @@ public class Dashboard {
     }
 
     private List<SwarmNode> calculateNodes() throws IOException {
-        final List<Node> nodeList = getResult(new ListNodesRequest().execute(), List.class);
-        final List services = getResult(new ListServicesRequest().execute(), List.class);
-        final Object tasks = new ListTasksRequest().execute();
+        final List<Node> nodeList = getResult(new ListNodesRequest(swarmName).execute(), List.class);
+        final List services = getResult(new ListServicesRequest(swarmName).execute(), List.class);
+        final Object tasks = new ListTasksRequest(swarmName).execute();
         return toSwarmNodes(services, getResult(tasks, List.class), nodeList);
     }
 

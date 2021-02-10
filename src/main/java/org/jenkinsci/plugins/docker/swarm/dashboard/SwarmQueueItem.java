@@ -18,10 +18,10 @@ public class SwarmQueueItem {
     private final DockerSwarmAgentInfo agentInfo;
     private Computer provisionedComputer;
 
-    public SwarmQueueItem(final Queue.BuildableItem item) {
+    public SwarmQueueItem(final Queue.BuildableItem item, final String swarmName) {
         this.name = item.task.getFullDisplayName();
         this.label = item.task.getAssignedLabel().getName();
-        this.labelConfig = DockerSwarmCloud.get().getLabelConfiguration(this.label);
+        this.labelConfig = DockerSwarmCloud.get(swarmName).getLabelConfiguration(this.label);
         this.inQueueSince = item.getInQueueForString();
         this.agentInfo = item.getAction(DockerSwarmAgentInfo.class); // this should never be null
 
