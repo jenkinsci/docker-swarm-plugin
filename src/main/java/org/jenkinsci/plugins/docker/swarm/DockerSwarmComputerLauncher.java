@@ -68,7 +68,6 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
     private void launch(final DockerSwarmComputer computer, final TaskListener listener) throws IOException {
         final DockerSwarmAgent agent = computer.getNode();
 
-        // FIXME get configuration from cloud name
         final DockerSwarmCloud configuration = DockerSwarmCloud.get(agent.getCloudName());
         final DockerSwarmAgentTemplate dockerSwarmAgentTemplate = agent.getTemplate();
         if(dockerSwarmAgentTemplate == null) {
