@@ -47,7 +47,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
     public DockerSwarmComputerLauncher(final Queue.BuildableItem bi) {
         super(DockerSwarmCloud.get().getTunnel(), null, new RemotingWorkDirSettings(false, "/tmp", null, false));
         this.bi = bi;
-        this.label = bi.getAssignedLabel().getName();
+        this.label = bi.task.getAssignedLabel().getName();
         this.jobName = bi.task instanceof AbstractProject ? ((AbstractProject) bi.task).getFullName()
                 : bi.task.getName();
     }
