@@ -1,0 +1,25 @@
+.info-block .card-header {
+    background-color: #DDDDDD;
+}
+.flex {
+    display: flex;
+}
+.node {
+    width: 350px;
+    margin: 5px;
+    display: inline-block;
+}
+.chart-small-container {
+    text-align: center;
+}
+.chart-small-text {
+    font-size: 0.5em;
+}
+/* Fix to remove the margin of the first entry in the queue */
+.list-unstyled > li:first-child > div {
+    margin-top: 0 !important;
+}
+.clr-row {
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+}
