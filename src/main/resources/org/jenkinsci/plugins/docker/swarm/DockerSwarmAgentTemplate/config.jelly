@@ -18,6 +18,9 @@
     <f:entry title="User" field="user">
         <f:textbox value="${dockerSwarmAgentTemplate.user}"/>
     </f:entry>
+    <f:entry title="Metadata (newline-separated)" field="metadata">
+        <f:expandableTextbox value="${dockerSwarmAgentTemplate.metadata}"/>
+    </f:entry>
     <f:entry title="Env (newline-separated)" field="envVars">
         <f:expandableTextbox value="${dockerSwarmAgentTemplate.envVars}"/>
     </f:entry>
