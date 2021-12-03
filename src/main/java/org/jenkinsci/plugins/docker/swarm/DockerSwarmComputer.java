@@ -1,19 +1,29 @@
 
 package org.jenkinsci.plugins.docker.swarm;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.common.collect.Iterables;
 
 import hudson.model.Executor;
 import hudson.model.Queue;
+import hudson.remoting.Channel;
+import hudson.remoting.Channel.Listener;
 import hudson.slaves.AbstractCloudComputer;
 import hudson.slaves.OfflineCause;
 
 public class DockerSwarmComputer extends AbstractCloudComputer<DockerSwarmAgent> {
+    private static final Logger LOGGER = Logger.getLogger(DockerSwarmComputer.class.getName());
+
+    private long onlineTime = 0L;
 
     public DockerSwarmComputer(final DockerSwarmAgent dockerSwarmAgent) {
         super(dockerSwarmAgent);
@@ -54,5 +64,18 @@ public class DockerSwarmComputer extends AbstractCloudComputer<DockerSwarmAgent>
 
     public String getVolumeName() {
         return getName().split("-")[1];
+    }
+
+    public final long getOnlineTime() {
+        return onlineTime;
+    }
+
+    @Override
+    public void setChannel(Channel channel, OutputStream launchLog, Listener listener) throws IOException, InterruptedException {
+        this.onlineTime = System.currentTimeMillis();
+
+        super.setChannel(channel, launchLog, listener);
+
+        LOGGER.log(Level.INFO, "Agent {0} got online", getName());
     }
 }
