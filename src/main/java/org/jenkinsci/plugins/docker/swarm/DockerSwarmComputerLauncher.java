@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -86,23 +87,36 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         final String[] envVars = envVarsList.toArray(new String[0]);
 
         if (dockerSwarmAgentTemplate.isOsWindows()) {
-            // On windows use hard-coded command. TODO: Use configured command if
-            // configured.
-            final String agentOptions = String.join(" ", "-jnlpUrl", getAgentJnlpUrl(computer, configuration),
-                    "-secret", getAgentSecret(computer), "-noReconnect");
-            String interpreter;
-            String interpreterOptions;
-            String fetchAndLaunchCommand;
-            interpreter = "powershell.exe";
-            interpreterOptions = "";
-            fetchAndLaunchCommand = "& { Invoke-WebRequest -TimeoutSec 20 -OutFile agent.jar "
-                    + getAgentJarUrl(configuration) + "; if($?) { java -jar agent.jar " + agentOptions + " } }";
-            final String[] command = new String[] { interpreter, interpreterOptions, fetchAndLaunchCommand };
-            launchContainer(command, configuration, envVars, dockerSwarmAgentTemplate.getWorkingDir(),
+            String command = dockerSwarmAgentTemplate.getWindowsCommand();
+            HashMap<String,String> envHashMap = new HashMap<String,String>(){{
+                put("\\%DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET\\%",getAgentSecret(computer));
+                put("\\%DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL\\%",getAgentJarUrl(configuration));
+                put("\\%DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL\\%",getAgentJnlpUrl(computer, configuration));
+                put("\\%DOCKER_SWARM_PLUGIN_JENKINS_AGENT_NAME\\%",getAgentName(computer));
+                
+            }};
+            for (String envVarString: envHashMap.keySet()){
+                System.out.println("Replacing: "+ envVarString + " with: "+envHashMap.get(envVarString));
+                command = command.replaceAll(envVarString, envHashMap.get(envVarString));
+                System.out.println("Command: "+ command);
+            }
+            ArrayList<String> finalCommand = new ArrayList<String>();
+                String [] windowsCommand = dockerSwarmAgentTemplate.getWindowsCommandConfig(command);
+                for (String windowsCommandSegment: windowsCommand){
+                    if(windowsCommandSegment.equals("${unixCommand}")){
+                        for(String unixCommandSegment: dockerSwarmAgentTemplate.getUnixCommandConfig()){
+                            finalCommand.add(unixCommandSegment);
+                        }
+                    } else{
+                        finalCommand.add(windowsCommandSegment);
+                    }
+                }
+            
+            launchContainer(finalCommand.toArray(new String[0]), configuration, envVars, dockerSwarmAgentTemplate.getWorkingDir(),
                     dockerSwarmAgentTemplate.getUser(), dockerSwarmAgentTemplate, listener, computer,
                     dockerSwarmAgentTemplate.getHostsConfig());
         } else {
-            launchContainer(dockerSwarmAgentTemplate.getCommandConfig(), configuration, envVars,
+            launchContainer(dockerSwarmAgentTemplate.getUnixCommandConfig(), configuration, envVars,
                     dockerSwarmAgentTemplate.getWorkingDir(), dockerSwarmAgentTemplate.getUser(),
                     dockerSwarmAgentTemplate, listener, computer, dockerSwarmAgentTemplate.getHostsConfig());
         }

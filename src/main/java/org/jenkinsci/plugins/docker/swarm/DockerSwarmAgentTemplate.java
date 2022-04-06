@@ -35,7 +35,8 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     private String portBinds;
     private String label;
     private boolean osWindows;
-    private String command;
+    private String unixCommand;
+    private String windowsCommand;
     private String user;
     private String workingDir;
     private String hosts;
@@ -56,7 +57,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     @DataBoundConstructor
     public DockerSwarmAgentTemplate(final String image, final String hostBinds, final String hostNamedPipes, final String dnsIps,
-            final String dnsSearchDomains, final String command, final String user, final String workingDir,
+            final String dnsSearchDomains, final String unixCommand,final String windowsCommand, final String user, final String workingDir,
             final String hosts, final String secrets, final String configs, final String label, final String cacheDir,
             final String tmpfsDir, final String envVars, final long limitsNanoCPUs, final long limitsMemoryBytes,
             final long reservationsNanoCPUs, final long reservationsMemoryBytes, String portBinds, final boolean osWindows,
@@ -67,7 +68,8 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         this.hostNamedPipes = hostNamedPipes;
         this.dnsIps = dnsIps;
         this.dnsSearchDomains = dnsSearchDomains;
-        this.command = command;
+        this.unixCommand = unixCommand;
+        this.windowsCommand = windowsCommand;
         this.user = user;
         this.workingDir = workingDir;
         this.hosts = hosts;
@@ -140,8 +142,15 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         return StringUtils.isEmpty(this.envVars) ? new String[] {} : this.envVars.split("[\\r\\n]+");
     }
 
-    public String[] getCommandConfig() {
-        return StringUtils.isEmpty(this.command) ? new String[] {} : this.command.split("[\\r\\n]+");
+    public String[] getUnixCommandConfig() {
+        return StringUtils.isEmpty(this.unixCommand) ? new String[] {} : this.unixCommand.split("[\\r\\n]+");
+    }
+    public String[] getWindowsCommandConfig() {
+        return StringUtils.isEmpty(this.windowsCommand) ? new String[] {} : this.windowsCommand.split("[\\r\\n\\s]+");
+    }
+
+    public String[] getWindowsCommandConfig(String windowsCommand) {
+        return StringUtils.isEmpty(windowsCommand) ? new String[] {} : windowsCommand.split("[\\r\\n\\s]+");
     }
 
     public String[] getHostsConfig() {
@@ -245,8 +254,12 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         return configs;
     }
 
-    public String getCommand() {
-        return command;
+    public String getUnixCommand() {
+        return unixCommand;
+    }
+
+    public String getWindowsCommand() {
+        return windowsCommand;
     }
 
     public String getHosts() {
