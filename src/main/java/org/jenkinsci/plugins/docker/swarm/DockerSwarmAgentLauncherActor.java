@@ -66,7 +66,7 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
                 logger.println(line);
                 logger.flush();
             }
-        } catch (IOException _) {
+        } catch (IOException unused) {
         } finally {
             response.body().close();
         }
