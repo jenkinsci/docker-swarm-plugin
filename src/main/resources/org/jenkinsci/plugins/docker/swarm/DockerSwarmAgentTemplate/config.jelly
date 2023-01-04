@@ -9,8 +9,11 @@
     <f:entry title="Image" field="image">
         <f:textbox value="${dockerSwarmAgentTemplate.image}" default="java:8"/>
     </f:entry>
-    <f:entry title="Command" field="command">
-        <f:textarea value="${dockerSwarmAgentTemplate.command}" default="sh&#10;-cx&#10;curl --connect-timeout 20 --max-time 60 -o agent.jar $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL &amp;&amp; java -jar agent.jar -jnlpUrl $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL -secret $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET -noReconnect -workDir /tmp"/>
+    <f:entry title="Unix Command" field="unixCommand">
+        <f:textarea value="${dockerSwarmAgentTemplate.unixCommand}" default="sh&#10;-cx&#10;curl --connect-timeout 20 --max-time 60 -o agent.jar $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL &amp;&amp; java -jar agent.jar -jnlpUrl $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL -secret $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET -noReconnect -workDir /tmp"/>
+    </f:entry>
+    <f:entry title="Windows Command" field="windowsCommand">
+        <f:textbox value="${dockerSwarmAgentTemplate.windowsCommand}" default="powershell.exe &amp; { Invoke-WebRequest -TimeoutSec 20 -OutFile agent.jar %DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL%; if($?) { java -jar agent.jar -jnlpUrl %DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL% -secret %DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET% -noReconnect } }"/>
     </f:entry>
     <f:entry title="Working Directory" field="workingDir">
         <f:textbox value="${dockerSwarmAgentTemplate.workingDir}" default="/tmp"/>
