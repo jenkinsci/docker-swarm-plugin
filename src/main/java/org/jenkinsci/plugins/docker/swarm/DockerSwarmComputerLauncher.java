@@ -156,6 +156,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setDnsIps(dockerSwarmAgentTemplate, crReq);
         setDnsSearchDomains(dockerSwarmAgentTemplate, crReq);
         setPortBinds(dockerSwarmAgentTemplate, crReq);
+        setMetadata(dockerSwarmAgentTemplate, crReq);
 
         this.agentInfo.setServiceRequestJson(crReq.toJsonString());
 
@@ -321,6 +322,19 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         String[] dnsSearchDomains = dockerSwarmAgentTemplate.getDnsSearchDomainsConfig();
         for (String dnsSearchDomain : dnsSearchDomains) {
             crReq.addDnsSearchDomain(dnsSearchDomain);
+        }
+    }
+
+    private void setMetadata(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
+        String[] metadata = dockerSwarmAgentTemplate.getMetadataConfig();
+        for(String mt : metadata) {
+            if (!mt.contains("=")) {
+                continue;
+            }
+            String[] metadataRecord = mt.split("=");
+            if (metadataRecord.length == 2) {
+                crReq.addLabel(metadataRecord[0], metadataRecord[1]);
+            }
         }
     }
 
