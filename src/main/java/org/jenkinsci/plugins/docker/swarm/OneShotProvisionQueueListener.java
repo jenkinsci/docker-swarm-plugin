@@ -40,7 +40,7 @@ public class OneShotProvisionQueueListener extends QueueListener {
                 Computer.threadPoolForRemoting.submit(() -> {
                     try {
                         ((DockerSwarmAgent) node).terminate();
-                    } catch (IOException e) {
+                    } catch (IOException | InterruptedException e) {
                         LOGGER.log(Level.WARNING, "Failed to terminate agent.", e);
                     }
                 });
