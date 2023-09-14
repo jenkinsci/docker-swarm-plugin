@@ -81,6 +81,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         final String[] envVarOptions = dockerSwarmAgentTemplate.getEnvVarsConfig();
         final ArrayList<String> envVarsList = new ArrayList<>(Arrays.asList(envVarOptions));
         envVarsList.add("DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET=" + getAgentSecret(computer));
+        envVarsList.add("DOCKER_SWARM_PLUGIN_JENKINS_URL=" + getJenkinsUrl(configuration));
         envVarsList.add("DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL=" + getAgentJarUrl(configuration));
         envVarsList.add("DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL=" + getAgentJnlpUrl(computer, configuration));
         envVarsList.add("DOCKER_SWARM_PLUGIN_JENKINS_AGENT_NAME=" + getAgentName(computer));
@@ -89,7 +90,9 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         if (dockerSwarmAgentTemplate.isOsWindows()) {
             String command = dockerSwarmAgentTemplate.getWindowsCommand();
             HashMap<String,String> envHashMap = new HashMap<String,String>(){{
+                // TODO derive automatically from above list
                 put("\\%DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET\\%",getAgentSecret(computer));
+                put("\\%DOCKER_SWARM_PLUGIN_JENKINS_URL\\%",getJenkinsUrl(configuration));
                 put("\\%DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL\\%",getAgentJarUrl(configuration));
                 put("\\%DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL\\%",getAgentJnlpUrl(computer, configuration));
                 put("\\%DOCKER_SWARM_PLUGIN_JENKINS_AGENT_NAME\\%",getAgentName(computer));
