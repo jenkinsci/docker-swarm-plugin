@@ -58,7 +58,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
 
     @DataBoundConstructor
     public DockerSwarmAgentTemplate(final String image, final String hostBinds, final String hostNamedPipes, final String dnsIps,
-            final String dnsSearchDomains, final String unixCommand,final String windowsCommand, final String user, final String workingDir,
+            final String dnsSearchDomains, final String command,final String windowsCommand, final String user, final String workingDir,
             final String hosts, final String metadata, final String secrets, final String configs, final String label, final String cacheDir,
             final String tmpfsDir, final String envVars, final long limitsNanoCPUs, final long limitsMemoryBytes,
             final long reservationsNanoCPUs, final long reservationsMemoryBytes, String portBinds, final boolean osWindows,
@@ -69,7 +69,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
         this.hostNamedPipes = hostNamedPipes;
         this.dnsIps = dnsIps;
         this.dnsSearchDomains = dnsSearchDomains;
-        this.unixCommand = unixCommand;
+        this.unixCommand = command;
         this.windowsCommand = windowsCommand;
         this.user = user;
         this.workingDir = workingDir;
