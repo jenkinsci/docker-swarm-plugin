@@ -1,0 +1,17 @@
+{
+	"name": "Docker Swarm Plugin",
+	"dockerFile": "Dockerfile",
+	"customizations": {
+		"vscode": {
+			"settings": {
+			},
+			"extensions": [
+				"golang.go",
+				"roemer.gotaskr-vscode",
+				"ms-azuretools.vscode-docker",
+				"vscjava.vscode-java-pack"
+			]
+		}
+	},
+	"remoteUser": "vscode"
+}

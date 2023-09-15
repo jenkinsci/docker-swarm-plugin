@@ -10,10 +10,10 @@
         <f:textbox value="${dockerSwarmAgentTemplate.image}" default="java:8"/>
     </f:entry>
     <f:entry title="Unix Command" field="unixCommand">
-        <f:textarea value="${dockerSwarmAgentTemplate.unixCommand}" default="sh&#10;-cx&#10;curl --connect-timeout 20 --max-time 60 -o agent.jar $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL &amp;&amp; java -jar agent.jar -jnlpUrl $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL -secret $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET -workDir /tmp"/>
+        <f:textarea value="${dockerSwarmAgentTemplate.unixCommand}" default="sh&#10;-cx&#10;curl --connect-timeout 20 --max-time 60 -o agent.jar $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL &amp;&amp; java -classpath agent.jar hudson.remoting.jnlp.Main -headless -url $DOCKER_SWARM_PLUGIN_JENKINS_URL  -workDir /tmp $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET $DOCKER_SWARM_PLUGIN_JENKINS_AGENT_NAME"/>
     </f:entry>
     <f:entry title="Windows Command" field="windowsCommand">
-        <f:textbox value="${dockerSwarmAgentTemplate.windowsCommand}" default="powershell.exe &amp; { Invoke-WebRequest -TimeoutSec 20 -OutFile agent.jar %DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL%; if($?) { java -jar agent.jar -jnlpUrl %DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JNLP_URL% -secret %DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET% } }"/>
+        <f:textbox value="${dockerSwarmAgentTemplate.windowsCommand}" default="powershell.exe &amp; { Invoke-WebRequest -TimeoutSec 20 -OutFile agent.jar %DOCKER_SWARM_PLUGIN_JENKINS_AGENT_JAR_URL%; if($?) { java -classpath agent.jar hudson.remoting.jnlp.Main -headless -url %DOCKER_SWARM_PLUGIN_JENKINS_URL%  %DOCKER_SWARM_PLUGIN_JENKINS_AGENT_SECRET% %DOCKER_SWARM_PLUGIN_JENKINS_AGENT_NAME% } }"/>
     </f:entry>
     <f:entry title="Working Directory" field="workingDir">
         <f:textbox value="${dockerSwarmAgentTemplate.workingDir}" default="/tmp"/>
