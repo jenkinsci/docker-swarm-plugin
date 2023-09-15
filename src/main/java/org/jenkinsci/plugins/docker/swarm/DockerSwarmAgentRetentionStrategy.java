@@ -108,7 +108,7 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerS
                 if (node != null) {
                     try {
                         node.terminate();
-                    } catch (IOException e) {
+                    } catch (IOException | InterruptedException e) {
                         LOGGER.log(Level.WARNING, "Failed to terminate " + c.getName(), e);
                     }
                 }
