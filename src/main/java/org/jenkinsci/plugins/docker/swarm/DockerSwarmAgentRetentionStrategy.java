@@ -7,8 +7,6 @@ import java.io.PrintStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.Nonnull;
-
 import org.jenkinsci.plugins.durabletask.executors.ContinuableExecutable;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -41,7 +39,7 @@ public class DockerSwarmAgentRetentionStrategy extends RetentionStrategy<DockerS
     }
 
     @Override
-    public long check(@Nonnull DockerSwarmComputer c) {
+    public long check(DockerSwarmComputer c) {
         if (c.isIdle() && c.isOnline()) {
             final long connectTime = System.currentTimeMillis() - c.getConnectTime();
             final long onlineTime = System.currentTimeMillis() - c.getOnlineTime();
