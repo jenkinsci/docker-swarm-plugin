@@ -4,10 +4,10 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.0</version>
+        <version>5.31</version>
         <relativePath />
     </parent>
-    <groupId>org.jenkins-ci.plugins</groupId>
+
     <artifactId>docker-swarm</artifactId>
     <version>1.12-SNAPSHOT</version>
     <packaging>hpi</packaging>
@@ -28,9 +28,9 @@
         <tag>HEAD</tag>
     </scm>
     <properties>
-        <jenkins.version>2.222.4</jenkins.version>
-        <java.level>8</java.level>
-        <jackson-jaxrs.version>2.6.4</jackson-jaxrs.version>
+        <jenkins.baseline>2.504</jenkins.baseline>
+        <jenkins.version>${jenkins.baseline}.3</jenkins.version>
+        <hpi.bundledArtifacts>akka-actor_2.12,config,okhttp,okio,scala-java8-compat_2.12,scala-library</hpi.bundledArtifacts>
         <spotbugs.skip>true</spotbugs.skip>
     </properties>
     <repositories>
@@ -45,46 +45,31 @@
             <url>https://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.jenkins.tools.bom</groupId>
+                <artifactId>bom-${jenkins.baseline}.x</artifactId>
+                <version>5888.vd99c2b_38128d</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>docker-commons</artifactId>
-            <version>1.18</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>docker-java-api</artifactId>
-            <version>3.0.14</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.httpcomponents</groupId>
-                    <artifactId>httpcore</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>2.9.9</version>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>jackson2-api</artifactId>
         </dependency>
         <dependency>
             <groupId>com.typesafe.akka</groupId>
@@ -92,14 +77,8 @@
             <version>2.5.25</version>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.jaxrs</groupId>
-            <artifactId>jackson-jaxrs-json-provider</artifactId>
-            <version>${jackson-jaxrs.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
             <artifactId>durable-task</artifactId>
-            <version>1.16</version>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
