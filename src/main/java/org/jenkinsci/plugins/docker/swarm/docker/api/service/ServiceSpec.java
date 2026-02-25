@@ -2,10 +2,8 @@
 package org.jenkinsci.plugins.docker.swarm.docker.api.service;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -25,8 +23,6 @@ public class ServiceSpec extends ApiRequest {
     public org.jenkinsci.plugins.docker.swarm.docker.api.network.EndpointSpec EndpointSpec;
     public String Name;
     public Map<String, String> Labels = new HashMap<>();
-
-    public List<Network> Networks = new ArrayList<>();
 
     public ServiceSpec(String name, String Image, String[] Cmd, String[] Env, String Dir, String User, String[] Hosts)
             throws IOException {
@@ -92,9 +88,10 @@ public class ServiceSpec extends ApiRequest {
         this.TaskTemplate.Resources.Reservations.MemoryBytes = memoryBytes;
     }
 
+    // ServceSpec.Networks deprecated since Docker API v1.44, use TaskTemplate.Networks instead
     public void setNetwork(String network) {
         if (!Strings.isNullOrEmpty(network)) {
-            Networks.add(new Network(network));
+        	this.TaskTemplate.Networks.add(new Network(network));
         }
     }
 
