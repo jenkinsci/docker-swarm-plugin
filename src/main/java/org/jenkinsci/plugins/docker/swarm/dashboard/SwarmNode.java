@@ -46,6 +46,13 @@ public class SwarmNode {
         return this.role;
     }
 
+    public String getSafeId() {
+        if (this.name == null) {
+            return "_unknown_";
+        }
+        return this.name.replaceAll("[^a-zA-Z0-9-]", "_");
+    }
+
     public boolean isHealthy() {
         return this.healthy == "ready";
     }
@@ -121,7 +128,7 @@ public class SwarmNode {
         usage.add(Arrays.asList("reserved", getReservedCPUs()));
         final JSONArray mJSONArray = new JSONArray();
         mJSONArray.addAll(usage);
-        return mJSONArray.toString();
+        return mJSONArray.toString().replace("</", "<\\/");
     }
 
     public String getMemoryUsageJson() {
@@ -131,6 +138,6 @@ public class SwarmNode {
         usage.add(Arrays.asList("reserved", getReservedMemory()));
         final JSONArray mJSONArray = new JSONArray();
         mJSONArray.addAll(usage);
-        return mJSONArray.toString();
+        return mJSONArray.toString().replace("</", "<\\/");
     }
 }
