@@ -25,8 +25,11 @@ Next you need to add one or more agent templates. Make sure to set a `label`. A 
 The plugin attempts to create an agent as soon as build enters the queue. Bypassing cloud apis for faster agent scheduling.
 
 ## Caching
-Caching is done via [docker volume plugin](https://github.com/suryagaddipati/docker-cache-volume-plugin).
+There are 2 options:
+1. **Caching is done via [docker volume plugin](https://github.com/suryagaddipati/docker-cache-volume-plugin).**
 Driver gets called to create an overlayfs cache volume for each build and once build is done volume gets deleted. This cache volume is mounted into agent in the directory specified by `Cache Dir` configuration option in Agent Templates.  On delete if there are any new changes to cache they get copied into a new basedir and pointer to baseCache gets updated. You can optionally mount lower base cache dir onto a NFS storage appliance. Checkout plugin documentation for more details.
+1. **Caching is done via the default docker volume driver.** To activate it, type `local` into the `Cache driver name` field in the docker swarm cloud configuration.
+Watch out for concurrent access as it is possible for 2 containers to access the same cache at the same time. This is not an issue if you use it as a repository cache when controlled by git or mercurial. They have internal mechanisms for serializing access.
 
 ## Swarm Dashboard
 Follow the link `Docker Swarm Dashboard` on the sidebar to view the status of your swarm. It displays what build is executing where, what builds are in the queue for what resources ect.
