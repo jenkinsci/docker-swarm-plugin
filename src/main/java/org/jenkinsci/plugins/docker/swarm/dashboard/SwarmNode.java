@@ -170,6 +170,10 @@ public class SwarmNode {
             this.computer = computer;
         }
 
+        public Task getTask() {
+            return task;
+        }
+
         public String getJobName() {
             return task.getJobName();
         }
