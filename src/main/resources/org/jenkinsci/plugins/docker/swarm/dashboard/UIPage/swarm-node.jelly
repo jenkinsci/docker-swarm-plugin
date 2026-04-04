@@ -40,7 +40,7 @@
 
                     <j:forEach items="${node.unknownRunningTasks}" var="task">
                         <li>
-                            <j:out value="${task.service.Spec.Name}"/>
+                            <j:out value="${task.jobName}"/>
                         </li>
                     </j:forEach>
                 </ul>

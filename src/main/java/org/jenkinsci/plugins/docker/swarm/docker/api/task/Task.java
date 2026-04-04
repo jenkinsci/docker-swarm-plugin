@@ -23,6 +23,21 @@ public class Task {
 
     public ScheduledService service;
 
+    public String getJobName() {
+        if (service != null && service.Spec != null) {
+            if (service.Spec.Labels != null) {
+                String label = service.Spec.Labels.get("jenkins.job.name");
+                if (label != null && !label.isEmpty()) {
+                    return label;
+                }
+            }
+            if (service.Spec.Name != null) {
+                return service.Spec.Name;
+            }
+        }
+        return ServiceID;
+    }
+
     public boolean isComplete() {
         return Status.isComplete();
     }

@@ -154,7 +154,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setVolumeDirs(configuration, dockerSwarmAgentTemplate, listener, computer, crReq);
         setTmpfs(dockerSwarmAgentTemplate, crReq);
         setPlacement(dockerSwarmAgentTemplate, crReq);
-        setLabels(crReq);
+        setLabels(crReq, this.jobName);
         setRestartAttemptCount(crReq);
         setAuthHeaders(dockerSwarmAgentTemplate, crReq);
         setDnsIps(dockerSwarmAgentTemplate, crReq);
@@ -173,8 +173,11 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         crReq.TaskTemplate.setRestartAttemptCount(0);
     }
 
-    private void setLabels(ServiceSpec crReq) {
+    private void setLabels(ServiceSpec crReq, String jobName) {
         crReq.addLabel("ROLE", "jenkins-agent");
+        if (jobName != null && !jobName.isEmpty()) {
+            crReq.addLabel("jenkins.job.name", jobName);
+        }
     }
 
     private void setPlacement(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {

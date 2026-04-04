@@ -72,8 +72,13 @@ public class SwarmNode {
 
     public Task[] getUnknownRunningTasks() {
         final Jenkins jenkins = Jenkins.getInstance();
-        return this.tasks.stream().filter(task -> getComputer(jenkins, task) == null && task.Status.isRunning())
-                .toArray(Task[]::new);
+        return this.tasks.stream().filter(task -> {
+            if (!task.Status.isRunning()) return false;
+            DockerSwarmComputer computer = getComputer(jenkins, task);
+            if (computer == null) return true;
+            // Also show tasks where computer exists but has no active build
+            return !(computer.getCurrentBuild() instanceof Run);
+        }).toArray(Task[]::new);
     }
 
     public Map<Task, Run> getTaskRunMap() {
@@ -92,7 +97,13 @@ public class SwarmNode {
     }
 
     private DockerSwarmComputer getComputer(Jenkins jenkins, Task task) {
-        return (DockerSwarmComputer) jenkins.getComputer("agent-" + task.Spec.getComputerName());
+        if (task.service != null && task.service.Spec != null && task.service.Spec.Name != null) {
+            Computer computer = jenkins.getComputer(task.service.Spec.Name);
+            if (computer instanceof DockerSwarmComputer) {
+                return (DockerSwarmComputer) computer;
+            }
+        }
+        return null;
     }
 
     public long getTotalCPUs() {
