@@ -38,6 +38,14 @@
                         </li>
                     </j:forEach>
 
+                    <j:forEach items="${node.connectedTasks}" var="ct">
+                        <li>
+                            <a href="${rootURL}/${ct.computerUrl}">
+                                <j:out value="${ct.jobName}"/>
+                            </a>
+                        </li>
+                    </j:forEach>
+
                     <j:forEach items="${node.unknownRunningTasks}" var="task">
                         <li>
                             <j:out value="${task.jobName}"/>

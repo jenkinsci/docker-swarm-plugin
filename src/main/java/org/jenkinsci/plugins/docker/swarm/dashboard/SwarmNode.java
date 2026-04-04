@@ -58,7 +58,8 @@ public class SwarmNode {
     }
 
     public boolean isIdle() {
-        return getCurrentBuilds().length == 0 && getUnknownRunningTasks().length == 0;
+        return getCurrentBuilds().length == 0 && getConnectedTasks().length == 0
+                && getUnknownRunningTasks().length == 0;
     }
 
     public long getComputerCount() {
@@ -70,15 +71,23 @@ public class SwarmNode {
         return getTasksWithRuns(jenkins).map(task -> getComputer(jenkins, task).getCurrentBuild()).toArray();
     }
 
-    public Task[] getUnknownRunningTasks() {
+    public ConnectedTask[] getConnectedTasks() {
         final Jenkins jenkins = Jenkins.getInstance();
         return this.tasks.stream().filter(task -> {
             if (!task.Status.isRunning()) return false;
             DockerSwarmComputer computer = getComputer(jenkins, task);
-            if (computer == null) return true;
-            // Also show tasks where computer exists but has no active build
-            return !(computer.getCurrentBuild() instanceof Run);
-        }).toArray(Task[]::new);
+            return computer != null && !(computer.getCurrentBuild() instanceof Run);
+        }).map(task -> {
+            DockerSwarmComputer computer = getComputer(jenkins, task);
+            return new ConnectedTask(task, computer);
+        }).toArray(ConnectedTask[]::new);
+    }
+
+    public Task[] getUnknownRunningTasks() {
+        final Jenkins jenkins = Jenkins.getInstance();
+        return this.tasks.stream()
+                .filter(task -> task.Status.isRunning() && getComputer(jenkins, task) == null)
+                .toArray(Task[]::new);
     }
 
     public Map<Task, Run> getTaskRunMap() {
@@ -150,5 +159,23 @@ public class SwarmNode {
         final JSONArray mJSONArray = new JSONArray();
         mJSONArray.addAll(usage);
         return mJSONArray.toString().replace("</", "<\\/");
+    }
+
+    public static class ConnectedTask {
+        private final Task task;
+        private final DockerSwarmComputer computer;
+
+        public ConnectedTask(Task task, DockerSwarmComputer computer) {
+            this.task = task;
+            this.computer = computer;
+        }
+
+        public String getJobName() {
+            return task.getJobName();
+        }
+
+        public String getComputerUrl() {
+            return computer.getUrl();
+        }
     }
 }
