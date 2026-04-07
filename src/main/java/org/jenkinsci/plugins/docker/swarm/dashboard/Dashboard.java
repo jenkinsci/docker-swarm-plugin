@@ -76,6 +76,11 @@ public class Dashboard {
                     usagePerJob.put(jobName, task.getReservedCpus());
                 }
             }
+            for (final SwarmNode.ConnectedTask ct : node.getConnectedTasks()) {
+                final String jobName = ct.getJobName();
+                final long cpus = ct.getTask().getReservedCpus();
+                usagePerJob.merge(jobName, cpus, Long::sum);
+            }
             for (final Task task : node.getUnknownRunningTasks()) {
                 usagePerJob.put(task.getServiceID(), task.getReservedCpus());
             }
@@ -89,7 +94,7 @@ public class Dashboard {
 
         final JSONArray mJSONArray = new JSONArray();
         mJSONArray.addAll(usage);
-        return mJSONArray.toString();
+        return mJSONArray.toString().replace("</", "<\\/");
     }
 
     public String getMemoryUsage() throws IOException {
@@ -111,6 +116,11 @@ public class Dashboard {
                     usagePerJob.put(jobName, task.getReservedMemory());
                 }
             }
+            for (final SwarmNode.ConnectedTask ct : node.getConnectedTasks()) {
+                final String jobName = ct.getJobName();
+                final long memory = ct.getTask().getReservedMemory();
+                usagePerJob.merge(jobName, memory, Long::sum);
+            }
             for (final Task task : node.getUnknownRunningTasks()) {
                 usagePerJob.put(task.getServiceID(), task.getReservedMemory());
             }
@@ -124,7 +134,7 @@ public class Dashboard {
 
         final JSONArray mJSONArray = new JSONArray();
         mJSONArray.addAll(usage);
-        return mJSONArray.toString();
+        return mJSONArray.toString().replace("</", "<\\/");
     }
 
     private List<SwarmNode> calculateNodes() throws IOException {

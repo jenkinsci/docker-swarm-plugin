@@ -46,12 +46,20 @@ public class SwarmNode {
         return this.role;
     }
 
+    public String getSafeId() {
+        if (this.name == null) {
+            return "_unknown_";
+        }
+        return this.name.replaceAll("[^a-zA-Z0-9-]", "_");
+    }
+
     public boolean isHealthy() {
         return this.healthy == "ready";
     }
 
     public boolean isIdle() {
-        return getCurrentBuilds().length == 0 && getUnknownRunningTasks().length == 0;
+        return getCurrentBuilds().length == 0 && getConnectedTasks().length == 0
+                && getUnknownRunningTasks().length == 0;
     }
 
     public long getComputerCount() {
@@ -63,9 +71,22 @@ public class SwarmNode {
         return getTasksWithRuns(jenkins).map(task -> getComputer(jenkins, task).getCurrentBuild()).toArray();
     }
 
+    public ConnectedTask[] getConnectedTasks() {
+        final Jenkins jenkins = Jenkins.getInstance();
+        return this.tasks.stream().filter(task -> {
+            if (!task.Status.isRunning()) return false;
+            DockerSwarmComputer computer = getComputer(jenkins, task);
+            return computer != null && !(computer.getCurrentBuild() instanceof Run);
+        }).map(task -> {
+            DockerSwarmComputer computer = getComputer(jenkins, task);
+            return new ConnectedTask(task, computer);
+        }).toArray(ConnectedTask[]::new);
+    }
+
     public Task[] getUnknownRunningTasks() {
         final Jenkins jenkins = Jenkins.getInstance();
-        return this.tasks.stream().filter(task -> getComputer(jenkins, task) == null && task.Status.isRunning())
+        return this.tasks.stream()
+                .filter(task -> task.Status.isRunning() && getComputer(jenkins, task) == null)
                 .toArray(Task[]::new);
     }
 
@@ -85,7 +106,13 @@ public class SwarmNode {
     }
 
     private DockerSwarmComputer getComputer(Jenkins jenkins, Task task) {
-        return (DockerSwarmComputer) jenkins.getComputer("agent-" + task.Spec.getComputerName());
+        if (task.service != null && task.service.Spec != null && task.service.Spec.Name != null) {
+            Computer computer = jenkins.getComputer(task.service.Spec.Name);
+            if (computer instanceof DockerSwarmComputer) {
+                return (DockerSwarmComputer) computer;
+            }
+        }
+        return null;
     }
 
     public long getTotalCPUs() {
@@ -121,7 +148,7 @@ public class SwarmNode {
         usage.add(Arrays.asList("reserved", getReservedCPUs()));
         final JSONArray mJSONArray = new JSONArray();
         mJSONArray.addAll(usage);
-        return mJSONArray.toString();
+        return mJSONArray.toString().replace("</", "<\\/");
     }
 
     public String getMemoryUsageJson() {
@@ -131,6 +158,28 @@ public class SwarmNode {
         usage.add(Arrays.asList("reserved", getReservedMemory()));
         final JSONArray mJSONArray = new JSONArray();
         mJSONArray.addAll(usage);
-        return mJSONArray.toString();
+        return mJSONArray.toString().replace("</", "<\\/");
+    }
+
+    public static class ConnectedTask {
+        private final Task task;
+        private final DockerSwarmComputer computer;
+
+        public ConnectedTask(Task task, DockerSwarmComputer computer) {
+            this.task = task;
+            this.computer = computer;
+        }
+
+        public Task getTask() {
+            return task;
+        }
+
+        public String getJobName() {
+            return task.getJobName();
+        }
+
+        public String getComputerUrl() {
+            return computer.getUrl();
+        }
     }
 }

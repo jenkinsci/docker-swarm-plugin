@@ -151,9 +151,10 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         setConfigs(dockerSwarmAgentTemplate, crReq);
         setNetwork(configuration, crReq);
         setCacheDirs(configuration, dockerSwarmAgentTemplate, listener, computer, crReq);
+        setVolumeDirs(configuration, dockerSwarmAgentTemplate, listener, computer, crReq);
         setTmpfs(dockerSwarmAgentTemplate, crReq);
         setPlacement(dockerSwarmAgentTemplate, crReq);
-        setLabels(crReq);
+        setLabels(crReq, this.jobName);
         setRestartAttemptCount(crReq);
         setAuthHeaders(dockerSwarmAgentTemplate, crReq);
         setDnsIps(dockerSwarmAgentTemplate, crReq);
@@ -172,8 +173,11 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
         crReq.TaskTemplate.setRestartAttemptCount(0);
     }
 
-    private void setLabels(ServiceSpec crReq) {
+    private void setLabels(ServiceSpec crReq, String jobName) {
         crReq.addLabel("ROLE", "jenkins-agent");
+        if (jobName != null && !jobName.isEmpty()) {
+            crReq.addLabel("jenkins.job.name", jobName);
+        }
     }
 
     private void setPlacement(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
@@ -202,8 +206,21 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
             final String cacheVolumeName = getJobName() + "-" + computer.getVolumeName();
             this.bi.getAction(DockerSwarmAgentInfo.class).setCacheVolumeName(cacheVolumeName);
             for (int i = 0; i < cacheDirs.length; i++) {
-                listener.getLogger().println("Binding Volume" + cacheDirs[i] + " to " + cacheVolumeName);
+                listener.getLogger().println("Binding Volume " + cacheVolumeName + " to " + cacheDirs[i]);
                 crReq.addCacheVolume(cacheVolumeName, cacheDirs[i], configuration.getCacheDriverName());
+            }
+        }
+    }
+
+    private void setVolumeDirs(DockerSwarmCloud configuration, DockerSwarmAgentTemplate dockerSwarmAgentTemplate,
+            TaskListener listener, DockerSwarmComputer computer, ServiceSpec crReq) {
+        final String[] volumeDirs = dockerSwarmAgentTemplate.getVolumeDirs();
+        if (volumeDirs.length > 0) {
+            for (int i = 0; i < volumeDirs.length; i++) {
+                final String cacheVolumeName = volumeDirs[i].split(":")[0];
+                final String mountDir = volumeDirs[i].split(":")[1];
+                listener.getLogger().println("Binding Volume " + cacheVolumeName + " to " + mountDir);
+                crReq.addCacheVolume(cacheVolumeName, mountDir, configuration.getCacheDriverName());
             }
         }
     }
