@@ -9,15 +9,15 @@
                     <span class="badge badge-blue">${node.computerCount}</span>
                 </div>
                 <div class="clr-col">
-                    ${node.name} (${node.role})
+                    <j:out value="${node.name}"/> (<j:out value="${node.role}"/>)
                 </div>
                 <div class="clr-col-auto flex">
                     <span class="chart-small-container">
-                        <div id="cpu${node.name}"></div>
+                        <div id="cpu${node.safeId}"></div>
                         <span class="chart-small-text">CPU</span>
                     </span>
                     <span class="chart-small-container">
-                        <div id="memory${node.name}"></div>
+                        <div id="memory${node.safeId}"></div>
                         <span class="chart-small-text">Memory</span>
                     </span>
                 </div>
@@ -52,14 +52,14 @@
 
                         function drawMemoryChart() {
                             var memoryData = google.visualization.arrayToDataTable(${node.memoryUsageJson});
-                            var memoryChart = new google.visualization.PieChart(document.getElementById('memory${node.name}'));
+                            var memoryChart = new google.visualization.PieChart(document.getElementById('memory${node.safeId}'));
                             var options = buildChartOptions('memory');
                             memoryChart.draw(memoryData, options);
                         }
                         
                         function drawCpuChart() {
                             var cpuData = google.visualization.arrayToDataTable(${node.cpuUsageJson});
-                            var cpuChart = new google.visualization.PieChart(document.getElementById('cpu${node.name}'));
+                            var cpuChart = new google.visualization.PieChart(document.getElementById('cpu${node.safeId}'));
                             var options = buildChartOptions('cpu');
                             cpuChart.draw(cpuData, options);
                         }
@@ -74,14 +74,14 @@
                     <j:forEach items="${node.currentBuilds}" var="build">
                         <li>
                             <a href="${build.absoluteUrl}">
-                                ${build.fullDisplayName}
+                                <j:out value="${build.fullDisplayName}"/>
                             </a>
                         </li>
                     </j:forEach>
     
                     <j:forEach items="${node.unknownRunningTasks}" var="task">
                         <li>
-                            ${task.service.Spec.Name}
+                            <j:out value="${task.service.Spec.Name}"/>
                         </li>
                     </j:forEach>
                 </ul>

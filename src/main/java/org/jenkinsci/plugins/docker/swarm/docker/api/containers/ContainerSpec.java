@@ -3,9 +3,12 @@ package org.jenkinsci.plugins.docker.swarm.docker.api.containers;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 public class ContainerSpec {
 
     public final String Image;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     public final String[] Command;
     public final String[] Env;
     public final String Dir;
