@@ -89,7 +89,7 @@ public class Dashboard {
 
         final JSONArray mJSONArray = new JSONArray();
         mJSONArray.addAll(usage);
-        return mJSONArray.toString();
+        return mJSONArray.toString().replace("</", "<\\/");
     }
 
     public String getMemoryUsage() throws IOException {
@@ -124,7 +124,7 @@ public class Dashboard {
 
         final JSONArray mJSONArray = new JSONArray();
         mJSONArray.addAll(usage);
-        return mJSONArray.toString();
+        return mJSONArray.toString().replace("</", "<\\/");
     }
 
     private List<SwarmNode> calculateNodes() throws IOException {

@@ -54,6 +54,9 @@
     <f:entry title="Cache Dirs (newline-separated)" field="cacheDir">
         <f:expandableTextbox value="${dockerSwarmAgentTemplate.cacheDir}"/>
     </f:entry>
+    <f:entry title="Docker volumes (newline-separated)" field="volumeDir">
+        <f:expandableTextbox value="${dockerSwarmAgentTemplate.volumeDir}"/>
+    </f:entry>
 
     <f:entry title="Tmpfs Dir" field="tmpfsDir">
         <f:textbox value="${dockerSwarmAgentTemplate.tmpfsDir}"/>
