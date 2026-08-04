@@ -15,7 +15,6 @@ import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.docker.swarm.docker.api.configs.Config;
 import org.jenkinsci.plugins.docker.swarm.docker.api.configs.ListConfigsRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
@@ -127,7 +126,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
 
     private void setBaseWorkspaceLocation(DockerSwarmAgentTemplate dockerSwarmAgentTemplate) {
         if (this.bi.task instanceof AbstractProject
-                && StringUtils.isNotEmpty(dockerSwarmAgentTemplate.getBaseWorkspaceLocation())) {
+                && (dockerSwarmAgentTemplate.getBaseWorkspaceLocation() != null && !dockerSwarmAgentTemplate.getBaseWorkspaceLocation().isEmpty())) {
             try {
                 ((AbstractProject) this.bi.task)
                         .setCustomWorkspace(dockerSwarmAgentTemplate.getBaseWorkspaceLocation());
@@ -190,7 +189,7 @@ public class DockerSwarmComputerLauncher extends JNLPLauncher {
     }
 
     private void setTmpfs(DockerSwarmAgentTemplate dockerSwarmAgentTemplate, ServiceSpec crReq) {
-        if (StringUtils.isNotEmpty(dockerSwarmAgentTemplate.getTmpfsDir())) {
+        if (dockerSwarmAgentTemplate.getTmpfsDir() != null && !dockerSwarmAgentTemplate.getTmpfsDir().isEmpty()) {
             crReq.addTmpfsMount(dockerSwarmAgentTemplate.getTmpfsDir());
         }
     }

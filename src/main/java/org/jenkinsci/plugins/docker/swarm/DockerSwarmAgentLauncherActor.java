@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.docker.swarm.docker.api.request.ApiRequest;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiError;
 import org.jenkinsci.plugins.docker.swarm.docker.api.response.ApiException;
@@ -93,7 +92,7 @@ public class DockerSwarmAgentLauncherActor extends AbstractActor {
                 DateFormat.getTimeInstance().format(new Date()), createServiceResponse.ID));
         logger.println(String.format("[%s] ServiceSpec request JSON : %s",
                 DateFormat.getTimeInstance().format(new Date()), this.createRequest.toJsonString()));
-        if (StringUtils.isNotEmpty(createServiceResponse.Warning)) {
+        if (createServiceResponse.Warning != null && !createServiceResponse.Warning.isEmpty()) {
             logger.println("ServiceSpec creation warning : " + createServiceResponse.Warning);
         }
         Object result = apiRequestWithErrorHandling(new ServiceLogRequest(createServiceResponse.ID));

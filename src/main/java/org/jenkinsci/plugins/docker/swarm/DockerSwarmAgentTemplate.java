@@ -3,7 +3,6 @@ package org.jenkinsci.plugins.docker.swarm;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.docker.commons.credentials.DockerRegistryEndpoint;
 import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -97,7 +96,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     public String[] getCacheDirs() {
-        return StringUtils.isEmpty(this.cacheDir) ? new String[] {} : this.cacheDir.split("[\\r\\n ]+");
+        return (this.cacheDir == null || this.cacheDir.isEmpty()) ? new String[] {} : this.cacheDir.split("[\\r\\n ]+");
     }
 
     public String getLabel() {
@@ -105,7 +104,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     public String[] getLabels() {
-        return StringUtils.isEmpty(this.label) ? new String[]{} : this.label.split("\\s+");
+        return (this.label == null || this.label.isEmpty()) ? new String[]{} : this.label.split("\\s+");
     }
 
     public String getImage() {
@@ -113,54 +112,54 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     public String[] getHostBindsConfig() {
-        return StringUtils.isEmpty(this.hostBinds) ? new String[] {} : this.hostBinds.split("[\\r\\n ]+");
+        return (this.hostBinds == null || this.hostBinds.isEmpty()) ? new String[] {} : this.hostBinds.split("[\\r\\n ]+");
     }
 
     public String[] getMetadataConfig() {
-        return StringUtils.isEmpty(this.metadata) ? new String[] {} : this.metadata.split("[\\r\\n ]+");
+        return (this.metadata == null || this.metadata.isEmpty()) ? new String[] {} : this.metadata.split("[\\r\\n ]+");
     }
 
     public String[] getHostNamedPipesConfig() {
-        return StringUtils.isEmpty(this.hostNamedPipes) ? new String[] {} : this.hostNamedPipes.split("[\\r\\n ]+");
+        return (this.hostNamedPipes == null || this.hostNamedPipes.isEmpty()) ? new String[] {} : this.hostNamedPipes.split("[\\r\\n ]+");
     }
 
     public String[] getSecretsConfig() {
-        return StringUtils.isEmpty(this.secrets) ? new String[] {} : this.secrets.split("[\\r\\n ]+");
+        return (this.secrets == null || this.secrets.isEmpty()) ? new String[] {} : this.secrets.split("[\\r\\n ]+");
     }
 
     public String[] getConfigsConfig() {
-        return StringUtils.isEmpty(this.configs) ? new String[] {} : this.configs.split("[\\r\\n ]+");
+        return (this.configs == null || this.configs.isEmpty()) ? new String[] {} : this.configs.split("[\\r\\n ]+");
     }
 
     public String[] getDnsIpsConfig() {
-        return StringUtils.isEmpty(this.dnsIps) ? new String[] {} : this.dnsIps.split("[\\r\\n ]+");
+        return (this.dnsIps == null || this.dnsIps.isEmpty()) ? new String[] {} : this.dnsIps.split("[\\r\\n ]+");
     }
 
     public String[] getDnsSearchDomainsConfig() {
-        return StringUtils.isEmpty(this.dnsSearchDomains) ? new String[] {} : this.dnsSearchDomains.split("[\\r\\n ]+");
+        return (this.dnsSearchDomains == null || this.dnsSearchDomains.isEmpty()) ? new String[] {} : this.dnsSearchDomains.split("[\\r\\n ]+");
     }
 
     public String[] getPortBindsConfig() {
-        return StringUtils.isEmpty(this.portBinds) ? new String[]{} : this.portBinds.split("[\\r\\n ]+");
+        return (this.portBinds == null || this.portBinds.isEmpty()) ? new String[]{} : this.portBinds.split("[\\r\\n ]+");
     }
 
     public String[] getEnvVarsConfig() {
-        return StringUtils.isEmpty(this.envVars) ? new String[] {} : this.envVars.split("[\\r\\n]+");
+        return (this.envVars == null || this.envVars.isEmpty()) ? new String[] {} : this.envVars.split("[\\r\\n]+");
     }
 
     public String[] getUnixCommandConfig() {
-        return StringUtils.isEmpty(this.unixCommand) ? new String[] {} : this.unixCommand.split("[\\r\\n]+");
+        return (this.unixCommand == null || this.unixCommand.isEmpty()) ? new String[] {} : this.unixCommand.split("[\\r\\n]+");
     }
     public String[] getWindowsCommandConfig() {
-        return StringUtils.isEmpty(this.windowsCommand) ? new String[] {} : this.windowsCommand.split("[\\r\\n\\s]+");
+        return (this.windowsCommand == null || this.windowsCommand.isEmpty()) ? new String[] {} : this.windowsCommand.split("[\\r\\n\\s]+");
     }
 
     public String[] getWindowsCommandConfig(String windowsCommand) {
-        return StringUtils.isEmpty(windowsCommand) ? new String[] {} : windowsCommand.split("[\\r\\n\\s]+");
+        return (windowsCommand == null || windowsCommand.isEmpty()) ? new String[] {} : windowsCommand.split("[\\r\\n\\s]+");
     }
 
     public String[] getHostsConfig() {
-        return StringUtils.isEmpty(this.hosts) ? new String[] {} : this.hosts.split("[\\r\\n]+");
+        return (this.hosts == null || this.hosts.isEmpty()) ? new String[] {} : this.hosts.split("[\\r\\n]+");
     }
 
     public long getLimitsNanoCPUs() {
@@ -209,7 +208,7 @@ public class DockerSwarmAgentTemplate implements Describable<DockerSwarmAgentTem
     }
 
     public String[] getPlacementConstraintsConfig() {
-        return StringUtils.isEmpty(this.placementConstraints) ? new String[] {} : this.placementConstraints.split(";");
+        return (this.placementConstraints == null || this.placementConstraints.isEmpty()) ? new String[] {} : this.placementConstraints.split(";");
     }
 
     public boolean isOsWindows() {
