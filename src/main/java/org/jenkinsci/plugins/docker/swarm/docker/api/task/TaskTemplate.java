@@ -1,15 +1,19 @@
 package org.jenkinsci.plugins.docker.swarm.docker.api.task;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jenkinsci.plugins.docker.swarm.docker.api.containers.ContainerSpec;
+import org.jenkinsci.plugins.docker.swarm.docker.api.network.Network;
 
 public class TaskTemplate {
     public org.jenkinsci.plugins.docker.swarm.docker.api.containers.ContainerSpec ContainerSpec;
     public RestartPolicy RestartPolicy = new RestartPolicy();
     public Resources Resources = new Resources();
     public Placement Placement;
+    public List<Network> Networks = new ArrayList<>();
 
     public TaskTemplate() {
         // for reading from api
