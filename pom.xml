@@ -14,7 +14,7 @@
 
     <name>Docker Swarm Plugin</name>
     <description>Cloud plugin for launching single use agent as a service on docker swarm.</description>
-    <url>https://wiki.jenkins.io/display/JENKINS/Docker+Swarm+Plugin</url>
+    <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
     <licenses>
         <license>
             <name>MIT License</name>
